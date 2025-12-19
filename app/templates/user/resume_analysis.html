@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Resume Analysis{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <h1>Resume Analysis</h1>
+        <p>Upload your resume (PDF) and optionally a job description to get a detailed analysis.</p>
+        <form method="POST" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+                {{ form.resume.label(class="form-label") }}
+                {{ form.resume(class="form-control") }}
+            </div>
+            <div class="mb-3">
+                {{ form.job_description.label(class="form-label") }}
+                {{ form.job_description(class="form-control", rows=10) }}
+            </div>
+            {{ form.submit(class="btn btn-primary") }}
+        </form>
+    </div>
+</div>
+{% endblock %}

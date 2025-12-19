@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Applicant Details{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Applicant: {{ application.user.username }}</h1>
+    <p>Applying for: {{ application.job.title }}</p>
+    <hr>
+    
+    <h4>Resume</h4>
+    <a href="{{ url_for('main.uploaded_file', filename=application.resume_path) }}" target="_blank">View Resume</a>
+
+    <hr>
+    
+    <h4>Resume Analysis</h4>
+    {% if application.user.user_data %}
+        {% set latest_analysis = application.user.user_data|sort(attribute='uploaded_at', reverse=True)|first %}
+        {% if latest_analysis %}
+            <div class="card">
+                <div class="card-header">
+                    <h5>Score: {{ latest_analysis.analysis_result.score }}/100</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Summary:</strong> {{ latest_analysis.analysis_result.summary }}</p>
+                    <p><strong>Matching Skills:</strong> {{ latest_analysis.analysis_result.matching_skills|join(', ') }}</p>
+                    <p><strong>Missing Skills:</strong> {{ latest_analysis.analysis_result.missing_skills|join(', ') }}</p>
+                    <p><strong>Improvement Suggestions:</strong> {{ latest_analysis.analysis_result.improvement_suggestions }}</p>
+                </div>
+            </div>
+        {% else %}
+            <p>No resume analysis found for this user.</p>
+        {% endif %}
+    {% else %}
+        <p>No resume analysis found for this user.</p>
+    {% endif %}
+
+</div>
+{% endblock %}

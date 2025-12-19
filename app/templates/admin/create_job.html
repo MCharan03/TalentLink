@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Create Job Posting{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <h1>Create Job Posting</h1>
+        <form method="POST" action="{{ url_for('admin.create_job') }}">
+            {{ form.hidden_tag() }}
+            {{ wtf.form_field(form.title, id='job-title') }}
+            <div class="d-flex justify-content-between align-items-center">
+                {{ form.description.label }}
+                <button type="button" id="generate-jd-btn" class="btn btn-secondary btn-sm">Generate with AI</button>
+            </div>
+            {{ form.description(id='job-description', rows=10) }}
+            <br/>
+            {{ form.submit(class="btn btn-primary mt-3") }}
+        </form>
+    </div>
+</div>
+{% endblock %}

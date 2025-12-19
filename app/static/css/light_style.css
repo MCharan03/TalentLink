@@ -1,0 +1,16 @@
+body {
+    background-color: #fff;
+    color: #212529;
+}
+
+.bg-dark {
+    background-color: #f8f9fa !important;
+}
+
+.navbar-dark .navbar-brand {
+    color: #212529;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+    color: #212529;
+}

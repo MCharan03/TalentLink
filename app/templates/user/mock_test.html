@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Mock Test{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <h1>Mock Test</h1>
+        <p>Enter a topic to generate a multiple-choice test.</p>
+        <form method="POST" action="{{ url_for('user.mock_test') }}">
+            {{ form.hidden_tag() }}
+            {{ wtf.form_field(form.topic) }}
+            {{ form.submit(class="btn btn-primary") }}
+        </form>
+    </div>
+</div>
+{% endblock %}

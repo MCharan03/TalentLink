@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="{{ url_for('admin.dashboard') }}">
+                            <span data-feather="home"></span>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.create_job') }}">
+                            <span data-feather="plus-circle"></span>
+                            Create Job
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <span data-feather="briefcase"></span>
+                            Job Postings
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <span data-feather="users"></span>
+                            Applicants
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Dashboard</h1>
+            </div>
+            <p>Welcome, {{ current_user.username }}!</p>
+
+            <h2>Job Postings</h2>
+            {% for job in jobs %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>{{ job.title }}</h5>
+                </div>
+                <div class="card-body">
+                    <p>{{ job.description[:200] }}...</p>
+                    <h6>Applicants:</h6>
+                    <ul class="list-group">
+                        {% for application in job.applications %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ application.user.username }}
+                            <a href="{{ url_for('admin.applicant_details', application_id=application.id) }}" class="btn btn-sm btn-primary">View Applicant</a>
+                        </li>
+                        {% else %}
+                        <li class="list-group-item">No applicants yet.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endfor %}
+        </main>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Resume Analysis Result{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-10 offset-md-1">
+        <h1>Resume Analysis Result</h1>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2>Overall Score: {{ result.score }}/100</h2>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">Summary</h5>
+                <p class="card-text">{{ result.summary }}</p>
+
+                <hr>
+
+                <h5 class="card-title">Skills</h5>
+                <p><strong>Detected Skills:</strong></p>
+                <ul>
+                    {% for skill in result.skills %}
+                        <li>{{ skill }}</li>
+                    {% endfor %}
+                </ul>
+
+                <p><strong>Matching Skills:</strong></p>
+                <ul>
+                    {% for skill in result.matching_skills %}
+                        <li>{{ skill }}</li>
+                    {% endfor %}
+                </ul>
+
+                <p><strong>Missing Skills:</strong></p>
+                <ul>
+                    {% for skill in result.missing_skills %}
+                        <li>{{ skill }}</li>
+                    {% endfor %}
+                </ul>
+
+                <hr>
+
+                <h5 class="card-title">Improvement Suggestions</h5>
+                <p class="card-text">{{ result.improvement_suggestions }}</p>
+            </div>
+        </div>
+        <a href="{{ url_for('user.resume_analysis') }}" class="btn btn-secondary mt-3">Analyze Another Resume</a>
+        <a href="{{ url_for('user.download_report', user_data_id=result.id, format='pdf') }}" class="btn btn-primary mt-3">Download as PDF</a>
+        <a href="{{ url_for('user.download_report', user_data_id=result.id, format='docx') }}" class="btn btn-primary mt-3">Download as DOCX</a>
+    </div>
+</div>
+{% endblock %}
