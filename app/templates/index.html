@@ -3,15 +3,18 @@
 {% block title %}Welcome{% endblock %}
 
 {% block content %}
-    <div class="p-5 mb-4 bg-light rounded-3">
+    <div class="p-5 mb-4 rounded-3" style="background-color: var(--sidebar-bg); border: 1px solid var(--border-color);">
         <div class="container-fluid py-5">
             <h1 class="display-5 fw-bold">Welcome to the Smart Resume Screener & Analyzer</h1>
-            <p class="col-md-8 fs-4">
+            <p class="col-md-8 fs-4 text-muted">
                 This platform helps job seekers and recruiters streamline the hiring process.
                 Analyze resumes, conduct mock interviews, and find the perfect match.
             </p>
             {% if not current_user.is_authenticated %}
-            <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">Get Started</a>
+            <div class="d-flex gap-3">
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">Get Started</a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary btn-lg">Login</a>
+            </div>
             {% else %}
             <a href="{{ url_for('user.dashboard') if current_user.role == 'user' else url_for('admin.dashboard') }}" class="btn btn-primary btn-lg">Go to Dashboard</a>
             {% endif %}

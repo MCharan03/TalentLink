@@ -1,39 +1,80 @@
-{% extends "base.html" %}
+{% extends "admin/admin_base.html" %}
 
 {% block title %}Applicant Details{% endblock %}
 
-{% block content %}
-<div class="container">
-    <h1>Applicant: {{ application.user.username }}</h1>
-    <p>Applying for: {{ application.job.title }}</p>
-    <hr>
-    
-    <h4>Resume</h4>
-    <a href="{{ url_for('main.uploaded_file', filename=application.resume_path) }}" target="_blank">View Resume</a>
-
-    <hr>
-    
-    <h4>Resume Analysis</h4>
-    {% if application.user.user_data %}
-        {% set latest_analysis = application.user.user_data|sort(attribute='uploaded_at', reverse=True)|first %}
-        {% if latest_analysis %}
-            <div class="card">
-                <div class="card-header">
-                    <h5>Score: {{ latest_analysis.analysis_result.score }}/100</h5>
-                </div>
-                <div class="card-body">
-                    <p><strong>Summary:</strong> {{ latest_analysis.analysis_result.summary }}</p>
-                    <p><strong>Matching Skills:</strong> {{ latest_analysis.analysis_result.matching_skills|join(', ') }}</p>
-                    <p><strong>Missing Skills:</strong> {{ latest_analysis.analysis_result.missing_skills|join(', ') }}</p>
-                    <p><strong>Improvement Suggestions:</strong> {{ latest_analysis.analysis_result.improvement_suggestions }}</p>
-                </div>
-            </div>
-        {% else %}
-            <p>No resume analysis found for this user.</p>
-        {% endif %}
-    {% else %}
-        <p>No resume analysis found for this user.</p>
-    {% endif %}
-
+{% block admin_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Applicant: {{ application.user.username }}</h1>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-outline-secondary">Back to Dashboard</a>
 </div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Application for: {{ application.job.title }}</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Applied on:</strong> {{ application.applied_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                <p><strong>Status:</strong> <span class="badge bg-info">{{ application.status }}</span></p>
+                <a href="{{ url_for('user.uploaded_file', filename=application.resume_path) }}" target="_blank" class="btn btn-primary">
+                    <span data-feather="file-text"></span> View Submitted Resume
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        {# Placeholder for actions like 'Reject', 'Advance to next stage' #}
+        <div class="card">
+             <div class="card-header">
+                <h5 class="mb-0">Actions</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">_Status change buttons will be implemented here._</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr class="my-4">
+
+<h2 class="h4">Resume Analysis</h2>
+
+{% set user_data = application.user.user_data|sort(attribute='uploaded_at', reverse=True) %}
+{% if user_data %}
+    {% set latest_analysis = user_data[0] %}
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Analysis for resume: {{ latest_analysis.resume_path }}</h5>
+            <div class="text-end">
+                <strong>Overall Score</strong>
+                <div class="display-5">{{ latest_analysis.analysis_result.score }}<small class="text-muted">/100</small></div>
+            </div>
+        </div>
+        <div class="card-body">
+            <p><strong>Summary:</strong> {{ latest_analysis.analysis_result.summary }}</p>
+            <hr>
+            <p><strong>Matching Skills:</strong>
+                {% for skill in latest_analysis.analysis_result.matching_skills %}
+                    <span class="badge bg-success me-1">{{ skill }}</span>
+                {% else %}
+                    <span class="text-muted">None found.</span>
+                {% endfor %}
+            </p>
+            <p><strong>Missing Skills:</strong>
+                {% for skill in latest_analysis.analysis_result.missing_skills %}
+                    <span class="badge bg-warning text-dark me-1">{{ skill }}</span>
+                {% else %}
+                    <span class="text-muted">None found.</span>
+                {% endfor %}
+            </p>
+            <hr>
+            <p><strong>Improvement Suggestions:</strong> {{ latest_analysis.analysis_result.improvement_suggestions }}</p>
+        </div>
+    </div>
+{% else %}
+    <div class="alert alert-warning" role="alert">
+      No resume analysis has been performed by this user yet.
+    </div>
+{% endif %}
 {% endblock %}

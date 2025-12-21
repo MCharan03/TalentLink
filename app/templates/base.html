@@ -5,68 +5,151 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Smart Resume Analyzer{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" id="theme-style"
           data-light-theme="{{ url_for('static', filename='css/light_style.css') }}"
           data-dark-theme="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .top-navbar {
+            background-color: var(--sidebar-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-nav-custom {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-item-custom a {
+            color: var(--text-color);
+            font-weight: 600;
+            text-decoration: none;
+            padding: 0.5rem 0;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .nav-item-custom a:hover, .nav-item-custom a.active {
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .brand-logo {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--text-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .brand-logo span {
+            color: var(--accent-color);
+            margin-right: 0.5rem;
+        }
+
+        .right-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .theme-toggle-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        main { padding-top: 3rem; }
+        .container-app { max-width: 1300px; margin: 0 auto; padding: 0 2rem; }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('main.index') }}">Smart Resume Analyzer</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    {% if current_user.is_authenticated %}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <span data-feather="bell"></span>
-                                <span class="badge rounded-pill bg-danger">{{ current_user.notifications.filter_by(is_read=false).count() }}</span>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                {% for notification in current_user.notifications.order_by(desc(Notification.created_at)).limit(5) %}
-                                <li><a class="dropdown-item" href="#">{{ notification.message }}</a></li>
-                                {% endfor %}
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="#">View all notifications</a></li>
-                            </ul>
+    <header class="top-navbar">
+        <div class="d-flex align-items-center">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-outline-danger me-4" title="Logout">
+                    <span data-feather="log-out"></span> Logout
+                </a>
+            {% endif %}
+            
+            <a href="{{ url_for('main.index') }}" class="brand-logo me-5">
+                <span data-feather="file-text"></span> SRA
+            </a>
+
+            <ul class="navbar-nav-custom">
+                {% if current_user.is_authenticated %}
+                    {% if current_user.role == 'user' %}
+                        <li class="nav-item-custom">
+                            <a href="{{ url_for('user.resume_analysis') }}" class="{% if request.endpoint == 'user.resume_analysis' %}active{% endif %}">Resume Analysis</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
+                        <li class="nav-item-custom">
+                            <a href="{{ url_for('user.dashboard') }}" class="{% if request.endpoint == 'user.dashboard' %}active{% endif %}">My Dashboard</a>
                         </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
+                        <li class="nav-item-custom">
+                            <a href="{{ url_for('user.interview_prep') }}" class="{% if request.endpoint == 'user.interview_prep' %}active{% endif %}">Interview Prep</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('auth.register') }}">Register</a>
+                    {% elif current_user.role == 'admin' %}
+                        <li class="nav-item-custom">
+                            <a href="{{ url_for('admin.dashboard') }}" class="{% if request.endpoint == 'admin.dashboard' %}active{% endif %}">Dashboard</a>
+                        </li>
+                        <li class="nav-item-custom">
+                            <a href="{{ url_for('admin.actions') }}" class="{% if request.endpoint == 'admin.actions' %}active{% endif %}">Actions</a>
+                        </li>
+                        <li class="nav-item-custom">
+                            <a href="{{ url_for('admin.interview_funnel') }}" class="{% if request.endpoint == 'admin.interview_funnel' %}active{% endif %}">Interview Funnel</a>
+                        </li>
+                        <li class="nav-item-custom">
+                            <a href="{{ url_for('admin.user_management') }}" class="{% if request.endpoint == 'admin.user_management' %}active{% endif %}">User Management</a>
                         </li>
                     {% endif %}
-                    <li class="nav-item">
-                        <button id="theme-toggle" class="btn btn-secondary">Toggle Theme</button>
-                    </li>
-                </ul>
-            </div>
+                {% endif %}
+            </ul>
         </div>
-    </nav>
+        
+        <div class="right-actions">
+            <button id="theme-toggle-btn" class="theme-toggle-btn">
+                <span data-feather="moon"></span> <span id="theme-text">Dark</span>
+            </button>
+        </div>
+    </header>
 
-    <div class="container mt-4">
+    <main class="container-app">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
+
         {% block content %}{% endblock %}
-    </div>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <script>
-      feather.replace()
-    </script>
+    <script>feather.replace()</script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>

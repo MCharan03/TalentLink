@@ -1,6 +1,7 @@
 from flask import Flask
 from .config import config
-from .extensions import db, login_manager, bcrypt, socketio, bootstrap
+from .extensions import db, login_manager, bcrypt, socketio, migrate, mail
+
 
 def create_app(config_name='default'):
     app = Flask(__name__)
@@ -11,7 +12,8 @@ def create_app(config_name='default'):
     login_manager.init_app(app)
     bcrypt.init_app(app)
     socketio.init_app(app)
-    bootstrap.init_app(app)
+    migrate.init_app(app, db)
+    mail.init_app(app)
 
     # Register blueprints
     from .auth import auth as auth_blueprint

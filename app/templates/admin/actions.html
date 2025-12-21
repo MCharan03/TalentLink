@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h3>System Actions</h3>
+<p class="text-muted">Manage data exports and maintenance.</p>
+
+<div class="row mt-4">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">Reporting</div>
+            <div class="card-body">
+                <p>Download comprehensive reports of user activity and system usage.</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('admin.export_data') }}" class="btn btn-outline-primary">
+                        <span data-feather="download"></span> Download Report as PDF (via CSV)
+                    </a>
+                    <a href="{{ url_for('admin.export_data') }}" class="btn btn-outline-primary">
+                        <span data-feather="download"></span> Download Report as DOCS (via CSV)
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header text-warning">Maintenance</div>
+            <div class="card-body">
+                <p>Clear temporary files or non-critical data from the system.</p>
+                <form action="{{ url_for('admin.reset_db') }}" method="POST">
+                    <input type="hidden" name="confirm" value="yes">
+                    <button type="submit" class="btn btn-outline-warning w-100">Clear Data</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

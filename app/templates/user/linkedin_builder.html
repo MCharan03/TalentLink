@@ -1,0 +1,34 @@
+{% extends "user/user_base.html" %}
+
+{% block title %}LinkedIn Builder{% endblock %}
+
+{% block user_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">LinkedIn Profile Builder</h1>
+</div>
+
+<p>Use AI to generate professional content for your LinkedIn profile.</p>
+
+<form method="POST">
+    {{ form.hidden_tag() }}
+    
+    <div class="mb-3">
+        {{ form.current_role.label(class="form-label") }}
+        {{ form.current_role(class="form-control", placeholder="e.g., Senior Software Engineer") }}
+    </div>
+    
+    <div class="mb-3">
+        {{ form.skills.label(class="form-label") }}
+        {{ form.skills(class="form-control", placeholder="e.g., Python, Cloud Architecture, Team Leadership") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.achievements.label(class="form-label") }}
+        {{ form.achievements(class="form-control", placeholder="e.g., Led a team of 5 developers, reduced cloud costs by 20%, launched 3 major products.") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.submit(class="btn btn-primary") }}
+    </div>
+</form>
+{% endblock %}

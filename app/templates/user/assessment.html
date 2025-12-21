@@ -1,0 +1,41 @@
+{% extends "user/user_base.html" %}
+
+{% block title %}Career Assessment{% endblock %}
+
+{% block user_content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm" style="background-color: #1a1c23;">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 text-center">
+                <h3 class="mb-0">Get to Know You More</h3>
+                <p class="text-muted mt-2">Helping us refine your skill analysis</p>
+            </div>
+            <div class="card-body p-5">
+                <h4 class="mb-4 text-center">{{ question.question }}</h4>
+                
+                <form action="{{ url_for('user.submit_assessment_answer') }}" method="POST">
+                    <input type="hidden" name="question" value="{{ question.question }}">
+                    
+                    <div class="mb-4">
+                        {% for option in question.options %}
+                        <div class="form-check mb-3 p-3 rounded" style="background-color: #262730; border: 1px solid rgba(255,255,255,0.1);">
+                            <input class="form-check-input ms-0 me-3" type="radio" name="answer" id="opt{{ loop.index }}" value="{{ option }}" required>
+                            <label class="form-check-label w-100" for="opt{{ loop.index }}">
+                                {{ option }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">Submit Answer</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer bg-transparent border-0 pb-4 text-center">
+                <a href="{{ url_for('user.resume_analysis_result', user_data_id=user_data_id) }}" class="text-muted small">Skip assessment for now</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

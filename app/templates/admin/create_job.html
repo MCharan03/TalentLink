@@ -1,23 +1,88 @@
-{% extends "base.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
+{% extends "admin/admin_base.html" %}
 
 {% block title %}Create Job Posting{% endblock %}
 
-{% block content %}
-<div class="row">
-    <div class="col-md-8 offset-md-2">
-        <h1>Create Job Posting</h1>
-        <form method="POST" action="{{ url_for('admin.create_job') }}">
-            {{ form.hidden_tag() }}
-            {{ wtf.form_field(form.title, id='job-title') }}
-            <div class="d-flex justify-content-between align-items-center">
-                {{ form.description.label }}
-                <button type="button" id="generate-jd-btn" class="btn btn-secondary btn-sm">Generate with AI</button>
+{% block admin_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Create New Job Posting</h1>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('admin.create_job') }}" novalidate>
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.title.label(class="form-label") }}
+                        {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else ""), id="job-title", placeholder="e.g., Senior Python Developer") }}
+                        {% for error in form.title.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            {{ form.description.label(class="form-label") }}
+                            <button type="button" id="generate-jd-btn" class="btn btn-outline-primary btn-sm">
+                                <span id="jd-spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
+                                Generate with AI
+                            </button>
+                        </div>
+                        {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), id="job-description", rows=12) }}
+                        {% for error in form.description.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
             </div>
-            {{ form.description(id='job-description', rows=10) }}
-            <br/>
-            {{ form.submit(class="btn btn-primary mt-3") }}
-        </form>
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.getElementById('generate-jd-btn').addEventListener('click', async function() {
+    const titleInput = document.getElementById('job-title');
+    const descriptionTextarea = document.getElementById('job-description');
+    const spinner = document.getElementById('jd-spinner');
+    const button = this;
+
+    const title = titleInput.value;
+    if (!title.trim()) {
+        alert('Please enter a job title first.');
+        return;
+    }
+
+    spinner.style.display = 'inline-block';
+    button.disabled = true;
+
+    try {
+        const response = await fetch("{{ url_for('admin.generate_jd') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ title: title }),
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            descriptionTextarea.value = result.description;
+        } else {
+            alert(result.error || 'An error occurred while generating the description.');
+        }
+    } catch (error) {
+        alert('A network error occurred. Please try again.');
+    } finally {
+        spinner.style.display = 'none';
+        button.disabled = false;
+    }
+});
+</script>
 {% endblock %}

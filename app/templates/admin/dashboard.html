@@ -1,70 +1,45 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Dashboard{% endblock %}
-
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
-            <div class="position-sticky pt-3">
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="{{ url_for('admin.dashboard') }}">
-                            <span data-feather="home"></span>
-                            Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.create_job') }}">
-                            <span data-feather="plus-circle"></span>
-                            Create Job
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <span data-feather="briefcase"></span>
-                            Job Postings
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <span data-feather="users"></span>
-                            Applicants
-                        </a>
-                    </li>
-                </ul>
+<div class="row">
+    <div class="col-md-8">
+        <h3>Admin Dashboard</h3>
+        <p class="text-muted">Overview of user activity and system state.</p>
+        
+        <div class="card p-4 mt-4">
+            <h5>User Activity</h5>
+            <canvas id="adminChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">Danger Zone</div>
+            <div class="card-body">
+                <p class="small">Resetting the database will delete ALL resume analyses, mock tests, job applications, and users (except admins).</p>
+                <form action="{{ url_for('admin.reset_db') }}" method="POST" onsubmit="return confirm('DELETE EVERYTHING? This is permanent!');">
+                    <input type="hidden" name="confirm" value="yes">
+                    <button type="submit" class="btn btn-danger w-100">Delete Whole Thing</button>
+                </form>
             </div>
-        </nav>
-
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">Dashboard</h1>
-            </div>
-            <p>Welcome, {{ current_user.username }}!</p>
-
-            <h2>Job Postings</h2>
-            {% for job in jobs %}
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5>{{ job.title }}</h5>
-                </div>
-                <div class="card-body">
-                    <p>{{ job.description[:200] }}...</p>
-                    <h6>Applicants:</h6>
-                    <ul class="list-group">
-                        {% for application in job.applications %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {{ application.user.username }}
-                            <a href="{{ url_for('admin.applicant_details', application_id=application.id) }}" class="btn btn-sm btn-primary">View Applicant</a>
-                        </li>
-                        {% else %}
-                        <li class="list-group-item">No applicants yet.</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-            {% endfor %}
-        </main>
+        </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('adminChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ engagement_dates | tojson }},
+            datasets: [{
+                label: 'Resumes Analyzed',
+                data: {{ analysis_counts | tojson }},
+                borderColor: '#ff4b4b',
+                tension: 0.1
+            }]
+        }
+    });
+</script>
 {% endblock %}

@@ -1,0 +1,229 @@
+from google import genai
+from google.genai import types
+import os
+import json
+import time
+import random
+from functools import wraps
+
+# Initialize the client with the API key
+client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+
+
+def retry_with_backoff(retries=3, backoff_in_seconds=1):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            x = 0
+            while True:
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    if x == retries:
+                        print(f"Failed after {retries} retries: {e}")
+                        raise
+                    sleep = (backoff_in_seconds * 2 **
+                             x + random.uniform(0, 1))
+                    time.sleep(sleep)
+                    x += 1
+        return wrapper
+    return decorator
+
+
+@retry_with_backoff()
+def _call_gemini(prompt, response_mime_type=None):
+    """
+    Helper function to call Gemini API with error handling and optional JSON parsing.
+    """
+    try:
+        config = types.GenerateContentConfig(
+            response_mime_type=response_mime_type) if response_mime_type else None
+
+        response = client.models.generate_content(
+            model='gemini-2.5-flash-lite',
+            contents=prompt,
+            config=config
+        )
+
+        if response_mime_type == 'application/json':
+            return json.loads(response.text)
+        return response.text
+    except Exception as e:
+        print(f"Gemini API Error: {e}")
+        return None
+
+
+def analyze_resume(resume_text, job_description):
+    """
+    Analyzes a resume against a job description using the Gemini API.
+    """
+    prompt = f"""
+    Analyze the following resume and job description.
+    Provide a detailed analysis in JSON format with the following structure:
+    - "resume_score": A score from 0 to 100 representing how well the resume matches the job description.
+    - "actual_skills": A list of key skills found in the resume.
+    - "matching_skills": A list of skills that are present in both the resume and the job description.
+    - "missing_skills": A list of skills that are present in the job description but not in the resume.
+    - "ai_summary": A brief summary of the candidate's profile.
+    - "improvement_suggestions": Actionable suggestions for the candidate to improve their resume for this specific job.
+    - "predicted_field": The most likely career field for this candidate (e.g., "Data Scientist", "Web Developer").
+    - "experience_level": One of "Fresher", "Intermediate", or "Experienced".
+    - "recommended_skills": A list of 10-15 skills to boost the resume.
+    - "recommended_courses": A list of 5-7 specific courses with platforms (e.g., "Deep Learning Specialization (Coursera)").
+    - "quantifiable_achievements_suggestions": A list of 5-8 suggestions on making achievements quantifiable.
+    - "formatting_analysis": A detailed text with "Strengths" and "Areas for Improvement" sections.
+    - "name": The candidate's name if found.
+    - "email": The candidate's email if found.
+    - "contact_number": The candidate's contact number if found.
+
+    Resume Text:
+    {resume_text}
+
+    Job Description:
+    {job_description}
+
+    Return only the JSON object.
+    """
+
+    result = _call_gemini(prompt, response_mime_type='application/json')
+
+    if not result:
+        return {
+            "resume_score": 0,
+            "actual_skills": [],
+            "matching_skills": [],
+            "missing_skills": [],
+            "ai_summary": "Error during analysis. Please try again.",
+            "improvement_suggestions": "Could not analyze the resume.",
+            "predicted_field": "N/A",
+            "experience_level": "N/A",
+            "recommended_skills": [],
+            "recommended_courses": [],
+            "quantifiable_achievements_suggestions": [],
+            "formatting_analysis": "N/A",
+            "name": "N/A",
+            "email": "N/A",
+            "contact_number": "N/A"
+        }
+    return result
+
+
+def generate_job_description(job_title):
+    """
+    Generates a job description using the Gemini API.
+    """
+    prompt = f"""
+    Generate a detailed and professional job description for the following job title: {job_title}.
+    Include sections for Responsibilities, Qualifications, and Benefits.
+    """
+    return _call_gemini(prompt) or "Error generating job description."
+
+
+def get_interview_question(answer, stage="continue"):
+    """
+    Gets the next interview question from the Gemini API.
+    """
+    if stage == "start":
+        prompt = "You are an interviewer. Your first question is: 'Tell me about yourself.'"
+    else:
+        prompt = f"""
+        You are an interviewer. The candidate's previous answer was:
+        '{answer}'
+        
+        Ask a relevant follow-up question.
+        """
+    return _call_gemini(prompt) or "I'm sorry, I had an issue generating the next question. Let's try again."
+
+
+def generate_mock_test(topic, num_questions=5):
+    """
+    Generates a mock test using the Gemini API.
+    """
+    prompt = f"""
+    Generate a multiple-choice test on the topic of '{topic}'.
+    Provide {num_questions} questions in JSON format with the following structure:
+    {{
+        "questions": [
+            {{
+                "question": "...",
+                "options": ["...", "...", "...", "..."],
+                "correct_answer": "..."
+            }}
+        ]
+    }}
+    Return only the JSON object.
+    """
+    return _call_gemini(prompt, response_mime_type='application/json')
+
+
+def generate_linkedin_content(role, skills, achievements):
+    """
+    Generates LinkedIn profile content using the Gemini API.
+    """
+    prompt = f"""
+    Generate professional LinkedIn profile content for a '{role}'.
+    
+    Key Skills: {skills}
+    Key Achievements: {achievements}
+    
+    Provide the content in JSON format with the following keys:
+    - "headline": A catchy and professional headline.
+    - "about": A compelling 'About' section summary (approx 2 paragraphs).
+    - "experience_bullets": A list of 3-5 strong bullet points describing the achievements for the Experience section.
+    
+    Return only the JSON object.
+    """
+    result = _call_gemini(prompt, response_mime_type='application/json')
+    if not result:
+        return {
+            "headline": "Error generating content",
+            "about": "Please try again later.",
+            "experience_bullets": []
+        }
+    return result
+
+
+def generate_next_assessment_question(conversation_history, predicted_field, experience_level):
+    """
+    Generates the next assessment question based on history.
+    """
+    if len(conversation_history) >= 3:
+        return {"status": "completed"}
+
+    prompt = f"""You are an expert career coach conducting an assessment.
+    The candidate's predicted field is '{predicted_field}' and their experience level is '{experience_level}'.
+    Here is the conversation history: {conversation_history}
+
+    Based on this, generate the next single multiple-choice question to probe their skills.
+    If the history is empty, ask a broad opening question related to the field.
+    After 3 questions, return a status of 'completed'.
+    
+    Return a JSON object with 'status', 'question', 'options', and 'answer'.
+    Example: {{"status": "in_progress", "question": "...", "options": ["A", "B", "C", "D"], "answer": "A"}}
+    """
+
+    result = _call_gemini(prompt, response_mime_type='application/json')
+    if not result:
+        return {"status": "completed"}
+    return result
+
+
+def generate_updated_analysis(initial_analysis, conversation_history):
+    """
+    Generates an updated analysis based on assessment answers.
+    """
+    prompt = f"""Given the initial resume analysis and the candidate's answers in the assessment, provide an updated analysis.
+    Initial Analysis: {initial_analysis}
+    Assessment History: {conversation_history}
+
+    The updated analysis should:
+    1. Refine 'ai_summary' with insights from the assessment.
+    2. Provide more specific 'recommended_skills' and 'recommended_courses'.
+    3. Add a new 'how_to_improve' section with actionable advice.
+
+    Return a JSON object with the updated fields.
+    """
+    result = _call_gemini(prompt, response_mime_type='application/json')
+    if result:
+        initial_analysis.update(result)
+    return initial_analysis

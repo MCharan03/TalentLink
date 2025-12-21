@@ -1,0 +1,30 @@
+<script>
+// Use a flag to prevent multiple logs
+let hasLoggedViolation = false;
+
+// 1. Detect Tab Switching
+document.addEventListener("visibilitychange", function() {
+  if (document.visibilityState === 'hidden' && !hasLoggedViolation) {
+    // When the user switches away, log it to the console.
+    hasLoggedViolation = true; // Set flag to true to prevent multiple logs
+    console.log("Proctoring Violation: User switched tabs or minimized the window at " + new Date());
+    // In a real scenario, you would send this event back to the Streamlit backend.
+  }
+});
+
+// 2. Block Copy-Paste and Right-click
+document.addEventListener('copy', function(e) {
+  e.preventDefault();
+  console.log("Copying was blocked.");
+});
+
+document.addEventListener('paste', function(e) {
+  e.preventDefault();
+  console.log("Pasting was blocked.");
+});
+
+document.addEventListener('contextmenu', function(e) {
+  e.preventDefault();
+  console.log("Right-clicking was blocked.");
+});
+</script>

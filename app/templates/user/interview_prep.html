@@ -1,0 +1,46 @@
+{% extends "user/user_base.html" %}
+
+{% block title %}Interview Prep{% endblock %}
+
+{% block user_content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-lg-10">
+        <div class="alert alert-info">
+            <span data-feather="info"></span> Interview Prep section is active!
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body p-5">
+                <h1 class="display-5 mb-4">Interview Prep</h1>
+                
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Select Interview Prep Type</label>
+                    <select id="prep-type" class="form-select form-select-lg">
+                        <option value="{{ url_for('user.mock_test') }}">Mock Test</option>
+                        <option value="{{ url_for('user.mock_interview') }}">Mock Interview</option>
+                    </select>
+                </div>
+
+                <div id="prep-details" class="mt-4">
+                    <div class="alert alert-dark p-4">
+                        <p class="mb-0">Please select an option above to begin your preparation. We recommend analyzing your resume first to get the most out of these tools.</p>
+                    </div>
+                </div>
+
+                <div class="d-grid mt-4">
+                    <button type="button" class="btn btn-primary btn-lg" onclick="startPrep()">Start Preparation</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function startPrep() {
+    const url = document.getElementById('prep-type').value;
+    window.location.href = url;
+}
+</script>
+{% endblock %}

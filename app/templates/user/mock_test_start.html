@@ -1,32 +1,33 @@
-{% extends "base.html" %}
+{% extends "user/user_base.html" %}
 
 {% block title %}Mock Test{% endblock %}
 
-{% block content %}
-<div class="row">
-    <div class="col-md-8 offset-md-2">
-        <h1>Mock Test: {{ test.questions.questions[0].topic if test.questions.questions }}</h1>
-        <form method="POST" action="{{ url_for('user.submit_test', test_id=test.id) }}">
-            {% for question in test.questions.questions %}
-            <div class="card my-3">
-                <div class="card-header">
-                    Question {{ loop.index }}
-                </div>
-                <div class="card-body">
-                    <h5 class="card-title">{{ question.question }}</h5>
-                    {% for option in question.options %}
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="question-{{ loop.parent.loop.index - 1 }}" id="option-{{ loop.parent.loop.index - 1 }}-{{ loop.index - 1 }}" value="{{ option }}">
-                        <label class="form-check-label" for="option-{{ loop.parent.loop.index - 1 }}-{{ loop.index - 1 }}">
-                            {{ option }}
-                        </label>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endfor %}
-            <button type="submit" class="btn btn-success">Submit Test</button>
-        </form>
-    </div>
+{% block user_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Mock Test: {{ topic }}</h1>
 </div>
+
+<form method="POST" action="{{ url_for('user.submit_test', test_id=test.id) }}">
+    {% for question in test.questions.questions %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <strong>Question {{ loop.index }}</strong>
+        </div>
+        <div class="card-body">
+            <p class="card-text">{{ question.question }}</p>
+            <div class="list-group">
+                {% for option in question.options %}
+                <label class="list-group-item">
+                    <input class="form-check-input me-1" type="radio" name="question-{{ loop.parent.loop.index0 }}" value="{{ option }}" required>
+                    {{ option }}
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    <div class="d-grid">
+        <button type="submit" class="btn btn-success btn-lg">Submit Test</button>
+    </div>
+</form>
 {% endblock %}

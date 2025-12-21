@@ -1,0 +1,35 @@
+{% extends "user/user_base.html" %}
+
+{% block title %}LinkedIn Builder Partial{% endblock %}
+
+{% block user_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <h3 class="mb-4">LinkedIn Profile Builder</h3>
+        <p class="text-muted mb-4">Use AI to generate professional content for your LinkedIn profile.</p>
+
+        <form method="POST" action="{{ url_for('user.linkedin_builder') }}">
+            {{ form.hidden_tag() }}
+            
+            <div class="mb-3">
+                {{ form.current_role.label(class="form-label") }}
+                {{ form.current_role(class="form-control", placeholder="e.g., Senior Software Engineer") }}
+            </div>
+            
+            <div class="mb-3">
+                {{ form.skills.label(class="form-label") }}
+                {{ form.skills(class="form-control", placeholder="e.g., Python, Cloud Architecture, Team Leadership") }}
+            </div>
+
+            <div class="mb-3">
+                {{ form.achievements.label(class="form-label") }}
+                {{ form.achievements(class="form-control", placeholder="e.g., Led a team of 5 developers, reduced cloud costs by 20%, launched 3 major products.") }}
+            </div>
+
+            <div class="mb-3 d-grid">
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

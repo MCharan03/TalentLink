@@ -1,0 +1,58 @@
+{% extends "user/user_base.html" %}
+
+{% block title %}LinkedIn Result{% endblock %}
+
+{% block user_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Your LinkedIn Content</h1>
+    <a href="{{ url_for('user.download_linkedin', filename=filename) }}" class="btn btn-outline-primary">
+        <span data-feather="download"></span> Download Text File
+    </a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">Headline</div>
+    <div class="card-body">
+        <div class="input-group">
+            <input type="text" class="form-control" value="{{ content.headline }}" id="headline-text" readonly>
+            <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('headline-text')">Copy</button>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">About Section</div>
+    <div class="card-body">
+        <textarea class="form-control mb-2" rows="6" id="about-text" readonly>{{ content.about }}</textarea>
+        <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('about-text')">Copy</button>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">Experience Bullet Points</div>
+    <div class="card-body">
+        <ul class="list-group list-group-flush">
+            {% for bullet in content.experience_bullets %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span id="bullet-{{ loop.index }}">{{ bullet }}</span>
+                <button class="btn btn-sm btn-outline-secondary" onclick="copyToClipboard('bullet-{{ loop.index }}')">Copy</button>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<script>
+function copyToClipboard(elementId) {
+    var copyText = document.getElementById(elementId);
+    if (copyText.tagName === 'INPUT' || copyText.tagName === 'TEXTAREA') {
+        copyText.select();
+        copyText.setSelectionRange(0, 99999); 
+        navigator.clipboard.writeText(copyText.value);
+    } else {
+        navigator.clipboard.writeText(copyText.innerText);
+    }
+    alert("Copied to clipboard!");
+}
+</script>
+{% endblock %}

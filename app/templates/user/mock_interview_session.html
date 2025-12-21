@@ -1,0 +1,131 @@
+{% extends "user/user_base.html" %}
+
+{% block title %}Mock Interview Session{% endblock %}
+
+{% block user_content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Mock Interview Session</h5>
+                <div>
+                    <span class="badge bg-danger me-2" id="warning-badge" style="display:none;">⚠️ Warning: Tab Switch Detected</span>
+                    <span class="badge bg-success">Live Session</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Webcam Feed (Proctoring) -->
+                    <div class="col-md-4 order-md-2 mb-3">
+                        <div class="card bg-dark text-white">
+                            <div class="card-header py-1 small">Webcam Feed (Proctoring)</div>
+                            <div class="card-body p-0">
+                                <video id="webcam" autoplay playsinline style="width: 100%; border-radius: 0 0 5px 5px;"></video>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Chat Container -->
+                    <div class="col-md-8 order-md-1">
+                        <div id="chat-container" class="border rounded p-3" style="height: 400px; overflow-y: auto; background-color: var(--bg-color);">
+                            <div class="chat-message bot-message mb-3">
+                                <div class="p-3 rounded bg-dark text-white" style="border-left: 4px solid var(--accent-color);">
+                                    Hello! I am your AI interviewer. Click "Start Interview" to begin.
+                                    <br><small class="text-muted">Note: Proctoring is active. Please stay on this tab.</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="input-group">
+                    <input type="text" id="user-input" class="form-control" placeholder="Type your answer here..." disabled>
+                    <button class="btn btn-primary" id="send-btn" disabled>Send</button>
+                </div>
+                <div class="d-grid mt-2">
+                    <button class="btn btn-success" id="start-btn">Start Interview</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+<script>
+    const socket = io();
+    const chatContainer = document.getElementById('chat-container');
+    const userInput = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
+    const startBtn = document.getElementById('start-btn');
+    const warningBadge = document.getElementById('warning-badge');
+    const webcamElement = document.getElementById('webcam');
+
+    // --- Proctoring Logic ---
+    
+    // 1. Tab Switch Detection
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+            warningBadge.style.display = 'inline-block';
+            alert("⚠️ Warning: You switched tabs! This action has been recorded.");
+        }
+    });
+
+    // 2. Disable Context Menu (Right Click)
+    document.addEventListener('contextmenu', event => event.preventDefault());
+
+    // 3. Webcam Access
+    async function startCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            webcamElement.srcObject = stream;
+        } catch (err) {
+            console.error("Error accessing webcam:", err);
+            alert("Could not access webcam. Proctoring requires camera access.");
+        }
+    }
+
+    // --- Chat Logic ---
+
+    function appendMessage(text, isUser) {
+        const div = document.createElement('div');
+        div.className = `chat-message ${isUser ? 'user-message text-end' : 'bot-message'} mb-3`;
+        div.innerHTML = `
+            <div class="p-3 rounded ${isUser ? 'bg-primary text-white' : 'bg-dark text-white'}" 
+                 style="${isUser ? '' : 'border-left: 4px solid var(--accent-color);'} display: inline-block; max-width: 80%;">
+                ${text}
+            </div>
+        `;
+        chatContainer.appendChild(div);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    startBtn.addEventListener('click', () => {
+        startCamera(); // Start proctoring cam
+        socket.emit('start_interview', {});
+        startBtn.style.display = 'none';
+        userInput.disabled = false;
+        sendBtn.disabled = false;
+        userInput.focus();
+    });
+
+    sendBtn.addEventListener('click', () => {
+        const text = userInput.value.trim();
+        if (text) {
+            appendMessage(text, true);
+            socket.emit('send_answer', { answer: text });
+            userInput.value = '';
+        }
+    });
+
+    userInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendBtn.click();
+    });
+
+    socket.on('interview_question', (data) => {
+        appendMessage(data.question, false);
+    });
+</script>
+{% endblock %}

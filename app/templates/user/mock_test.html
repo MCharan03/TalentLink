@@ -1,18 +1,32 @@
-{% extends "base.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
+{% extends "user/user_base.html" %}
 
 {% block title %}Mock Test{% endblock %}
 
-{% block content %}
-<div class="row">
-    <div class="col-md-6 offset-md-3">
-        <h1>Mock Test</h1>
-        <p>Enter a topic to generate a multiple-choice test.</p>
-        <form method="POST" action="{{ url_for('user.mock_test') }}">
-            {{ form.hidden_tag() }}
-            {{ wtf.form_field(form.topic) }}
-            {{ form.submit(class="btn btn-primary") }}
-        </form>
+{% block user_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Generate Mock Test</h1>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <p class="card-text">Enter a topic below to generate a multiple-choice test and assess your knowledge.</p>
+                <form method="POST" action="{{ url_for('user.mock_test') }}" novalidate>
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.topic.label(class="form-label") }}
+                        {{ form.topic(class="form-control" + (" is-invalid" if form.topic.errors else ""), placeholder="e.g., Python, Data Structures, Project Management") }}
+                        {% for error in form.topic.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
