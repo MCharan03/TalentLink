@@ -1,0 +1,79 @@
+/* Enhanced Aura Styles for Flask */
+
+:root {
+    --glass-bg: rgba(255, 255, 255, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --text-shimmer-grad: linear-gradient(to right, #1d1d1f 20%, #0071e3 40%, #5e5ce6 60%, #1d1d1f 80%);
+}
+
+[data-theme="dark"] {
+    --glass-bg: rgba(28, 28, 30, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --text-shimmer-grad: linear-gradient(to right, #f5f5f7 20%, #0071e3 40%, #5e5ce6 60%, #f5f5f7 80%);
+}
+
+/* 3D Tilt Card Base */
+.tilt-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.1s ease-out; /* Smooth return handled by JS, this is for initial */
+    transform-style: preserve-3d;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+.tilt-card .card-content {
+    transform: translateZ(20px); /* Pop out content */
+    position: relative;
+    z-index: 2;
+}
+
+.tilt-card .glare {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 24px;
+    z-index: 3;
+    pointer-events: none;
+    opacity: 0;
+    mix-blend-mode: overlay;
+    transition: opacity 0.2s;
+}
+
+/* Text Shimmer Effect */
+.text-shimmer {
+    background: var(--text-shimmer-grad);
+    background-size: 200% auto;
+    color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: shimmer 5s linear infinite;
+}
+
+@keyframes shimmer {
+    to { background-position: 200% center; }
+}
+
+/* Custom Cursor */
+body {
+    cursor: default; /* Fallback */
+}
+
+/* Noise Overlay */
+.noise-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}

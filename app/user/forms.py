@@ -1,7 +1,8 @@
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, TextAreaField, StringField
+from wtforms import SubmitField, TextAreaField, StringField, PasswordField
 from flask_wtf.file import FileField, FileRequired, FileAllowed
-from wtforms.validators import DataRequired, Email
+from wtforms.validators import DataRequired, Email, Length, EqualTo
+
 
 
 class ResumeAnalysisForm(FlaskForm):
@@ -53,3 +54,16 @@ class LinkedInBuilderForm(FlaskForm):
     achievements = TextAreaField(
         'Key Achievements/Highlights', render_kw={"rows": 5}, validators=[DataRequired()])
     submit = SubmitField('Generate Profile Content')
+
+
+class ProfileForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Update Profile')
+
+class ChangePasswordForm(FlaskForm):
+    old_password = PasswordField('Current Password', validators=[DataRequired()])
+    new_password = PasswordField('New Password', validators=[DataRequired(), Length(min=6)])
+    confirm_password = PasswordField('Confirm New Password', validators=[DataRequired(), EqualTo('new_password')])
+    submit = SubmitField('Change Password')
+

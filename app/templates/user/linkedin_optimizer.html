@@ -1,0 +1,419 @@
+{% extends "base.html" %}
+
+{% block title %}LinkedIn Profile Optimizer{% endblock %}
+
+{% block content %}
+<div class="row mb-4 animate-in">
+    <div class="col-12">
+        <h2 class="fw-bold">LinkedIn Profile Optimizer</h2>
+        <p class="text-muted">Enter your career details below, and our AI will rewrite your profile to be recruiter-ready.</p>
+    </div>
+</div>
+
+<div class="row g-4 assemble-grid">
+    <!-- Input Column -->
+    <div class="col-lg-6">
+        <div class="card p-4 h-100">
+            <form id="optimizerForm">
+                <!-- Basic Info -->
+                <h5 class="fw-bold mb-3 text-primary">Basic Info</h5>
+                <div class="mb-3">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" class="form-control" id="inp_name" value="{{ current_user.username }}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Current Summary / Bio (Draft)</label>
+                    <textarea class="form-control" id="inp_summary" rows="4" placeholder="Briefly describe your background..."></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Skills (Comma separated)</label>
+                    <textarea class="form-control" id="inp_skills" rows="2" placeholder="Python, Leadership, Project Management..."></textarea>
+                </div>
+
+                <hr class="border-glass my-4">
+
+                <!-- Experience Section -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-primary mb-0">Experience</h5>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addExperience()">
+                        <span data-feather="plus"></span> Add
+                    </button>
+                </div>
+                <div id="experienceList" class="d-flex flex-column gap-3">
+                    <!-- Dynamic Experience Items will go here -->
+                </div>
+
+                <hr class="border-glass my-4">
+
+                <!-- Education Section -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-primary mb-0">Education</h5>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addEducation()">
+                        <span data-feather="plus"></span> Add
+                    </button>
+                </div>
+                <div id="educationList" class="d-flex flex-column gap-3">
+                    <!-- Dynamic Edu Items -->
+                </div>
+
+                <hr class="border-glass my-4">
+
+                <!-- Projects Section -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-primary mb-0">Projects</h5>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addProject()">
+                        <span data-feather="plus"></span> Add
+                    </button>
+                </div>
+                <div id="projectList" class="d-flex flex-column gap-3">
+                    <!-- Dynamic Project Items -->
+                </div>
+
+                <div class="mt-5">
+                    <button type="submit" class="btn btn-primary w-100" id="btnOptimize">
+                        <span id="btnText">Optimize Profile</span>
+                        <span id="btnLoader" class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Output Column -->
+    <div class="col-lg-6">
+        <div class="card p-4 h-100 position-sticky" style="top: 2rem;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-success mb-0">Optimized Result</h5>
+                <div>
+                    <button class="btn btn-sm btn-outline-success" id="btnDownload" disabled onclick="downloadProfile()">
+                        <span data-feather="download"></span> .txt
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger ms-2" id="btnDownloadPdf" disabled onclick="downloadResumePdf()">
+                        <span data-feather="file-text"></span> PDF Resume
+                    </button>
+                </div>
+            </div>
+            
+            <div id="resultContainer" class="bg-surface rounded p-3 border border-glass" style="min-height: 500px; max-height: 80vh; overflow-y: auto;">
+                <div class="text-center text-muted py-5" id="placeholderState">
+                    <span data-feather="layout" style="width: 48px; height: 48px; opacity: 0.3;"></span>
+                    <p class="mt-3">Fill out your details and click Optimize to see the AI magic here.</p>
+                </div>
+                
+                <div id="contentState" class="d-none">
+                    <!-- Headline -->
+                    <div class="mb-4">
+                        <label class="small text-muted text-uppercase fw-bold">Headline</label>
+                        <div class="p-2 bg-dark bg-opacity-25 rounded border border-glass position-relative group">
+                            <p class="mb-0 fw-bold text-main" id="out_headline">Senior Developer | ...</p>
+                            <button class="btn btn-sm btn-link position-absolute top-0 end-0 p-1 text-muted" onclick="copyText('out_headline')"><span data-feather="copy" style="width: 14px;"></span></button>
+                        </div>
+                    </div>
+
+                    <!-- About -->
+                    <div class="mb-4">
+                        <label class="small text-muted text-uppercase fw-bold">About</label>
+                        <div class="p-2 bg-dark bg-opacity-25 rounded border border-glass position-relative">
+                            <p class="mb-0 small text-secondary" id="out_about" style="white-space: pre-wrap;">...</p>
+                            <button class="btn btn-sm btn-link position-absolute top-0 end-0 p-1 text-muted" onclick="copyText('out_about')"><span data-feather="copy" style="width: 14px;"></span></button>
+                        </div>
+                    </div>
+
+                    <!-- Experience -->
+                    <div class="mb-4">
+                        <label class="small text-muted text-uppercase fw-bold">Experience</label>
+                        <div id="out_experience" class="d-flex flex-column gap-3"></div>
+                    </div>
+
+                    <!-- Education -->
+                    <div class="mb-4">
+                        <label class="small text-muted text-uppercase fw-bold">Education</label>
+                        <div id="out_education" class="d-flex flex-column gap-2"></div>
+                    </div>
+                    
+                    <!-- Skills -->
+                     <div class="mb-4">
+                        <label class="small text-muted text-uppercase fw-bold">Skills</label>
+                        <div class="p-2 bg-dark bg-opacity-25 rounded border border-glass position-relative">
+                            <p class="mb-0 small text-secondary" id="out_skills">...</p>
+                            <button class="btn btn-sm btn-link position-absolute top-0 end-0 p-1 text-muted" onclick="copyText('out_skills')"><span data-feather="copy" style="width: 14px;"></span></button>
+                        </div>
+                    </div>
+
+                    <!-- Projects -->
+                    <div class="mb-4">
+                        <label class="small text-muted text-uppercase fw-bold">Projects</label>
+                        <div id="out_projects" class="d-flex flex-column gap-3"></div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden Templates for JS -->
+<template id="tpl_experience">
+    <div class="p-3 bg-surface rounded border border-glass position-relative experience-item">
+        <button type="button" class="btn-close btn-sm position-absolute top-0 end-0 m-2" aria-label="Remove" onclick="this.closest('.experience-item').remove()"></button>
+        <div class="row g-2">
+            <div class="col-6"><input type="text" class="form-control form-control-sm" placeholder="Job Title" name="job_title" required></div>
+            <div class="col-6"><input type="text" class="form-control form-control-sm" placeholder="Company" name="job_company" required></div>
+            <div class="col-6"><input type="text" class="form-control form-control-sm" placeholder="Dates" name="job_dates"></div>
+            <div class="col-6"><input type="text" class="form-control form-control-sm" placeholder="Location" name="job_location"></div>
+            <div class="col-12"><textarea class="form-control form-control-sm" placeholder="Description/Bullets" rows="3" name="job_desc"></textarea></div>
+        </div>
+    </div>
+</template>
+
+<template id="tpl_education">
+    <div class="p-3 bg-surface rounded border border-glass position-relative education-item">
+        <button type="button" class="btn-close btn-sm position-absolute top-0 end-0 m-2" aria-label="Remove" onclick="this.closest('.education-item').remove()"></button>
+        <div class="row g-2">
+             <div class="col-12"><input type="text" class="form-control form-control-sm" placeholder="School/University" name="edu_school" required></div>
+            <div class="col-6"><input type="text" class="form-control form-control-sm" placeholder="Degree" name="edu_degree" required></div>
+            <div class="col-6"><input type="text" class="form-control form-control-sm" placeholder="Dates" name="edu_dates"></div>
+        </div>
+    </div>
+</template>
+
+<template id="tpl_project">
+    <div class="p-3 bg-surface rounded border border-glass position-relative project-item">
+        <button type="button" class="btn-close btn-sm position-absolute top-0 end-0 m-2" aria-label="Remove" onclick="this.closest('.project-item').remove()"></button>
+        <div class="row g-2">
+            <div class="col-12"><input type="text" class="form-control form-control-sm" placeholder="Project Name" name="proj_name" required></div>
+            <div class="col-12"><textarea class="form-control form-control-sm" placeholder="Description" rows="2" name="proj_desc"></textarea></div>
+        </div>
+    </div>
+</template>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // --- Helper to add dynamic fields ---
+    function addTemplate(tplId, listId) {
+        const tpl = document.getElementById(tplId);
+        const list = document.getElementById(listId);
+        const clone = tpl.content.cloneNode(true);
+        list.appendChild(clone);
+        if(typeof feather !== 'undefined') feather.replace();
+    }
+    
+    function addExperience() { addTemplate('tpl_experience', 'experienceList'); }
+    function addEducation() { addTemplate('tpl_education', 'educationList'); }
+    function addProject() { addTemplate('tpl_project', 'projectList'); }
+
+    // Initialize with one of each
+    document.addEventListener('DOMContentLoaded', () => {
+        addExperience();
+        addEducation();
+    });
+
+    // --- Form Submission ---
+    document.getElementById('optimizerForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // 1. Gather Data
+        const data = {
+            name: document.getElementById('inp_name').value,
+            summary: document.getElementById('inp_summary').value,
+            skills: document.getElementById('inp_skills').value,
+            jobs: [],
+            educations: [],
+            projects: []
+        };
+        
+        // Gather Jobs
+        document.querySelectorAll('.experience-item').forEach(item => {
+            data.jobs.push({
+                title: item.querySelector('[name="job_title"]').value,
+                company: item.querySelector('[name="job_company"]').value,
+                dates: item.querySelector('[name="job_dates"]').value,
+                location: item.querySelector('[name="job_location"]').value,
+                description: item.querySelector('[name="job_desc"]').value
+            });
+        });
+        
+        // Gather Edu
+        document.querySelectorAll('.education-item').forEach(item => {
+            data.educations.push({
+                school: item.querySelector('[name="edu_school"]').value,
+                degree: item.querySelector('[name="edu_degree"]').value,
+                dates: item.querySelector('[name="edu_dates"]').value
+            });
+        });
+
+        // Gather Projects
+        document.querySelectorAll('.project-item').forEach(item => {
+            data.projects.push({
+                name: item.querySelector('[name="proj_name"]').value,
+                description: item.querySelector('[name="proj_desc"]').value
+            });
+        });
+
+        // 2. UI Loading State
+        const btn = document.getElementById('btnOptimize');
+        const btnText = document.getElementById('btnText');
+        const btnLoader = document.getElementById('btnLoader');
+        
+        btn.disabled = true;
+        btnText.innerText = "Optimizing...";
+        btnLoader.classList.remove('d-none');
+
+        try {
+            // 3. API Call
+            const response = await fetch("{{ url_for('user.api_optimize_linkedin') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token() }}" 
+                },
+                body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            
+            if(result.error) {
+                alert('Error: ' + result.error);
+                return;
+            }
+            
+            // 4. Render Results
+            renderResult(result);
+
+        } catch (err) {
+            console.error(err);
+            alert('An unexpected error occurred.');
+        } finally {
+            btn.disabled = false;
+            btnText.innerText = "Optimize Profile";
+            btnLoader.classList.add('d-none');
+        }
+    });
+
+    let currentResult = null;
+
+    function renderResult(data) {
+        currentResult = data;
+        document.getElementById('placeholderState').classList.add('d-none');
+        document.getElementById('contentState').classList.remove('d-none');
+        document.getElementById('btnDownload').disabled = false;
+        document.getElementById('btnDownloadPdf').disabled = false;
+
+        document.getElementById('out_headline').innerText = data.headline || 'N/A';
+        document.getElementById('out_about').innerText = data.about || 'N/A';
+        document.getElementById('out_skills').innerText = data.skills || 'N/A';
+        
+        // Render Jobs
+        const expContainer = document.getElementById('out_experience');
+        expContainer.innerHTML = '';
+        if(data.experience) {
+            data.experience.forEach(job => {
+                const el = document.createElement('div');
+                el.className = 'p-3 bg-dark bg-opacity-25 rounded border border-glass';
+                el.innerHTML = `
+                    <div class="d-flex justify-content-between">
+                        <span class="fw-bold text-main">${job.title}</span>
+                        <span class="small text-muted">${job.dates || ''}</span>
+                    </div>
+                    <div class="small text-primary mb-2">${job.company} | ${job.location || ''}</div>
+                    <p class="small text-secondary mb-0" style="white-space: pre-wrap;">${job.description}</p>
+                `;
+                expContainer.appendChild(el);
+            });
+        }
+
+        // Render Edu
+        const eduContainer = document.getElementById('out_education');
+        eduContainer.innerHTML = '';
+        if(data.education) {
+            data.education.forEach(edu => {
+                const el = document.createElement('div');
+                el.className = 'p-2 bg-dark bg-opacity-25 rounded border border-glass d-flex justify-content-between align-items-center';
+                el.innerHTML = `
+                    <div>
+                        <div class="fw-bold text-main small">${edu.school}</div>
+                        <div class="small text-muted">${edu.degree}</div>
+                    </div>
+                    <span class="small text-muted">${edu.dates || ''}</span>
+                `;
+                eduContainer.appendChild(el);
+            });
+        }
+        
+        // Render Projects
+        const projContainer = document.getElementById('out_projects');
+        projContainer.innerHTML = '';
+        if(data.projects) {
+            data.projects.forEach(proj => {
+                const el = document.createElement('div');
+                el.className = 'p-3 bg-dark bg-opacity-25 rounded border border-glass';
+                el.innerHTML = `
+                    <div class="fw-bold text-main mb-1">${proj.name}</div>
+                    <p class="small text-secondary mb-0">${proj.description}</p>
+                `;
+                projContainer.appendChild(el);
+            });
+        }
+        
+        if(typeof feather !== 'undefined') feather.replace();
+    }
+
+    function copyText(elementId) {
+        const text = document.getElementById(elementId).innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            // Optional: Show simple toast
+        });
+    }
+
+    function downloadProfile() {
+        if(!currentResult) return;
+        
+        // Use a hidden form to post data to download endpoint
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = "{{ url_for('user.download_optimized_linkedin') }}";
+        
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'data';
+        input.value = JSON.stringify(currentResult);
+        
+        const csrf = document.createElement('input');
+        csrf.type = 'hidden';
+        csrf.name = 'csrf_token';
+        csrf.value = "{{ csrf_token() }}";
+        
+        form.appendChild(input);
+        form.appendChild(csrf);
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+    }
+
+    function downloadResumePdf() {
+        if(!currentResult) return;
+        
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = "{{ url_for('user.download_resume_pdf_optimized') }}";
+        
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'data';
+        input.value = JSON.stringify(currentResult);
+        
+        const csrf = document.createElement('input');
+        csrf.type = 'hidden';
+        csrf.name = 'csrf_token';
+        csrf.value = "{{ csrf_token() }}";
+        
+        form.appendChild(input);
+        form.appendChild(csrf);
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+    }
+</script>
+{% endblock %}

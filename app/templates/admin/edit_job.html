@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Job{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center animate-in">
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3>Edit Job Posting</h3>
+            <a href="{{ url_for('admin.interview_funnel') }}" class="btn btn-outline-secondary btn-sm">
+                <span data-feather="arrow-left"></span> Back
+            </a>
+        </div>
+
+        <div class="card p-4 shadow-sm">
+            <form action="{{ url_for('admin.edit_job', job_id=job.id) }}" method="POST">
+                {{ form.hidden_tag() }}
+                <div class="mb-3">
+                    {{ form.title.label(class="form-label") }}
+                    <div class="input-group">
+                        {{ form.title(class="form-control", id="jobTitleInput") }}
+                        <button type="button" class="btn btn-outline-primary" id="aiGenerateBtn">
+                            <span data-feather="cpu"></span> AI Regenerate
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    {{ form.description.label(class="form-label") }}
+                    {{ form.description(class="form-control", rows=10, id="jobDescInput") }}
+                </div>
+                <div class="d-flex gap-2 justify-content-end">
+                    <a href="{{ url_for('admin.interview_funnel') }}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Update Job</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const generateBtn = document.getElementById('aiGenerateBtn');
+    const titleInput = document.getElementById('jobTitleInput');
+    const descInput = document.getElementById('jobDescInput');
+
+    generateBtn.addEventListener('click', function() {
+        const title = titleInput.value;
+        if (!title) {
+            alert('Please enter a job title first.');
+            return;
+        }
+        
+        if (!confirm('This will replace the current description. Continue?')) return;
+
+        // Loading state
+        const originalText = generateBtn.innerHTML;
+        generateBtn.disabled = true;
+        generateBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...';
+
+        fetch("{{ url_for('admin.generate_job_desc_api') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': "{{ csrf_token() }}" 
+            },
+            body: JSON.stringify({ title: title })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.description) {
+                descInput.value = data.description;
+            } else if (data.error) {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while generating the description.');
+        })
+        .finally(() => {
+            generateBtn.disabled = false;
+            generateBtn.innerHTML = originalText;
+            if (typeof feather !== 'undefined') feather.replace();
+        });
+    });
+});
+</script>
+{% endblock %}

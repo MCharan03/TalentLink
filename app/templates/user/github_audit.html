@@ -1,0 +1,36 @@
+{% extends "user/user_base.html" %}
+
+{% block title %}GitHub Audit{% endblock %}
+
+{% block user_content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white">
+                <h4 class="mb-0"><i class="fab fa-github"></i> GitHub Portfolio Auditor</h4>
+            </div>
+            <div class="card-body p-4">
+                <p class="text-muted mb-4">
+                    Enter your GitHub username to let our AI analyze your code quality, project maturity, and "hard skills" directly from your source code.
+                </p>
+
+                <form method="POST" action="{{ url_for('user.github_audit') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label for="github_username" class="form-label">GitHub Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text">github.com/</span>
+                            <input type="text" class="form-control" id="github_username" name="github_username" placeholder="octocat" required>
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            Analyze Portfolio
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

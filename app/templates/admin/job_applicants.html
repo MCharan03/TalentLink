@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4 animate-in">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h3 class="fw-bold">Applicants for: {{ job.title }}</h3>
+            <a href="{{ url_for('admin.interview_funnel') }}" class="text-muted text-decoration-none">
+                <span data-feather="arrow-left"></span> Back to Jobs
+            </a>
+        </div>
+        <div>
+             <span class="badge bg-primary fs-6">{{ applicant_data|length }} Applicants</span>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm animate-in delay-100">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Candidate</th>
+                        <th>Applied On</th>
+                        <th>Resume Score</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if applicant_data %}
+                        {% for data in applicant_data %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle me-3 bg-primary-subtle text-primary fw-bold d-flex justify-content-center align-items-center rounded-circle" style="width: 40px; height: 40px;">
+                                        {{ data.user.username[0].upper() }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold">{{ data.user.username }}</div>
+                                        <div class="small text-muted">{{ data.user.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ data.application.applied_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                {% if data.score != 'N/A' %}
+                                    {% if data.score >= 80 %}
+                                        <span class="badge bg-success">{{ data.score }}%</span>
+                                    {% elif data.score >= 50 %}
+                                        <span class="badge bg-warning text-dark">{{ data.score }}%</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">{{ data.score }}%</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-info text-dark">{{ data.application.status|capitalize }}</span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <a href="{{ url_for('user.uploaded_file', filename=data.application.resume_path) }}" class="btn btn-sm btn-outline-primary me-1" target="_blank" title="View Resume">
+                                    <span data-feather="file-text"></span>
+                                </a>
+                                {% set latest_analysis = data.user.user_data[-1] if data.user.user_data else None %}
+                                {% if latest_analysis %}
+                                    <a href="{{ url_for('admin.view_analysis', user_data_id=latest_analysis.id) }}" class="btn btn-sm btn-outline-info me-1" title="View AI Analysis">
+                                        <span data-feather="eye"></span>
+                                    </a>
+                                {% endif %}
+                                {% if data.application.status == 'submitted' %}
+                                    <a href="{{ url_for('admin.update_application_status', app_id=data.application.id, status='shortlisted') }}" class="btn btn-sm btn-outline-success me-1" title="Shortlist">
+                                        <span data-feather="check"></span>
+                                    </a>
+                                    <a href="{{ url_for('admin.update_application_status', app_id=data.application.id, status='rejected') }}" class="btn btn-sm btn-outline-danger" title="Reject">
+                                        <span data-feather="x"></span>
+                                    </a>
+                                {% endif %}
+                            </td>
+
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <span data-feather="users" style="width: 48px; height: 48px; opacity: 0.5;"></span>
+                                <p class="mt-3 mb-0">No applicants yet for this job.</p>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

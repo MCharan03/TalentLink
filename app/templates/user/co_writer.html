@@ -1,0 +1,128 @@
+{% extends "user/user_base.html" %}
+
+{% block title %}AI Co-Writer{% endblock %}
+
+{% block user_content %}
+<div class="container mt-4 h-100">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold"><i class="fas fa-pen-nib text-primary"></i> AI Co-Writer</h2>
+            <p class="text-muted">Draft your resume sections with real-time AI assistance. Start typing, and our AI will suggest high-impact metrics and action verbs.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Editor Area -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+                    <select id="section-context" class="form-select w-auto border-0 fw-bold text-primary">
+                        <option value="Experience Section">Experience Section</option>
+                        <option value="Professional Summary">Professional Summary</option>
+                        <option value="Projects">Projects</option>
+                        <option value="Skills Highlights">Skills Highlights</option>
+                    </select>
+                    <div class="small text-muted" id="status-text">Ready</div>
+                </div>
+                <div class="card-body p-0">
+                    <textarea id="editor" class="form-control border-0 p-4" style="height: 500px; resize: none; font-size: 1.1rem; line-height: 1.6; background: transparent;" placeholder="Start writing your resume bullet point here... (e.g., 'Led a team of developers to...')"></textarea>
+                </div>
+                <div class="card-footer bg-white border-top text-end">
+                    <button class="btn btn-outline-primary" onclick="getAISuggestion()">
+                        <i class="fas fa-magic me-1"></i> Get Suggestions
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Suggestion Sidebar -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0 fw-bold"><i class="fas fa-lightbulb me-2"></i> AI Suggestions</h6>
+                </div>
+                <div class="card-body" id="suggestion-container">
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-magic fa-2x mb-3 opacity-25"></i>
+                        <p class="small">Start typing or click "Get Suggestions" to see AI enhancements.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let typingTimer;
+    const editor = document.getElementById('editor');
+    const suggestionContainer = document.getElementById('suggestion-container');
+    const statusText = document.getElementById('status-text');
+
+    editor.addEventListener('keyup', () => {
+        clearTimeout(typingTimer);
+        statusText.innerText = 'Typing...';
+        typingTimer = setTimeout(getAISuggestion, 2000); // Wait for 2 seconds of inactivity
+    });
+
+    function getAISuggestion() {
+        const content = editor.value.trim();
+        const context = document.getElementById('section-context').value;
+        
+        if (!content || content.length < 10) {
+            statusText.innerText = 'Ready';
+            return;
+        }
+
+        statusText.innerText = 'AI is thinking...';
+        
+        fetch("{{ url_for('user.api_co_writer_suggest') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': "{{ csrf_token() }}"
+            },
+            body: JSON.stringify({ content, context })
+        })
+        .then(res => res.json())
+        .then(data => {
+            statusText.innerText = 'Suggestions ready';
+            suggestionContainer.innerHTML = '';
+            
+            if (data.suggestions && data.suggestions.length > 0) {
+                data.suggestions.forEach(s => {
+                    const card = document.createElement('div');
+                    card.className = 'card mb-3 border-glass hover-lift cursor-pointer p-3 small';
+                    card.style.background = 'rgba(99, 102, 241, 0.05)';
+                    card.innerHTML = \
+                        `<div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="badge bg-primary">Enhancement</span>
+                            <button class="btn btn-sm btn-link p-0" onclick="applySuggestion('${s.replace(/'/g, "\'")}')"><i class="fas fa-plus"></i> Use</button>
+                        </div>
+                        <p class="mb-0 text-dark">${s}</p>
+                    `;
+                    suggestionContainer.appendChild(card);
+                });
+            } else {
+                suggestionContainer.innerHTML = '<p class="text-muted small text-center">Keep writing to get more suggestions...</p>';
+            }
+        })
+        .catch(err => {
+            statusText.innerText = 'Error';
+            console.error(err);
+        });
+    }
+
+    function applySuggestion(text) {
+        editor.value += " " + text;
+        editor.focus();
+        suggestionContainer.innerHTML = '<p class="text-muted small text-center">Applied! Write more to get new suggestions.</p>';
+    }
+</script>
+
+<style>
+    .cursor-pointer { cursor: pointer; }
+    .hover-lift:hover { transform: translateY(-3px); transition: transform 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+</style>
+{% endblock %}

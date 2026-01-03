@@ -1,18 +1,10 @@
-{% extends "user/user_base.html" %}
-
-{% block title %}Resume Builder Partial{% endblock %}
-
-{% block user_content %}
 <div class="row justify-content-center">
-    <div class="col-lg-10">
-        <h3 class="mb-4">Resume Builder</h3>
-        <p class="text-muted mb-4">Create a simple, professional resume in minutes.</p>
-
+    <div class="col-lg-12">
         <form method="POST" action="{{ url_for('user.resume_builder') }}">
             {{ form.hidden_tag() }}
             
             <div class="card mb-4">
-                <div class="card-header bg-light"><strong>Personal Information</strong></div>
+                <div class="card-header bg-transparent border-bottom"><strong>Personal Information</strong></div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -36,16 +28,22 @@
             </div>
 
             <div class="card mb-4">
-                <div class="card-header bg-light"><strong>Professional Summary</strong></div>
+                <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
+                    <strong>Professional Summary</strong>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="btn-gen-summary">
+                        <span data-feather="cpu" class="me-1"></span> Generate with AI
+                    </button>
+                </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        {{ form.summary(class="form-control") }}
+                        {{ form.summary(class="form-control", rows=4, id="summary-field") }}
+                        <div id="summary-loader" class="text-muted small mt-2" style="display:none;">Generated...</div>
                     </div>
                 </div>
             </div>
 
             <div class="card mb-4">
-                <div class="card-header bg-light"><strong>Education</strong></div>
+                <div class="card-header bg-transparent border-bottom"><strong>Education</strong></div>
                 <div class="card-body">
                      <div class="row">
                         <div class="col-md-6 mb-3">
@@ -65,39 +63,130 @@
             </div>
             
             <div class="card mb-4">
-                <div class="card-header bg-light"><strong>Latest Experience</strong></div>
+                <div class="card-header bg-transparent border-bottom"><strong>Latest Experience</strong></div>
                 <div class="card-body">
                      <div class="row">
                         <div class="col-md-6 mb-3">
                             {{ form.job_title.label(class="form-label") }}
-                            {{ form.job_title(class="form-control") }}
+                            {{ form.job_title(class="form-control", id="job-title-field") }}
                         </div>
                         <div class="col-md-6 mb-3">
                             {{ form.company.label(class="form-label") }}
                             {{ form.company(class="form-control") }}
                         </div>
                          <div class="col-12 mb-3">
-                            {{ form.job_description.label(class="form-label") }}
-                            {{ form.job_description(class="form-control") }}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                {{ form.job_description.label(class="form-label mb-0") }}
+                                <button type="button" class="btn btn-sm btn-outline-success" id="btn-refine-exp">
+                                    <span data-feather="check-circle" class="me-1"></span> Refine with AI
+                                </button>
+                            </div>
+                            {{ form.job_description(class="form-control", rows=4, id="job-desc-field") }}
+                            <div class="form-text text-muted">Write rough points, AI will format them.</div>
                         </div>
                     </div>
                 </div>
             </div>
             
              <div class="card mb-4">
-                <div class="card-header bg-light"><strong>Skills</strong></div>
+                <div class="card-header bg-transparent border-bottom"><strong>Skills</strong></div>
                 <div class="card-body">
                     <div class="mb-3">
-                        {{ form.skills(class="form-control") }}
-                        <div class="form-text">Separated by commas (e.g., Python, Java, Leadership)</div>
+                        {{ form.skills(class="form-control", id="skills-field") }}
+                        <div class="form-text text-muted">Separated by commas (e.g., Python, Java, Leadership)</div>
                     </div>
                 </div>
             </div>
 
-            <div class="mb-5 d-grid">
+            <div class="mb-3 d-grid">
                 {{ form.submit(class="btn btn-primary btn-lg") }}
             </div>
         </form>
     </div>
 </div>
-{% endblock %}
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Generate Summary
+    const btnGenSummary = document.getElementById('btn-gen-summary');
+    const summaryField = document.getElementById('summary-field');
+    const jobTitleField = document.getElementById('job-title-field');
+    const skillsField = document.getElementById('skills-field');
+
+    btnGenSummary.addEventListener('click', async () => {
+        const jobTitle = jobTitleField.value;
+        const skills = skillsField.value;
+
+        if (!jobTitle) {
+            alert("Please enter a Job Title first.");
+            jobTitleField.focus();
+            return;
+        }
+
+        btnGenSummary.disabled = true;
+        btnGenSummary.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Thinking...';
+
+        try {
+            const response = await fetch('/user/api/generate_summary', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ job_title: jobTitle, skills: skills })
+            });
+            const data = await response.json();
+            
+            if (data.summary) {
+                summaryField.value = data.summary;
+            } else {
+                alert('Could not generate summary. Try again.');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('AI Service Error.');
+        } finally {
+            btnGenSummary.disabled = false;
+            btnGenSummary.innerHTML = '<span data-feather="cpu" class="me-1"></span> Generate with AI';
+            feather.replace();
+        }
+    });
+
+    // 2. Refine Experience
+    const btnRefineExp = document.getElementById('btn-refine-exp');
+    const jobDescField = document.getElementById('job-desc-field');
+
+    btnRefineExp.addEventListener('click', async () => {
+        const jobTitle = jobTitleField.value;
+        const rawText = jobDescField.value;
+
+        if (!rawText || !jobTitle) {
+            alert("Please provide Job Title and some rough description text.");
+            return;
+        }
+
+        btnRefineExp.disabled = true;
+        btnRefineExp.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Refining...';
+
+        try {
+            const response = await fetch('/user/api/refine_experience', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ role: jobTitle, raw_text: rawText })
+            });
+            const data = await response.json();
+            
+            if (data.refined_bullets) {
+                // Convert list to bullet string
+                jobDescField.value = data.refined_bullets.map(b => `• ${b}`).join('\n');
+            } else {
+                alert('Could not refine text.');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('AI Service Error.');
+        } finally {
+            btnRefineExp.disabled = false;
+            btnRefineExp.innerHTML = '<span data-feather="check-circle" class="me-1"></span> Refine with AI';
+            feather.replace();
+        }
+    });
+});
+</script>

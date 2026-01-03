@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Applicant Analysis - {{ result.get('name', 'Candidate') }}{% endblock %}
+
+{% block content %}
+<div class="row animate-in">
+    <!-- Header -->
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-bold mb-0">Applicant Analysis: {{ result.get('name', 'N/A') }}</h2>
+                <p class="text-muted mb-0">Analysis for candidate application (Uploaded on {{ user_data.uploaded_at.strftime('%B %d, %Y') }})</p>
+            </div>
+            <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                <span data-feather="arrow-left" class="me-1"></span> Back
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- LEFT COLUMN (Sticky Sidebar) -->
+        <div class="col-lg-4">
+            <div class="sticky-top" style="top: 20px; z-index: 1;">
+                <!-- Resume Preview -->
+                <div class="card overflow-hidden shadow-lg mb-4" style="border: 1px solid var(--border-glass);">
+                    <div class="card-header bg-transparent py-2 px-3 border-bottom border-glass d-flex justify-content-between align-items-center">
+                        <span class="fw-bold small text-primary"><span data-feather="file-text" class="me-2"></span>Original Resume</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <iframe src="{{ url_for('user.uploaded_file', filename=user_data.resume_path) }}" class="resume-preview-frame" style="height: 600px; width: 100%; border:none; background: white;"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN (Scrollable Analysis) -->
+        <div class="col-lg-8">
+            
+            <!-- 1. Key Metrics -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="card p-4 h-100 text-center">
+                        <div class="score-circle-container mx-auto" style="--score: {{ result.get('resume_score', 0) }}; width: 120px; height: 120px;">
+                            <div class="score-circle-inner">
+                                <span class="fs-3 fw-bold text-primary">{{ result.get('resume_score', 0) }}</span>
+                                <span class="small text-muted">/100</span>
+                            </div>
+                        </div>
+                        <p class="mt-2 fw-bold small text-muted text-uppercase mb-0">Resume Score</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card p-4 h-100">
+                        <div class="mb-3">
+                            <strong class="d-block text-muted small text-uppercase mb-1">Predicted Field</strong>
+                            <span class="badge bg-primary bg-opacity-10 text-primary fs-6">{{ result.get('predicted_field', 'General') }}</span>
+                        </div>
+                        <div>
+                            <strong class="d-block text-muted small text-uppercase mb-1">Experience Level</strong>
+                            <span class="fw-bold text-white">{{ result.get('experience_level', 'Experienced') }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Basic Information -->
+            <div class="card p-4 mb-4">
+                <h5 class="fw-bold mb-3 border-bottom pb-2">📋 Candidate Information</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <strong class="d-block text-muted small text-uppercase">Name</strong>
+                        <span>{{ result.get('name', 'N/A') }}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong class="d-block text-muted small text-uppercase">Email</strong>
+                        <span>{{ result.get('email', 'N/A') }}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong class="d-block text-muted small text-uppercase">Contact</strong>
+                        <span>{{ result.get('contact_number', 'N/A') }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Skills -->
+            <div class="card p-4 mb-4">
+                <h5 class="fw-bold mb-3 border-bottom pb-2">💡 Skills Breakdown</h5>
+                <div class="row g-4">
+                    <div class="col-md-6 border-end-md">
+                        <h6 class="fw-bold text-success mb-3">✅ Extracted Skills</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for skill in result.get('actual_skills', []) %}
+                                <span class="tag-badge">{{ skill }}</span>
+                            {% else %}
+                                <span class="text-muted small">No skills detected.</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-primary mb-3">🚀 Missing (Recommended) Skills</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for skill in result.get('recommended_skills', []) %}
+                                <span class="tag-badge tag-badge-secondary">{{ skill }}</span>
+                            {% else %}
+                                <span class="text-muted small">N/A</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. AI Summary (Crucial for Admin) -->
+            <div class="card p-4 mb-4">
+                <h5 class="fw-bold mb-3 border-bottom pb-2">📝 AI Qualitative Assessment</h5>
+                <div class="bg-surface p-3 rounded" style="border: 1px solid var(--border-color); line-height: 1.7; color: var(--text-main);">
+                    {{ result.get('ai_summary', 'No summary generated.')|safe }}
+                </div>
+            </div>
+
+            <!-- 5. Formatting & Achievements -->
+            <div class="row g-4">
+                <div class="col-md-6">
+                     <div class="card p-4 h-100">
+                        <h5 class="fw-bold mb-3 border-bottom pb-2">📄 Formatting</h5>
+                        <div class="small text-muted">
+                            {{ result.get('formatting_analysis', 'N/A')|safe }}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card p-4 h-100">
+                        <h5 class="fw-bold mb-3 border-bottom pb-2">🎯 Achievements</h5>
+                        <ul class="list-unstyled small">
+                            {% for suggestion in result.get('quantifiable_achievements_suggestions', []) %}
+                                <li class="mb-2 d-flex align-items-start">
+                                    <span data-feather="check-circle" class="text-success me-2 mt-1 flex-shrink-0" style="width: 14px;"></span>
+                                    <span>{{ suggestion }}</span>
+                                </li>
+                            {% else %}
+                                <li class="text-muted">No specific analysis.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

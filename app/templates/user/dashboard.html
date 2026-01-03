@@ -3,165 +3,372 @@
 {% block title %}My Dashboard{% endblock %}
 
 {% block content %}
-<div class="mb-4">
-    <h2>My Dashboard</h2>
-    <p class="text-muted">Welcome back, {{ current_user.username }}!</p>
+<div class="row">
+    <!-- Sidebar Navigation (Glass Style) -->
+    <div class="col-lg-3 mb-4">
+        <div class="card p-4 border-0 sticky-lg-top">
+            <div class="nav flex-column nav-pills gap-2" id="v-pills-tab" role="tablist">
+                <button class="nav-link active text-start d-flex align-items-center" id="v-pills-overview-tab" data-bs-toggle="pill" data-bs-target="#v-pills-overview" type="button">
+                    <span data-feather="grid" class="me-3"></span> Overview
+                </button>
+                <button class="nav-link text-start d-flex align-items-center" id="v-pills-analyses-tab" data-bs-toggle="pill" data-bs-target="#v-pills-analyses" type="button">
+                    <span data-feather="file-text" class="me-3"></span> Analyses
+                </button>
+                <button class="nav-link text-start d-flex align-items-center" id="v-pills-jobs-tab" data-bs-toggle="pill" data-bs-target="#v-pills-jobs" type="button">
+                    <span data-feather="briefcase" class="me-3"></span> Jobs
+                </button>
+                <button class="nav-link text-start d-flex align-items-center" id="v-pills-interviews-tab" data-bs-toggle="pill" data-bs-target="#v-pills-interviews" type="button">
+                    <span data-feather="video" class="me-3"></span> Interviews
+                </button>
+                <button class="nav-link text-start d-flex align-items-center" id="v-pills-resume-tab" data-bs-toggle="pill" data-bs-target="#v-pills-resume" type="button">
+                    <span data-feather="pen-tool" class="me-3"></span> Resume Builder
+                </button>
+                <a href="{{ url_for('user.co_writer') }}" class="nav-link text-start d-flex align-items-center">
+                    <span data-feather="edit-3" class="me-3"></span> AI Co-Writer
+                </a>
+                <a href="{{ url_for('user.ats_simulator') }}" class="nav-link text-start d-flex align-items-center">
+                    <span data-feather="terminal" class="me-3"></span> ATS Simulator
+                </a>
+                <a href="{{ url_for('user.github_audit') }}" class="nav-link text-start d-flex align-items-center">
+                    <span data-feather="github" class="me-3"></span> GitHub Audit
+                </a>
+                <a href="{{ url_for('user.linkedin_optimizer') }}" class="nav-link text-start d-flex align-items-center">
+                    <span data-feather="linkedin" class="me-3"></span> LinkedIn Optimizer
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="col-lg-9">
+        <div class="tab-content" id="v-pills-tabContent">
+            
+            <!-- 1. Overview Tab -->
+            <div class="tab-pane fade show active assemble-in anim-up" id="v-pills-overview" role="tabpanel">
+                
+                <!-- Gamification Header -->
+                <div class="card p-4 mb-4 border-0 position-relative overflow-hidden" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div class="level-badge me-4 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px; background: var(--primary); border-radius: 15px; transform: rotate(5deg);">
+                                <h3 class="fw-bold mb-0 text-white" style="transform: rotate(-5deg);">{{ xp_profile.level }}</h3>
+                            </div>
+                            <div>
+                                <h4 class="fw-bold mb-1">Career Level {{ xp_profile.level }}</h4>
+                                <div class="d-flex align-items-center gap-2" style="width: 300px;">
+                                    <div class="progress flex-grow-1" style="height: 10px; background: rgba(255,255,255,0.1);">
+                                        <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ xp_profile.total_xp % 100 }}%"></div>
+                                    </div>
+                                    <span class="small text-muted fw-bold">{{ xp_profile.total_xp % 100 }}/100 XP</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <p class="small text-muted text-uppercase mb-0">Total Experience</p>
+                            <h5 class="fw-bold mb-0 text-primary">{{ xp_profile.total_xp }} XP</h5>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="fw-bold mb-1">Welcome back, {{ current_user.username }}</h2>
+                        <p class="text-muted">Here's what's happening with your career application.</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                         <a href="{{ url_for('user.resume_analysis') }}" class="btn btn-primary">
+                            <span data-feather="plus" class="me-1"></span> New Analysis
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <!-- Stats (Left) -->
+                    <div class="col-lg-8">
+                        <div class="row g-4 mb-5 assemble-grid">
+                            <div class="col-md-6">
+                                <div class="card p-4 h-100 d-flex flex-column justify-content-between">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <p class="text-muted text-uppercase small fw-bold mb-1">Total Analyses</p>
+                                            <h2 class="display-5 fw-bold text-white mb-0">{{ analyses|length }}</h2>
+                                        </div>
+                                        <div class="bg-primary bg-opacity-10 p-2 rounded">
+                                            <span data-feather="file-text" class="text-primary"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card p-4 h-100 d-flex flex-column justify-content-between">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <p class="text-muted text-uppercase small fw-bold mb-1">Jobs Applied</p>
+                                            <h2 class="display-5 fw-bold text-white mb-0">{{ applications|length }}</h2>
+                                        </div>
+                                        <div class="bg-success bg-opacity-10 p-2 rounded">
+                                            <span data-feather="briefcase" class="text-success"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chart Section -->
+                        <div class="card p-4 mb-4 border-0 position-relative overflow-hidden">
+                            <div style="position: absolute; top: 0; right: 0; width: 200px; height: 200px; background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%); opacity: 0.2;"></div>
+                            <h5 class="fw-bold mb-4">Performance Trend</h5>
+                            <div style="height: 300px; position: relative; width: 100%;">
+                                {% if resume_scores|length > 1 %}
+                                    <canvas id="userProgressChart"></canvas>
+                                {% else %}
+                                    <div class="d-flex flex-column justify-content-center align-items-center h-100 text-muted">
+                                        <span data-feather="bar-chart-2" style="width: 48px; height: 48px; opacity: 0.3;"></span>
+                                        <p class="mt-3">Not enough data to visualize trends.</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quests (Right) -->
+                    <div class="col-lg-4">
+                        <div class="card h-100 p-4 border-0">
+                            <h5 class="fw-bold mb-4 d-flex align-items-center">
+                                <span data-feather="award" class="me-2 text-warning"></span> Active Quests
+                            </h5>
+                            {% for uq in active_quests %}
+                                {% set quest = uq.quest %}
+                                <div class="mb-4 pb-3 border-bottom">
+                                    <h6 class="fw-bold mb-1">{{ quest.title }}</h6>
+                                    <p class="small text-muted mb-2">{{ quest.description }}</p>
+                                    <div class="d-flex justify-content-between mb-1 small">
+                                        <span>Progress</span>
+                                        <span>{{ uq.progress.get('count', 0) }}/{{ quest.criteria.get('count', 1) }}</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ (uq.progress.get('count', 0) / quest.criteria.get('count', 1)) * 100 }}%"></div>
+                                    </div>
+                                    <div class="mt-2 small text-primary fw-bold">+{{ quest.xp_reward }} XP Reward</div>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-5">
+                                    <p class="text-muted small">All quests completed! Check back later.</p>
+                                </div>
+                            {% endfor %}
+
+                            {% if completed_quests %}
+                            <div class="mt-4">
+                                <h6 class="text-muted text-uppercase small fw-bold mb-3">Recently Completed</h6>
+                                {% for uq in completed_quests[:2] %}
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <span data-feather="check-circle" class="text-success" style="width: 14px; height: 14px;"></span>
+                                        <span class="small">{{ uq.quest.title }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Analyses Tab -->
+            <div class="tab-pane fade animate-in" id="v-pills-analyses" role="tabpanel">
+                <h3 class="fw-bold mb-4">Analysis History</h3>
+                <div class="row g-4">
+                    {% for item in analyses %}
+                    <div class="col-md-6">
+                        <div class="card h-100 p-4 hover-lift">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h5 class="fw-bold mb-1 text-white">{{ item.analysis_result.get('name', 'Unknown') }}</h5>
+                                    <p class="text-muted small mb-0">{{ item.uploaded_at.strftime('%b %d, %Y') }}</p>
+                                </div>
+                                {% set score = item.analysis_result.get('resume_score', 0) %}
+                                <div class="text-center">
+                                    <span class="display-6 fw-bold" style="color: {{ 'var(--accent)' if score >= 70 else 'var(--primary)' if score >= 40 else 'var(--danger)' }};">{{ score }}</span>
+                                    <div class="small text-muted text-uppercase" style="font-size: 0.6rem; letter-spacing: 1px;">Score</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <span class="tag-badge">{{ item.analysis_result.get('predicted_field', 'General') }}</span>
+                                <span class="tag-badge">{{ item.analysis_result.get('experience_level', 'N/A') }}</span>
+                            </div>
+
+                            <div class="d-grid gap-2 mt-auto">
+                                <a href="{{ url_for('user.resume_analysis_result', user_data_id=item.id) }}" class="btn btn-outline-secondary">View Full Report</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                        <div class="col-12 text-center py-5">
+                            <p class="text-muted">No analyses found.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination Controls -->
+                {% if analyses_pagination.pages > 1 %}
+                <nav aria-label="Analysis page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item {% if not analyses_pagination.has_prev %}disabled{% endif %}">
+                            <a class="page-link" href="{{ url_for('user.dashboard', page=analyses_pagination.prev_num) if analyses_pagination.has_prev else '#' }}">Previous</a>
+                        </li>
+                        {% for page_num in analyses_pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                            {% if page_num %}
+                                <li class="page-item {% if page_num == analyses_pagination.page %}active{% endif %}">
+                                    <a class="page-link" href="{{ url_for('user.dashboard', page=page_num) }}">{{ page_num }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            {% endif %}
+                        {% endfor %}
+                        <li class="page-item {% if not analyses_pagination.has_next %}disabled{% endif %}">
+                            <a class="page-link" href="{{ url_for('user.dashboard', page=analyses_pagination.next_num) if analyses_pagination.has_next else '#' }}">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+            
+            <!-- Other Tabs (Simplified for brevity, but structure maintained) -->
+            <div class="tab-pane fade" id="v-pills-jobs" role="tabpanel">
+                <h3 class="fw-bold mb-4">Job Applications</h3>
+                {% if applications %}
+                    <div class="card p-0 overflow-hidden">
+                        <table class="table table-hover table-dark mb-0 bg-transparent">
+                            <thead>
+                                <tr class="text-muted text-uppercase small">
+                                    <th class="p-3 ps-4">Date</th>
+                                    <th class="p-3">Position</th>
+                                    <th class="p-3">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for app in applications %}
+                                <tr>
+                                    <td class="p-3 ps-4">{{ app.applied_at.strftime('%b %d') }}</td>
+                                    <td class="p-3 fw-bold text-white">{{ app.job.title }}</td>
+                                    <td class="p-3"><span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25">{{ app.status }}</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="card p-5 text-center text-muted border-dashed">No applications yet.</div>
+                {% endif %}
+            </div>
+
+            <!-- Interviews -->
+             <div class="tab-pane fade" id="v-pills-interviews" role="tabpanel">
+                <h3 class="fw-bold mb-4">Interview Sessions</h3>
+                 {% if interviews %}
+                    <div class="card p-0 overflow-hidden">
+                         <table class="table table-hover table-dark mb-0 bg-transparent">
+                            <thead>
+                                <tr class="text-muted text-uppercase small">
+                                    <th class="p-3 ps-4">Date</th>
+                                    <th class="p-3">Type</th>
+                                    <th class="p-3">Result</th>
+                                </tr>
+                            </thead>
+                             <tbody>
+                                {% for interview in interviews %}
+                                <tr>
+                                    <td class="p-3 ps-4">{{ interview.started_at.strftime('%b %d, %H:%M') }}</td>
+                                    <td class="p-3">Mock Interview (AI)</td>
+                                    <td class="p-3"><span class="badge bg-success">Completed</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="card p-5 text-center text-muted border-dashed">No interviews recorded.</div>
+                {% endif %}
+            </div>
+
+            <div class="tab-pane fade" id="v-pills-resume" role="tabpanel">
+                <div class="card p-4">
+                    <h3 class="fw-bold mb-3">Resume Builder</h3>
+                     {% with form=resume_form %}
+                        {% include "user/resume_builder_partial.html" %}
+                    {% endwith %}
+                </div>
+            </div>
+
+        </div>
+    </div>
 </div>
 
-<ul class="nav nav-tabs mb-4" id="dashboardTabs" role="tablist">
-  <li class="nav-item">
-    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#past-analyses" type="button">Past Analyses</button>
-  </li>
-  <li class="nav-item">
-    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#job-opportunities" type="button">Job Opportunities</button>
-  </li>
-  <li class="nav-item">
-    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#my-progress" type="button">My Progress</button>
-  </li>
-  <li class="nav-item">
-    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#past-interviews" type="button">Past Interview Analysis</button>
-  </li>
-  <li class="nav-item">
-    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#resume-builder" type="button">Resume Builder</button>
-  </li>
-  <li class="nav-item">
-    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#linkedin-builder" type="button">LinkedIn Builder</button>
-  </li>
-</ul>
+<!-- Chart Script -->
+{% if resume_scores|length > 1 %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const ctx = document.getElementById('userProgressChart');
+        if (ctx) {
+            const data = {{ resume_scores | tojson }};
+            // Get styles from CSS variables
+            const style = getComputedStyle(document.body);
+            const primary = style.getPropertyValue('--primary').trim();
+            const textMuted = style.getPropertyValue('--text-muted').trim();
+            const borderGlass = style.getPropertyValue('--border-glass').trim();
 
-<div class="tab-content" id="dashboardTabsContent">
-  <!-- Past Analyses -->
-  <div class="tab-pane fade show active" id="past-analyses">
-      {% if analyses %}
-      <div class="table-responsive">
-        <table class="table table-striped table-hover align-middle">
-          <thead class="table-dark">
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Email_ID</th>
-              <th>ai_feedback</th>
-              <th>Timestamp</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for item in analyses %}
-            <tr>
-              <td>{{ loop.index }}</td>
-              <td>{{ item.analysis_result.get('name', 'N/A') }}</td>
-              <td>{{ item.analysis_result.get('email', 'N/A') }}</td>
-              <td class="text-truncate" style="max-width: 300px;">{{ item.analysis_result.ai_summary }}</td>
-              <td>{{ item.uploaded_at.strftime('%Y-%m-%d %H:%M') }}</td>
-              <td>
-                  <a href="{{ url_for('user.resume_analysis_result', user_data_id=item.id) }}" class="btn btn-sm btn-primary">View</a>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      {% else %}
-        <p class="text-muted">No past analyses found.</p>
-      {% endif %}
-  </div>
+            new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.timestamp),
+                    datasets: [{
+                        label: 'Resume Score',
+                        data: data.map(d => d.score),
+                        borderColor: primary,
+                        backgroundColor: (context) => {
+                            const ctx = context.chart.ctx;
+                            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                            gradient.addColorStop(0, 'rgba(99, 102, 241, 0.4)');
+                            gradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
+                            return gradient;
+                        },
+                        borderWidth: 3,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: primary,
+                        pointHoverBackgroundColor: primary,
+                        pointHoverBorderColor: '#fff',
+                        fill: true,
+                        tension: 0.4 // Smoother curves
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 2000,
+                        easing: 'easeOutQuart'
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: textMuted }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { display: false }
+                        }
+                    }
+                }
+            });
 
-  <!-- Job Opportunities -->
-  <div class="tab-pane fade" id="job-opportunities">
-      {% if applications %}
-      <div class="table-responsive">
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th>Date Applied</th>
-              <th>Job Title</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for app in applications %}
-            <tr>
-              <td>{{ app.applied_at.strftime('%Y-%m-%d') }}</td>
-              <td>{{ app.job.title }}</td>
-              <td><span class="badge bg-secondary">{{ app.status }}</span></td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      {% else %}
-        <p class="text-muted">No applications yet. <a href="{{ url_for('user.jobs') }}">Find jobs</a>.</p>
-      {% endif %}
-  </div>
-
-  <!-- My Progress -->
-  <div class="tab-pane fade" id="my-progress">
-      {% if resume_scores|length > 1 %}
-          <div class="card p-4">
-              <canvas id="userProgressChart"></canvas>
-          </div>
-          <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-          <script>
-              document.addEventListener("DOMContentLoaded", function() {
-                  const ctx = document.getElementById('userProgressChart').getContext('2d');
-                  const data = {{ resume_scores | tojson }};
-                  new Chart(ctx, {
-                      type: 'line',
-                      data: {
-                          labels: data.map(d => d.timestamp),
-                          datasets: [{
-                              label: 'Score',
-                              data: data.map(d => d.score),
-                              borderColor: '#ff4b4b',
-                              fill: true
-                          }]
-                      }
-                  });
-              });
-          </script>
-      {% else %}
-          <p class="text-muted">Need at least two analyses to show progress.</p>
-      {% endif %}
-  </div>
-
-  <!-- Past Interview Analysis -->
-  <div class="tab-pane fade" id="past-interviews">
-      {% if interviews %}
-       <div class="table-responsive">
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th>Date Started</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for interview in interviews %}
-            <tr>
-              <td>{{ interview.started_at.strftime('%Y-%m-%d %H:%M') }}</td>
-              <td><span class="badge bg-success">Completed</span></td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      {% else %}
-        <p class="text-muted">No interviews yet.</p>
-      {% endif %}
-  </div>
-
-  <!-- Resume Builder -->
-  <div class="tab-pane fade" id="resume-builder">
-      {% with form=resume_form %}
-          {% include "user/resume_builder_partial.html" %}
-      {% endwith %}
-  </div>
-
-  <!-- LinkedIn Builder -->
-  <div class="tab-pane fade" id="linkedin-builder">
-      {% with form=linkedin_form %}
-          {% include "user/linkedin_builder_partial.html" %}
-      {% endwith %}
-  </div>
-</div>
+        }
+    });
+</script>
+{% endif %}
 {% endblock %}

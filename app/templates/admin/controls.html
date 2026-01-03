@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}System Controls | SRA Admin{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-5 animate-up">
+        <div>
+            <h1 class="display-5 fw-bold text-main">System Control Center</h1>
+            <p class="text-muted">Global configuration and maintenance</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-danger animate-pulse">Admin Access Only</span>
+        </div>
+    </div>
+
+    <div class="row g-4 animate-up delay-100">
+        <!-- Gamification Controls -->
+        <div class="col-md-6">
+            <div class="card border-glass h-100">
+                <div class="card-header bg-transparent fw-bold text-purple-400">
+                    <i data-feather="crosshair" class="me-2"></i>Gamification Engine
+                </div>
+                <div class="card-body">
+                    <h5 class="text-main mb-3">XP Multiplier</h5>
+                    <p class="text-muted small">Adjust the global XP gain rate for special events.</p>
+                    
+                    {% set xp_setting = settings | selectattr("key", "equalto", "xp_multiplier") | first %}
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <input type="range" class="form-range" min="1" max="5" step="0.5" id="xpRange" 
+                               value="{{ xp_setting.value if xp_setting else 1.0 }}" onchange="updateVal(this.value)">
+                        <span class="fw-bold text-primary fs-4" id="xpDisplay">{{ xp_setting.value if xp_setting else 1.0 }}x</span>
+                    </div>
+                    <button class="btn btn-outline-primary btn-sm" onclick="saveSetting('xp_multiplier', document.getElementById('xpRange').value)">
+                        Apply Multiplier
+                    </button>
+                    
+                    <hr class="border-glass my-4">
+                    
+                    <h5 class="text-main mb-3">Deploy New Quest</h5>
+                    <form action="{{ url_for('admin.create_quest') }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="mb-2">
+                            <input type="text" name="title" class="form-control bg-surface text-main border-secondary" placeholder="Quest Title" required>
+                        </div>
+                        <div class="mb-2">
+                            <input type="text" name="description" class="form-control bg-surface text-main border-secondary" placeholder="Description" required>
+                        </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <input type="number" name="xp" class="form-control bg-surface text-main border-secondary" placeholder="XP Reward" required>
+                            </div>
+                            <div class="col-6">
+                                <select name="criteria_type" class="form-select bg-surface text-main border-secondary">
+                                    <option value="manual">Manual Completion</option>
+                                    <option value="upload_resume">Upload Resume</option>
+                                    <option value="interview">Complete Interview</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Launch Quest</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Maintenance -->
+        <div class="col-md-6">
+            <div class="card border-glass h-100">
+                <div class="card-header bg-transparent fw-bold text-cyan-400">
+                    <i data-feather="cpu" class="me-2"></i>Neural Maintenance
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5 class="text-main">Vector Database</h5>
+                        <p class="text-muted small">Re-index all resumes and job postings into ChromaDB. Use this if search results seem stale.</p>
+                        <button id="reindexBtn" class="btn btn-warning w-100 d-flex align-items-center justify-content-center gap-2" onclick="reindexVectors()">
+                            <i data-feather="refresh-cw"></i> Re-Index Vector Embeddings
+                        </button>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5 class="text-main">Maintenance Mode</h5>
+                        <p class="text-muted small">Lock down the platform for updates.</p>
+                        
+                        {% set maint_setting = settings | selectattr("key", "equalto", "maintenance_mode") | first %}
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="maintSwitch" 
+                                   {% if maint_setting and maint_setting.value == 'true' %}checked{% endif %}
+                                   onchange="saveSetting('maintenance_mode', this.checked)">
+                            <label class="form-check-label text-main" for="maintSwitch">Enable Maintenance Mode</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateVal(val) {
+        document.getElementById('xpDisplay').innerText = val + 'x';
+    }
+
+    function saveSetting(key, value) {
+        fetch("{{ url_for('admin.update_setting') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': "{{ csrf_token() }}"
+            },
+            body: JSON.stringify({ key: key, value: String(value) })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') {
+                alert('Configuration Updated');
+            } else {
+                alert('Error updating configuration');
+            }
+        });
+    }
+
+    function reindexVectors() {
+        const btn = document.getElementById('reindexBtn');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
+        
+        fetch("{{ url_for('admin.reindex_vectors') }}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': "{{ csrf_token() }}"
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            feather.replace();
+            alert(data.message);
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            feather.replace();
+            alert('Network Error');
+        });
+    }
+</script>
+{% endblock %}

@@ -21,9 +21,15 @@ class Config:
             'sqlite:///' + os.path.join(basedir, 'app.db')
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    WTF_CSRF_ENABLED = True
+    WTF_CSRF_SECRET_KEY = os.environ.get('SECRET_KEY') or 'you-will-never-guess'
+    
     GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
+    OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
+    PERPLEXITY_API_KEY = os.environ.get('PERPLEXITY_API_KEY')
     ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL')
     ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD')
+
     MAIL_SERVER = os.environ.get('MAIL_SERVER')
     MAIL_PORT = int(os.environ.get('MAIL_PORT') or 25)
     MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS') is not None
@@ -31,11 +37,19 @@ class Config:
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     POSTS_PER_PAGE = 10
     UPLOAD_FOLDER = os.path.join(os.path.dirname(basedir), 'uploads')
+    
+    # OAuth Keys
+    GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
+    GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
+    LINKEDIN_CLIENT_ID = os.environ.get('LINKEDIN_CLIENT_ID')
+    LINKEDIN_CLIENT_SECRET = os.environ.get('LINKEDIN_CLIENT_SECRET')
 
 
 class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_ECHO = True
+    # Allow OAuth to work over HTTP for development
+    os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 
 class TestingConfig(Config):

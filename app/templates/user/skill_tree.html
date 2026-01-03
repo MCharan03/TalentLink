@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="row mb-5 text-center">
+        <div class="col-12">
+            <h1 class="display-4 fw-bold text-gradient">Career Mastery Tree</h1>
+            <p class="lead text-muted">Unlock your potential, one skill at a time.</p>
+        </div>
+        <div class="col-md-6 offset-md-3 mt-3">
+            <div class="card border-0 bg-dark text-white shadow-lg overflow-hidden">
+                <div class="card-body p-4 position-relative">
+                    <div class="position-absolute top-0 start-0 w-100 h-100 bg-gradient-primary opacity-25"></div>
+                    <div class="position-relative z-10">
+                        <h2 class="display-6 fw-bold mb-0">Level {{ xp_profile.level }}</h2>
+                        <div class="progress mt-3" style="height: 6px; background: rgba(255,255,255,0.1);">
+                            <div class="progress-bar bg-warning" role="progressbar" 
+                                 style="width: {{ (xp_profile.total_xp % 100) }}%"></div>
+                        </div>
+                        <p class="small text-white-50 mt-2 mb-0">{{ xp_profile.total_xp }} XP Total</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- The Tree -->
+    <div class="position-relative" style="min-height: 800px;">
+        <!-- Connecting Lines (SVG) -->
+        <svg class="position-absolute top-0 start-0 w-100 h-100" style="z-index: 0; pointer-events: none;">
+            <!-- Simple central spine for demo -->
+            <path d="M 50% 100 V 700" stroke="rgba(255,255,255,0.1)" stroke-width="4" fill="none" />
+            <!-- Branches would be calculated dynamically in a real app -->
+        </svg>
+
+        <!-- Nodes -->
+        <div class="d-flex justify-content-center flex-wrap gap-5" style="perspective: 1000px;">
+            
+            <!-- Root Node -->
+            <div class="skill-card unlocked" data-tilt>
+                <div class="card-content">
+                    <div class="icon-box bg-success mb-3">
+                        <span data-feather="upload"></span>
+                    </div>
+                    <h5>Resume Uploaded</h5>
+                    <p class="small text-muted">The journey begins.</p>
+                </div>
+            </div>
+
+            <!-- Tier 1 -->
+            <div class="w-100"></div> <!-- Break -->
+
+            <div class="skill-card {% if xp_profile.level >= 2 %}unlocked{% else %}locked{% endif %}" data-tilt>
+                <div class="card-content">
+                    <div class="icon-box {% if xp_profile.level >= 2 %}bg-primary{% else %}bg-secondary{% endif %} mb-3">
+                        <span data-feather="file-text"></span>
+                    </div>
+                    <h5>Format Master</h5>
+                    <p class="small text-muted">Perfect ATS formatting.</p>
+                    {% if xp_profile.level < 2 %}<div class="lock-overlay"><span data-feather="lock"></span></div>{% endif %}
+                </div>
+            </div>
+
+            <div class="skill-card {% if xp_profile.level >= 3 %}unlocked{% else %}locked{% endif %}" data-tilt>
+                <div class="card-content">
+                    <div class="icon-box {% if xp_profile.level >= 3 %}bg-info{% else %}bg-secondary{% endif %} mb-3">
+                        <span data-feather="github"></span>
+                    </div>
+                    <h5>Code Warrior</h5>
+                    <p class="small text-muted">GitHub Analysis complete.</p>
+                     {% if xp_profile.level < 3 %}<div class="lock-overlay"><span data-feather="lock"></span></div>{% endif %}
+                </div>
+            </div>
+
+            <!-- Tier 2 -->
+             <div class="w-100"></div>
+
+             <div class="skill-card {% if xp_profile.level >= 5 %}unlocked{% else %}locked{% endif %}" data-tilt>
+                <div class="card-content">
+                    <div class="icon-box {% if xp_profile.level >= 5 %}bg-warning{% else %}bg-secondary{% endif %} mb-3">
+                        <span data-feather="mic"></span>
+                    </div>
+                    <h5>Orator</h5>
+                    <p class="small text-muted">Mock Interview Ace.</p>
+                     {% if xp_profile.level < 5 %}<div class="lock-overlay"><span data-feather="lock"></span></div>{% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    /* 3D Tilt Card Styles */
+    .skill-card {
+        width: 280px;
+        height: 350px;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        position: relative;
+        transform-style: preserve-3d;
+        transform: translateZ(0);
+        transition: transform 0.1s;
+        cursor: pointer;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .skill-card.locked {
+        opacity: 0.6;
+        filter: grayscale(1);
+    }
+    
+    .skill-card.unlocked {
+        background: rgba(var(--primary-rgb), 0.1);
+        border-color: rgba(var(--primary-rgb), 0.3);
+    }
+
+    .card-content {
+        transform: translateZ(40px); /* Pop out effect */
+    }
+
+    .icon-box {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+        margin: 0 auto;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+
+    .lock-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) translateZ(60px);
+        font-size: 2rem;
+        color: var(--text-muted);
+    }
+
+    /* Connecting lines would be better with absolute positioning in production */
+</style>
+
+<script>
+    // Vanilla JS 3D Tilt Effect
+    const cards = document.querySelectorAll('.skill-card');
+
+    cards.forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            
+            const rotateX = ((y - centerY) / centerY) * -15; // Max 15deg rotation
+            const rotateY = ((x - centerX) / centerX) * 15;
+
+            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+        });
+
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
+        });
+    });
+</script>
+{% endblock %}

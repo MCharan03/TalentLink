@@ -1,0 +1,90 @@
+{% extends "user/user_base.html" %}
+
+{% block title %}ATS Simulator{% endblock %}
+
+{% block user_content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold"><i class="fas fa-robot text-primary"></i> ATS Simulator Mode</h2>
+            <p class="text-muted">See exactly how a machine parses your resume. We've reverse-engineered common ATS algorithms to show you what gets lost in translation.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left: Parsed Result -->
+        <div class="col-lg-7">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Simulated Machine View</h5>
+                    <span class="badge bg-secondary">Plain Text Mode</span>
+                </div>
+                <div class="card-body">
+                    <div class="bg-light p-3 rounded font-monospace small" style="height: 600px; overflow-y: auto; color: #333; line-height: 1.6; border: 1px solid #ddd;">
+                        {{ analysis.parsed_raw_text | replace('\n', '<br>') | safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Analysis -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body text-center p-4">
+                    <h6 class="text-muted text-uppercase fw-bold small mb-3">ATS Compatibility Score</h6>
+                    <div class="display-3 fw-bold {{ 'text-success' if analysis.ats_friendly_score >= 80 else 'text-warning' if analysis.ats_friendly_score >= 50 else 'text-danger' }}">
+                        {{ analysis.ats_friendly_score }}<span class="fs-5">/100</span>
+                    </div>
+                    <div class="progress mt-3" style="height: 10px;">
+                        <div class="progress-bar {{ 'bg-success' if analysis.ats_friendly_score >= 80 else 'bg-warning' if analysis.ats_friendly_score >= 50 else 'bg-danger' }}" role="progressbar" style="width: {{ analysis.ats_friendly_score }}%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Issues & Warnings -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0 fw-bold">Parsing Issues Found</h6>
+                </div>
+                <div class="card-body">
+                    {% for issue in analysis.potential_issues %}
+                        <div class="d-flex align-items-start gap-2 mb-3">
+                            <span data-feather="alert-circle" class="text-danger mt-1"></span>
+                            <span>{{ issue }}</span>
+                        </div>
+                    {% endfor %}
+                    
+                    {% if not analysis.potential_issues %}
+                        <p class="text-success small mb-0"><i class="fas fa-check-circle me-1"></i> No major parsing issues detected!</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Keywords -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0 fw-bold">Detected Keywords</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for kw in analysis.top_keywords %}
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 p-2">{{ kw }}</span>
+                        {% endfor %}
+                    </div>
+                    <p class="small text-muted mt-3">Recruiters often search for these specific terms. Ensure they match your target job roles.</p>
+                </div>
+            </div>
+
+            <!-- Recommendations -->
+            <div class="alert alert-info">
+                <h6><i class="fas fa-lightbulb"></i> Pro Tip</h6>
+                <ul class="small mb-0">
+                    {% for tip in analysis.formatting_warnings %}
+                        <li>{{ tip }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

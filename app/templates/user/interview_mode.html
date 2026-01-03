@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h1 class="display-5 fw-bold text-gradient">AI Interview Coach</h1>
+            <p class="text-muted">Real-time feedback on your speaking confidence and content.</p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <!-- Interview Area -->
+        <div class="col-md-8">
+            <div class="card border-0 shadow-lg border-glass" style="min-height: 500px;">
+                <div class="card-body d-flex flex-column">
+                    
+                    <!-- AI Avatar / Status -->
+                    <div class="text-center mb-4">
+                        <div id="ai-status-indicator" class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                             style="width: 80px; height: 80px; background: var(--bg-surface); border: 2px solid var(--primary); transition: all 0.3s;">
+                             <span data-feather="mic" class="text-primary" style="width: 32px; height: 32px;"></span>
+                        </div>
+                        <h4 id="question-display" class="fw-bold mb-2">Ready to start?</h4>
+                        <p id="listening-status" class="text-muted small">Click the mic to begin.</p>
+                    </div>
+
+                    <!-- Chat / Feedback Stream -->
+                    <div id="feedback-stream" class="flex-grow-1 overflow-auto mb-4 p-3 rounded bg-secondary bg-opacity-10 border border-glass" style="max-height: 300px;">
+                        <div class="text-center text-muted small mt-5">
+                            Transcript and feedback will appear here...
+                        </div>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="mt-auto d-flex justify-content-center gap-3">
+                        <button id="btn-start" class="btn btn-primary btn-lg rounded-pill px-5 d-flex align-items-center gap-2">
+                            <span data-feather="play"></span> Start Session
+                        </button>
+                        <button id="btn-stop" class="btn btn-danger btn-lg rounded-pill px-5 d-none align-items-center gap-2">
+                            <span data-feather="square"></span> Stop
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Metrics (Optional Sidebar) -->
+        <div class="col-md-4 mt-4 mt-md-0">
+            <div class="card border-0 shadow border-glass h-100">
+                <div class="card-header bg-transparent border-bottom border-glass fw-bold">
+                    Live Analysis
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <label class="small text-muted mb-1">Confidence Score</label>
+                        <div class="progress" style="height: 10px;">
+                            <div id="score-bar" class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="fw-bold small">Latest Feedback</h6>
+                        <p id="latest-feedback" class="small text-muted">No data yet.</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="fw-bold small">Improvement Tip</h6>
+                        <div id="latest-tip" class="alert alert-info py-2 small border-0">
+                            Waiting for your answer...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<script>
+    const socket = io();
+    const btnStart = document.getElementById('btn-start');
+    const btnStop = document.getElementById('btn-stop');
+    const statusText = document.getElementById('listening-status');
+    const indicator = document.getElementById('ai-status-indicator');
+    const questionDisplay = document.getElementById('question-display');
+    const feedbackStream = document.getElementById('feedback-stream');
+    
+    // Speech Recognition Setup
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null;
+    let isRecording = false;
+    let currentQuestion = "Tell me about yourself."; // Default starter
+
+    if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.continuous = false; // Capture one sentence/answer at a time
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+
+        recognition.onstart = function() {
+            isRecording = true;
+            statusText.innerText = "Listening...";
+            indicator.style.boxShadow = "0 0 20px var(--primary)";
+            indicator.classList.add('pulse-animation'); // Assume CSS class exists or add it
+        };
+
+        recognition.onend = function() {
+            isRecording = false;
+            statusText.innerText = "Processing...";
+            indicator.style.boxShadow = "none";
+            indicator.classList.remove('pulse-animation');
+            // Don't auto-restart immediately, wait for user or feedback
+            btnStart.classList.remove('d-none');
+            btnStop.classList.add('d-none');
+        };
+
+        recognition.onresult = function(event) {
+            const transcript = event.results[0][0].transcript;
+            addMessage('You', transcript);
+            
+            // Send to Server
+            socket.emit('analyze_answer', {
+                question: currentQuestion,
+                answer: transcript
+            });
+            statusText.innerText = "Analyzing...";
+        };
+
+        recognition.onerror = function(event) {
+            console.error(event.error);
+            statusText.innerText = "Error: " + event.error;
+            isRecording = false;
+            btnStart.classList.remove('d-none');
+            btnStop.classList.add('d-none');
+        };
+    } else {
+        alert("Your browser does not support Speech Recognition. Please use Chrome.");
+    }
+
+    // UI Events
+    btnStart.addEventListener('click', () => {
+        if (recognition) {
+            recognition.start();
+            questionDisplay.innerText = currentQuestion;
+            btnStart.classList.add('d-none');
+            btnStop.classList.remove('d-none');
+        }
+    });
+
+    btnStop.addEventListener('click', () => {
+        if (recognition) {
+            recognition.stop();
+        }
+    });
+
+    // Socket Events
+    socket.on('connect', () => {
+        console.log("Connected to AI Coach");
+    });
+
+    socket.on('coach_feedback', (data) => {
+        if (data.error) {
+            addMessage('System', 'Error: ' + data.error);
+            return;
+        }
+
+        // Update UI with feedback
+        addMessage('AI Coach', data.feedback, true);
+        
+        // Update Metrics
+        document.getElementById('score-bar').style.width = data.score * 10 + '%';
+        document.getElementById('latest-feedback').innerText = data.feedback;
+        document.getElementById('latest-tip').innerText = data.improvement_tip;
+        
+        statusText.innerText = "Ready for next input.";
+    });
+
+    function addMessage(sender, text, isAi = false) {
+        const div = document.createElement('div');
+        div.className = `mb-3 ${isAi ? 'text-end' : ''}`;
+        div.innerHTML = `
+            <small class="fw-bold ${isAi ? 'text-primary' : 'text-muted'}">${sender}</small>
+            <div class="p-2 rounded mt-1 ${isAi ? 'bg-primary text-white' : 'bg-light text-dark'}" 
+                 style="display: inline-block; max-width: 80%;">
+                ${text}
+            </div>
+        `;
+        feedbackStream.appendChild(div);
+        feedbackStream.scrollTop = feedbackStream.scrollHeight;
+        
+        // Clear placeholder if exists
+        const placeholder = feedbackStream.querySelector('.text-center');
+        if (placeholder) placeholder.remove();
+    }
+</script>
+
+<style>
+    @keyframes pulse {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.7); }
+        70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(var(--primary-rgb), 0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0); }
+    }
+    .pulse-animation {
+        animation: pulse 1.5s infinite;
+    }
+</style>
+{% endblock %}

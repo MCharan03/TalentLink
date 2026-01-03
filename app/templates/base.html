@@ -6,137 +6,142 @@
     <title>{% block title %}Smart Resume Analyzer{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" id="theme-style"
-          data-light-theme="{{ url_for('static', filename='css/light_style.css') }}"
-          data-dark-theme="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/aura.css') }}">
+    <script>
+        // Initialize theme immediately to prevent FOUC and ensure Chart.js reads correct colors
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
     <style>
-        .top-navbar {
-            background-color: var(--sidebar-bg);
-            border-bottom: 1px solid var(--border-color);
-            padding: 0.5rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 70px;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        .navbar-nav-custom {
-            display: flex;
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            gap: 2rem;
-            align-items: center;
-        }
-
-        .nav-item-custom a {
-            color: var(--text-color);
-            font-weight: 600;
-            text-decoration: none;
-            padding: 0.5rem 0;
-            border-bottom: 2px solid transparent;
-            transition: all 0.3s;
-        }
-
-        .nav-item-custom a:hover, .nav-item-custom a.active {
-            color: var(--accent-color);
-            border-bottom: 2px solid var(--accent-color);
-        }
-
-        .brand-logo {
-            font-weight: 700;
-            font-size: 1.5rem;
-            color: var(--text-color);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-        }
-
-        .brand-logo span {
-            color: var(--accent-color);
-            margin-right: 0.5rem;
-        }
-
-        .right-actions {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
-
-        .theme-toggle-btn {
-            background: none;
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 0.4rem 0.8rem;
-            border-radius: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        main { padding-top: 3rem; }
-        .container-app { max-width: 1300px; margin: 0 auto; padding: 0 2rem; }
+        /* Base overrides to ensure consistency */
+        body { overflow-x: hidden; }
+        main { position: relative; z-index: 10; }
+        .alert { box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
-    <header class="top-navbar">
-        <div class="d-flex align-items-center">
-            {% if current_user.is_authenticated %}
-                <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-outline-danger me-4" title="Logout">
-                    <span data-feather="log-out"></span> Logout
-                </a>
-            {% endif %}
-            
-            <a href="{{ url_for('main.index') }}" class="brand-logo me-5">
-                <span data-feather="file-text"></span> SRA
+    <!-- Noise Texture -->
+    <div class="noise-overlay"></div>
+    
+    <!-- Page Loader -->
+    <div class="page-loader" id="page-loader">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Top Navigation Bar -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container nav-content">
+            <a href="{{ url_for('main.index') }}" class="nav-logo me-5">
+                SRA
             </a>
-
-            <ul class="navbar-nav-custom">
-                {% if current_user.is_authenticated %}
-                    {% if current_user.role == 'user' %}
-                        <li class="nav-item-custom">
-                            <a href="{{ url_for('user.resume_analysis') }}" class="{% if request.endpoint == 'user.resume_analysis' %}active{% endif %}">Resume Analysis</a>
-                        </li>
-                        <li class="nav-item-custom">
-                            <a href="{{ url_for('user.dashboard') }}" class="{% if request.endpoint == 'user.dashboard' %}active{% endif %}">My Dashboard</a>
-                        </li>
-                        <li class="nav-item-custom">
-                            <a href="{{ url_for('user.interview_prep') }}" class="{% if request.endpoint == 'user.interview_prep' %}active{% endif %}">Interview Prep</a>
-                        </li>
-                    {% elif current_user.role == 'admin' %}
-                        <li class="nav-item-custom">
-                            <a href="{{ url_for('admin.dashboard') }}" class="{% if request.endpoint == 'admin.dashboard' %}active{% endif %}">Dashboard</a>
-                        </li>
-                        <li class="nav-item-custom">
-                            <a href="{{ url_for('admin.actions') }}" class="{% if request.endpoint == 'admin.actions' %}active{% endif %}">Actions</a>
-                        </li>
-                        <li class="nav-item-custom">
-                            <a href="{{ url_for('admin.interview_funnel') }}" class="{% if request.endpoint == 'admin.interview_funnel' %}active{% endif %}">Interview Funnel</a>
-                        </li>
-                        <li class="nav-item-custom">
-                            <a href="{{ url_for('admin.user_management') }}" class="{% if request.endpoint == 'admin.user_management' %}active{% endif %}">User Management</a>
-                        </li>
-                    {% endif %}
-                {% endif %}
-            </ul>
-        </div>
-        
-        <div class="right-actions">
-            <button id="theme-toggle-btn" class="theme-toggle-btn">
-                <span data-feather="moon"></span> <span id="theme-text">Dark</span>
+            
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span data-feather="menu" class="text-main"></span>
             </button>
-        </div>
-    </header>
 
-    <main class="container-app">
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <div class="nav-links navbar-nav me-auto mb-2 mb-lg-0">
+                    {% if not current_user.is_authenticated %}
+                        <a href="{{ url_for('main.flowchart') }}" class="nav-link {% if request.endpoint == 'main.flowchart' %}active{% endif %}">How It Works</a>
+                    {% else %}
+                        {% if current_user.role == 'user' %}
+                            <a href="{{ url_for('user.resume_analysis') }}" class="nav-link {% if request.endpoint == 'user.resume_analysis' %}active{% endif %}">Analysis</a>
+                            <a href="{{ url_for('user.dashboard') }}" class="nav-link {% if request.endpoint == 'user.dashboard' %}active{% endif %}">Dashboard</a>
+                            <a href="{{ url_for('user.interview_prep') }}" class="nav-link {% if request.endpoint == 'user.interview_prep' %}active{% endif %}">Prep</a>
+                        {% elif current_user.role == 'admin' %}
+                            <a href="{{ url_for('admin.dashboard') }}" class="nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">Dashboard</a>
+                            <a href="{{ url_for('admin.market_intelligence') }}" class="nav-link {% if request.endpoint == 'admin.market_intelligence' %}active{% endif %}">Market Intel</a>
+                            <a href="{{ url_for('admin.controls') }}" class="nav-link {% if request.endpoint == 'admin.controls' %}active{% endif %}">Controls</a>
+                            <a href="{{ url_for('admin.actions') }}" class="nav-link {% if request.endpoint == 'admin.actions' %}active{% endif %}">Actions</a>
+                            <a href="{{ url_for('admin.interview_funnel') }}" class="nav-link {% if request.endpoint == 'admin.interview_funnel' %}active{% endif %}">Funnel</a>
+                            <a href="{{ url_for('admin.user_management') }}" class="nav-link {% if request.endpoint == 'admin.user_management' %}active{% endif %}">Users</a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+                
+            <div class="right-actions d-flex align-items-center gap-3">
+                {% if current_user.is_authenticated %}
+                <!-- Notifications Dropdown -->
+                {% set unread_count = current_user.notifications.filter_by(is_read=False).count() %}
+                <div class="dropdown">
+                    <button class="btn border-0 position-relative" type="button" id="notifMenu" data-bs-toggle="dropdown" aria-expanded="false" style="background: transparent;">
+                        <span data-feather="bell" class="text-main"></span>
+                        {% if unread_count > 0 %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
+                            {{ unread_count }}
+                        </span>
+                        {% endif %}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow py-0" aria-labelledby="notifMenu" style="width: 300px; max-height: 400px; overflow-y: auto; background: var(--bg-card);">
+                        <li class="p-3 border-bottom border-glass d-flex justify-content-between align-items-center">
+                            <span class="fw-bold text-main">Notifications</span>
+                            {% if unread_count > 0 %}
+                            <button class="btn btn-sm btn-link text-primary p-0 text-decoration-none small" id="markAllRead">Mark all read</button>
+                            {% endif %}
+                        </li>
+                        <div id="notificationList">
+                            {% for n in current_user.notifications.order_by(Notification.created_at.desc()).limit(10).all() %}
+                            <li class="dropdown-item p-3 border-bottom border-glass {% if not n.is_read %}bg-primary bg-opacity-10{% endif %}" style="white-space: normal;">
+                                <div class="small text-main mb-1">{{ n.message }}</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">{{ n.created_at.strftime('%b %d, %H:%M') }}</div>
+                            </li>
+                            {% else %}
+                            <li class="p-4 text-center text-muted small">No notifications</li>
+                            {% endfor %}
+                        </div>
+                    </ul>
+                </div>
+
+                <div class="dropdown">
+
+                    <button class="btn border-0 dropdown-toggle d-flex align-items-center gap-2" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false" style="background: transparent;">
+                        <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 32px; height: 32px; border: 1px solid var(--border-color); background: var(--bg-surface);">
+                            <span data-feather="user" style="width: 16px; height: 16px; color: var(--primary);"></span>
+                        </div>
+                        <span class="fw-bold d-none d-md-block text-main">{{ current_user.username }}</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow" aria-labelledby="userMenu">
+                        <li><span class="dropdown-header text-primary fw-bold">{{ current_user.email }}</span></li>
+                        <li><hr class="dropdown-divider" style="opacity: 0.1;"></li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2" href="{{ url_for('main.flowchart') }}">
+                                <span data-feather="help-circle" style="width: 16px; height: 16px;"></span> How It Works
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2" href="{{ url_for('user.profile') }}">
+                                <span data-feather="settings" style="width: 16px; height: 16px;"></span> Settings
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item text-danger d-flex align-items-center gap-2" href="{{ url_for('auth.logout') }}">
+                                <span data-feather="log-out" style="width: 16px; height: 16px;"></span> Logout
+                            </a>
+                        </li>
+                    </ul>
+
+                </div>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-primary">Login</a>
+                {% endif %}
+                
+                <button id="theme-toggle-btn" class="theme-toggle btn btn-sm border-0" style="background: transparent; color: var(--text-muted);">
+                    <span data-feather="moon"></span>
+                </button>
+            </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container assemble-in anim-up delay-100" style="padding-top: 2rem;">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    <div class="alert alert-{{ category }} alert-dismissible fade show assemble-in anim-pop" role="alert">
                         {{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
@@ -147,10 +152,192 @@
         {% block content %}{% endblock %}
     </main>
 
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <script>feather.replace()</script>
+    <script>
+      feather.replace()
+      
+      // Hide loader when page is loaded
+      window.addEventListener('load', () => {
+          const loader = document.getElementById('page-loader');
+          if (loader) {
+              loader.classList.add('hidden');
+              setTimeout(() => { loader.style.display = 'none'; }, 500);
+          }
+      });
+
+      // Handle Notifications Mark Read
+      const markAllBtn = document.getElementById('markAllRead');
+      if (markAllBtn) {
+          markAllBtn.addEventListener('click', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              fetch("{{ url_for('main.mark_notifications_read') }}", {
+                  method: 'POST',
+                  headers: {
+                      'X-CSRFToken': "{{ csrf_token() }}"
+                  }
+              }).then(res => res.json())
+              .then(data => {
+                  if (data.status === 'success') {
+                      document.querySelectorAll('.dropdown-item.bg-primary').forEach(el => {
+                          el.classList.remove('bg-primary', 'bg-opacity-10');
+                      });
+                      const badge = document.querySelector('#notifMenu .badge');
+                      if (badge) badge.remove();
+                      markAllBtn.remove();
+                  }
+              });
+          });
+      }
+    </script>
+
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/landing_animations.js') }}"></script>
+    
     {% block scripts %}{% endblock %}
+    <!-- AI Chatbot Widget -->
+    <div id="ai-chatbot-widget">
+        <!-- Floating Button -->
+        <button id="chatbot-toggle" class="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center" style="position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; z-index: 9999; transition: transform 0.2s;">
+            <span data-feather="message-square" style="width: 28px; height: 28px;"></span>
+        </button>
+
+        <!-- Chat Window -->
+        <div id="chatbot-window" class="card shadow-lg border-glass d-none" style="position: fixed; bottom: 100px; right: 30px; width: 350px; height: 500px; z-index: 9999; display: flex; flex-direction: column; overflow: hidden; background: var(--bg-surface);">
+            <!-- Header -->
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span data-feather="cpu"></span>
+                    <span class="fw-bold">Career Assistant</span>
+                </div>
+                <button class="btn btn-sm btn-link text-white p-0" onclick="toggleChatbot()"><span data-feather="x"></span></button>
+            </div>
+
+            <!-- Messages Area -->
+            <div id="chat-messages" class="card-body p-3 overflow-auto" style="flex: 1; background: rgba(0,0,0,0.1);">
+                <div class="d-flex flex-column gap-3">
+                    <div class="align-self-start bg-secondary bg-opacity-10 p-2 rounded-3 border border-glass" style="max-width: 80%;">
+                        <small class="d-block text-muted mb-1" style="font-size: 0.7rem;">AI Assistant</small>
+                        <span class="small">Hi! I'm your AI Career Assistant. How can I help you improve your resume or prepare for an interview today?</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="card-footer bg-transparent border-top border-glass p-2">
+                <div class="input-group">
+                    <input type="text" id="chat-input" class="form-control border-0 bg-transparent text-main" placeholder="Type a message..." style="box-shadow: none;">
+                    <button class="btn btn-sm btn-primary rounded-end" id="chat-send" onclick="sendMessage()">
+                        <span data-feather="send"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatbotToggle = document.getElementById('chatbot-toggle');
+        const chatbotWindow = document.getElementById('chatbot-window');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const chatSend = document.getElementById('chat-send');
+        let isChatOpen = false;
+        let messageHistory = [];
+
+        function toggleChatbot() {
+            isChatOpen = !isChatOpen;
+            
+            // Notify 3D Robot
+            window.dispatchEvent(new CustomEvent('chatbot-toggled', { detail: { open: isChatOpen } }));
+
+            if (isChatOpen) {
+                chatbotWindow.classList.remove('d-none');
+                chatbotToggle.style.transform = 'rotate(90deg) scale(0)';
+                setTimeout(() => chatInput.focus(), 100);
+            } else {
+                chatbotWindow.classList.add('d-none');
+                chatbotToggle.style.transform = 'rotate(0deg) scale(1)';
+            }
+        }
+
+        chatbotToggle.addEventListener('click', toggleChatbot);
+
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        async function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+
+            // 1. User Message
+            appendMessage('You', text, 'end');
+            chatInput.value = '';
+            chatSend.disabled = true;
+
+            // 2. Loading State
+            const loadingId = appendMessage('AI', 'Typing...', 'start', true);
+
+            try {
+                const response = await fetch("{{ url_for('main.api_chatbot') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': "{{ csrf_token() }}"
+                    },
+                    body: JSON.stringify({ message: text, history: messageHistory })
+                });
+
+                const data = await response.json();
+                
+                // Remove loading
+                document.getElementById(loadingId).remove();
+
+                if (data.error) {
+                    appendMessage('System', 'Error: ' + data.error, 'start');
+                } else {
+                    appendMessage('AI', data.reply, 'start');
+                    // Update History
+                    messageHistory.push({role: 'user', content: text});
+                    messageHistory.push({role: 'model', content: data.reply});
+                }
+
+            } catch (err) {
+                document.getElementById(loadingId).remove();
+                appendMessage('System', 'Network error. Please try again.', 'start');
+            } finally {
+                chatSend.disabled = false;
+                chatInput.focus();
+            }
+        }
+
+        function appendMessage(sender, text, align, isLoading = false) {
+            const id = 'msg-' + Date.now();
+            const isMe = align === 'end';
+            const bgClass = isMe ? 'bg-primary text-white' : 'bg-secondary bg-opacity-10 text-main border border-glass';
+            
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = `align-self-${align} p-2 rounded-3 ${bgClass}`;
+            div.style.maxWidth = '80%';
+            
+            div.innerHTML = `
+                ${!isMe ? `<small class="d-block text-muted mb-1" style="font-size: 0.7rem;">${sender}</small>` : ''}
+                <span class="small">${text}</span>
+            `;
+            
+            // Wrap in container for alignment
+            const container = document.createElement('div');
+            container.className = `d-flex flex-column`; // Parent flex col
+            // Actually, chat-messages is flex-col, so we just append div directly but we need specific alignment classes on the DIV itself? 
+            // Yes, bootstrap 'align-self-start/end' works on flex children.
+            
+            document.querySelector('#chat-messages .d-flex').appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return id;
+        }
+    </script>
 </body>
 </html>

@@ -2,101 +2,151 @@
 
 {% block title %}Resume Builder{% endblock %}
 
+{% block styles %}
+<style>
+    .builder-container {
+        height: calc(100vh - 100px);
+        overflow: hidden;
+    }
+    
+    .scrollable-panel {
+        height: 100%;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+
+    /* A4 Paper Preview */
+    .resume-preview-paper {
+        background: white;
+        width: 100%;
+        min-height: 842px; /* A4 aspect ratio approximation */
+        padding: 40px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.2);
+        color: #333;
+        font-family: 'Times New Roman', Times, serif;
+    }
+
+    .preview-header { border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+    .preview-name { font-size: 24pt; font-weight: bold; text-transform: uppercase; }
+    .preview-contact { font-size: 10pt; margin-top: 5px; }
+    
+    .preview-section-title {
+        font-size: 14pt;
+        font-weight: bold;
+        border-bottom: 1px solid #ccc;
+        margin-top: 20px;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        color: #2c3e50;
+    }
+    
+    .preview-content { font-size: 11pt; line-height: 1.4; }
+    .preview-job-header { display: flex; justify-content: space-between; font-weight: bold; }
+</style>
+{% endblock %}
+
 {% block user_content %}
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Resume Builder</h1>
+<div class="container-fluid h-100">
+    <div class="row builder-container">
+        <!-- Left Column: Editor -->
+        <div class="col-lg-6 scrollable-panel border-end">
+            <div class="d-flex justify-content-between align-items-center mb-3 sticky-top bg-surface py-2" style="z-index: 10;">
+                <h4 class="mb-0">Editor</h4>
+            </div>
+            
+            <!-- Include the Form Partial (contains AI buttons + Form Fields) -->
+            {% with form=form %}
+                {% include "user/resume_builder_partial.html" %}
+            {% endwith %}
+        </div>
+
+        <!-- Right Column: Live Preview -->
+        <div class="col-lg-6 scrollable-panel bg-light p-4 d-flex justify-content-center">
+            <div class="resume-preview-paper" id="resume-paper">
+                <!-- Header -->
+                <div class="preview-header text-center">
+                    <div class="preview-name" id="prev-name">Your Name</div>
+                    <div class="preview-contact">
+                        <span id="prev-email">email@example.com</span> | <span id="prev-phone">123-456-7890</span> | <span id="prev-linkedin">linkedin.com/in/you</span>
+                    </div>
+                </div>
+
+                <!-- Summary -->
+                <div class="preview-section-title">Professional Summary</div>
+                <div class="preview-content" id="prev-summary">
+                    Your professional summary will appear here. It should be a concise overview of your skills and experience.
+                </div>
+
+                <!-- Experience -->
+                <div class="preview-section-title">Experience</div>
+                <div class="preview-content">
+                    <div class="preview-job-header">
+                        <span id="prev-job-title">Job Title</span>
+                        <span id="prev-company">Company Name</span>
+                    </div>
+                    <div id="prev-job-desc" style="white-space: pre-line; margin-top: 5px;">
+                        • Responsibility 1
+                        • Responsibility 2
+                    </div>
+                </div>
+
+                <!-- Education -->
+                <div class="preview-section-title">Education</div>
+                <div class="preview-content">
+                    <div class="preview-job-header">
+                        <span id="prev-school">University Name</span>
+                        <span id="prev-year">2024</span>
+                    </div>
+                    <div id="prev-degree">Bachelor of Science</div>
+                </div>
+
+                <!-- Skills -->
+                <div class="preview-section-title">Skills</div>
+                <div class="preview-content" id="prev-skills">
+                    Python, Flask, JavaScript, SQL
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<p>Create a simple, professional resume in minutes.</p>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Map Form IDs to Preview IDs
+        const map = {
+            'full_name': 'prev-name',
+            'email': 'prev-email',
+            'phone': 'prev-phone',
+            'linkedin': 'prev-linkedin',
+            'summary-field': 'prev-summary', // ID from partial
+            'job-title-field': 'prev-job-title', // ID from partial
+            'company': 'prev-company', // ID might need adding to partial if missing, assuming standard ID
+            'job-desc-field': 'prev-job-desc', // ID from partial
+            'education_school': 'prev-school',
+            'education_degree': 'prev-degree',
+            'education_year': 'prev-year',
+            'skills-field': 'prev-skills'
+        };
 
-<form method="POST">
-    {{ form.hidden_tag() }}
-    
-    <div class="card mb-4">
-        <div class="card-header">Personal Information</div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form.full_name.label(class="form-label") }}
-                    {{ form.full_name(class="form-control") }}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form.email.label(class="form-label") }}
-                    {{ form.email(class="form-control") }}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form.phone.label(class="form-label") }}
-                    {{ form.phone(class="form-control") }}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form.linkedin.label(class="form-label") }}
-                    {{ form.linkedin(class="form-control") }}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="card mb-4">
-        <div class="card-header">Professional Summary</div>
-        <div class="card-body">
-            <div class="mb-3">
-                {{ form.summary(class="form-control") }}
-            </div>
-        </div>
-    </div>
-
-    <div class="card mb-4">
-        <div class="card-header">Education</div>
-        <div class="card-body">
-             <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form.education_school.label(class="form-label") }}
-                    {{ form.education_school(class="form-control") }}
-                </div>
-                <div class="col-md-3 mb-3">
-                    {{ form.education_degree.label(class="form-label") }}
-                    {{ form.education_degree(class="form-control") }}
-                </div>
-                 <div class="col-md-3 mb-3">
-                    {{ form.education_year.label(class="form-label") }}
-                    {{ form.education_year(class="form-control") }}
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="card mb-4">
-        <div class="card-header">Latest Experience</div>
-        <div class="card-body">
-             <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form.job_title.label(class="form-label") }}
-                    {{ form.job_title(class="form-control") }}
-                </div>
-                <div class="col-md-6 mb-3">
-                    {{ form.company.label(class="form-label") }}
-                    {{ form.company(class="form-control") }}
-                </div>
-                 <div class="col-12 mb-3">
-                    {{ form.job_description.label(class="form-label") }}
-                    {{ form.job_description(class="form-control") }}
-                </div>
-            </div>
-        </div>
-    </div>
-    
-     <div class="card mb-4">
-        <div class="card-header">Skills</div>
-        <div class="card-body">
-            <div class="mb-3">
-                {{ form.skills(class="form-control") }}
-                <div class="form-text">Separated by commas (e.g., Python, Java, Leadership)</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="mb-5">
-        {{ form.submit(class="btn btn-primary btn-lg") }}
-    </div>
-</form>
+        // Attach listeners
+        for (const [formId, prevId] of Object.entries(map)) {
+            const input = document.getElementById(formId);
+            const preview = document.getElementById(prevId);
+            
+            if (input && preview) {
+                input.addEventListener('input', () => {
+                    preview.innerText = input.value || preview.getAttribute('data-placeholder') || '...';
+                });
+            } else {
+                // If ID not found directly (e.g., standard WTForm IDs without custom render), try name attribute
+                const inputByName = document.querySelector(`[name="${formId}"]`);
+                if (inputByName && preview) {
+                    inputByName.addEventListener('input', () => {
+                        preview.innerText = inputByName.value;
+                    });
+                }
+            }
+        }
+    });
+</script>
 {% endblock %}

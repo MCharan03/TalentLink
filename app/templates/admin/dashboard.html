@@ -1,45 +1,572 @@
 {% extends "base.html" %}
 
+{% block title %}Admin Command Center | SRA{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-md-8">
-        <h3>Admin Dashboard</h3>
-        <p class="text-muted">Overview of user activity and system state.</p>
-        
-        <div class="card p-4 mt-4">
-            <h5>User Activity</h5>
-            <canvas id="adminChart"></canvas>
+<div class="admin-container pb-5">
+    <!-- Header with Breadcrumbs and Signal Status -->
+    <div class="d-flex justify-content-between align-items-end mb-5 animate-in anim-down">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item small text-uppercase tracking-wider text-muted">Core</li>
+                    <li class="breadcrumb-item small text-uppercase tracking-wider text-primary active">Command Center</li>
+                </ol>
+            </nav>
+            <h1 class="display-4 fw-bold text-main mb-0">System Intelligence</h1>
+        </div>
+        <div class="text-end d-none d-md-block">
+            <div class="d-flex align-items-center gap-2 mb-1 justify-content-end">
+                <span class="pulse-dot bg-success"></span>
+                <span class="small text-uppercase tracking-wider text-success fw-bold">Neural Link Active</span>
+            </div>
+            <p class="text-muted small mb-0">Uptime: 99.9% | Gemini 2.5 Pro Connected</p>
         </div>
     </div>
-    
-    <div class="col-md-4">
-        <div class="card border-danger">
-            <div class="card-header bg-danger text-white">Danger Zone</div>
-            <div class="card-body">
-                <p class="small">Resetting the database will delete ALL resume analyses, mock tests, job applications, and users (except admins).</p>
-                <form action="{{ url_for('admin.reset_db') }}" method="POST" onsubmit="return confirm('DELETE EVERYTHING? This is permanent!');">
+
+    <!-- Quick Stats Hub -->
+    <div class="row g-4 mb-5 assemble-grid">
+        <div class="col-md-3">
+            <div class="card p-4 hover-lift border-glass h-100">
+                <div class="d-flex justify-content-between mb-3">
+                    <div class="bg-primary bg-opacity-10 p-2 rounded">
+                        <i data-feather="users" class="text-primary"></i>
+                    </div>
+                    <span class="text-success small">+12%</span>
+                </div>
+                <h3 class="fw-bold text-white mb-0">{{ user_data|length }}</h3>
+                <p class="text-muted small text-uppercase tracking-wider mb-0">Total Analyses</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-4 hover-lift border-glass h-100">
+                <div class="d-flex justify-content-between mb-3">
+                    <div class="bg-purple bg-opacity-10 p-2 rounded" style="background: rgba(168, 85, 247, 0.1);">
+                        <i data-feather="briefcase" class="text-purple" style="color: #a855f7;"></i>
+                    </div>
+                    <span class="text-primary small">Stable</span>
+                </div>
+                <h3 class="fw-bold text-white mb-0">{{ engagement_dates|length }}</h3>
+                <p class="text-muted small text-uppercase tracking-wider mb-0">Active Datapoints</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-4 hover-lift border-glass h-100">
+                <div class="d-flex justify-content-between mb-3">
+                    <div class="bg-warning bg-opacity-10 p-2 rounded">
+                        <i data-feather="zap" class="text-warning"></i>
+                    </div>
+                    <span class="text-warning small">92%</span>
+                </div>
+                <h3 class="fw-bold text-white mb-0">2.4s</h3>
+                <p class="text-muted small text-uppercase tracking-wider mb-0">Avg Latency</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-4 hover-lift border-glass h-100 bg-primary bg-opacity-5">
+                <div class="d-flex justify-content-between mb-3">
+                    <div class="bg-success bg-opacity-10 p-2 rounded">
+                        <i data-feather="activity" class="text-success"></i>
+                    </div>
+                    <span class="text-success small">Optimal</span>
+                </div>
+                <h3 class="fw-bold text-white mb-0">AI Engine</h3>
+                <p class="text-muted small text-uppercase tracking-wider mb-0">Status: Running</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Grid -->
+    <div class="row g-4 mb-5 animate-up delay-100">
+        <div class="col-md-3">
+            <div class="card p-3 border-glass hover-lift h-100 cursor-pointer" data-bs-toggle="modal" data-bs-target="#createJobModal">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
+                        <i data-feather="plus-circle" style="width: 24px; height: 24px;"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold text-main mb-1">Post New Job</h6>
+                        <p class="text-muted small mb-0">Create listing & Index</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ url_for('admin.market_intelligence') }}" class="card p-3 border-glass hover-lift h-100 text-decoration-none">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success">
+                        <i data-feather="trending-up" style="width: 24px; height: 24px;"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold text-main mb-1">Market Intel</h6>
+                        <p class="text-muted small mb-0">View Supply/Demand</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ url_for('admin.controls') }}" class="card p-3 border-glass hover-lift h-100 text-decoration-none">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-warning bg-opacity-10 p-3 rounded-circle text-warning">
+                        <i data-feather="sliders" style="width: 24px; height: 24px;"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold text-main mb-1">System Controls</h6>
+                        <p class="text-muted small mb-0">Gamification & Settings</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ url_for('admin.user_management') }}" class="card p-3 border-glass hover-lift h-100 text-decoration-none">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-info bg-opacity-10 p-3 rounded-circle text-info">
+                        <i data-feather="users" style="width: 24px; height: 24px;"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold text-main mb-1">User Manager</h6>
+                        <p class="text-muted small mb-0">View & Edit Users</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Analytics Grid -->
+    <div class="row g-4 mb-5 animate-up delay-200">
+        <div class="col-lg-8 space-y-4">
+            <div class="card p-4 border-glass mb-4 assemble-in delay-100">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold text-main mb-0">Engagement Pulse</h5>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">Last 30 Days</button>
+                        <ul class="dropdown-menu dropdown-menu-dark">
+                            <li><a class="dropdown-item" href="#">Last 7 Days</a></li>
+                            <li><a class="dropdown-item" href="#">All Time</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div style="height: 300px;">
+                    <canvas id="adminPulseChart"></canvas>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="card p-4 border-glass h-100 assemble-in delay-200">
+                        <h6 class="fw-bold text-muted text-uppercase mb-4">Experience Distribution</h6>
+                        <canvas id="levelsChart" height="200"></canvas>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card p-4 border-glass h-100 assemble-in delay-300">
+                        <h6 class="fw-bold text-muted text-uppercase mb-4">Skill Cluster Popularity</h6>
+                        <canvas id="skillsChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Actions & System State -->
+        <div class="col-lg-4">
+            <div class="card p-4 border-glass mb-4 assemble-in delay-100 border-top-0 border-end-0 border-bottom-0 border-3 border-primary">
+                <h5 class="fw-bold text-main mb-4">Tactical Controls</h5>
+                <div class="d-grid gap-3">
+                    <!-- Links moved to Quick Actions Grid -->
+                    <div class="p-3 bg-surface rounded border border-glass">
+                        <div class="d-flex justify-content-between mb-2">
+                             <span class="small text-muted">CPU Load</span>
+                             <span class="small text-success">12%</span>
+                        </div>
+                        <div class="progress" style="height: 4px;">
+                            <div class="progress-bar bg-success" style="width: 12%"></div>
+                        </div>
+                    </div>
+                     <div class="p-3 bg-surface rounded border border-glass">
+                        <div class="d-flex justify-content-between mb-2">
+                             <span class="small text-muted">Memory</span>
+                             <span class="small text-warning">64%</span>
+                        </div>
+                        <div class="progress" style="height: 4px;">
+                            <div class="progress-bar bg-warning" style="width: 64%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-4 border-glass mb-4 assemble-in delay-200">
+                <h5 class="fw-bold text-main mb-3">Quick Export</h5>
+                <p class="small text-muted mb-4">Download localized system reports for offline analysis.</p>
+                <a href="{{ url_for('admin.export_data') }}" class="btn btn-sm btn-outline-success w-100">
+                    Generate CSV Report
+                </a>
+            </div>
+
+            <div class="card p-4 border-glass border-danger bg-danger bg-opacity-5 assemble-in delay-300">
+                <h5 class="fw-bold text-danger mb-3">Danger Zone</h5>
+                <p class="small text-muted mb-3">Irreversible system-wide reset. Protocol authorization required.</p>
+                <button class="btn btn-sm btn-danger w-100" data-bs-toggle="modal" data-bs-target="#resetDbModal">
+                    Initiate System Wipe
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Control Index -->
+    <div class="mt-5 animate-up delay-300">
+        <div class="card border-glass p-0 overflow-hidden">
+            <div class="card-header bg-transparent border-glass py-3 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold text-main mb-0">Identity Control Index</h5>
+                <div class="input-group w-auto">
+                    <span class="input-group-text bg-surface border-secondary text-muted"><i data-feather="search" style="width: 14px;"></i></span>
+                    <input type="text" class="form-control form-control-sm bg-surface border-secondary text-main" id="userSearch" placeholder="Search identities...">
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-dark mb-0 bg-transparent align-middle" id="userTable">
+                    <thead>
+                        <tr class="text-muted text-uppercase small" style="font-size: 0.7rem;">
+                            <th class="py-3 ps-4">Identity</th>
+                            <th class="py-3">Role</th>
+                            <th class="py-3">Last Scan / Level</th>
+                            <th class="py-3 text-center">Score</th>
+                            <th class="py-3 text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data in user_data %}
+                        {% set u = data.user %}
+                        <tr class="hover-lift-sm user-row">
+                            <td class="ps-4 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-sm rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center me-3" style="width: 35px; height: 35px; font-size: 0.8rem; font-weight: bold;">
+                                        {{ u.username[:2].upper() }}
+                                    </div>
+                                    <div>
+                                        <div class="text-white fw-bold username-cell">{{ u.username }}</div>
+                                        <div class="text-muted small email-cell" style="font-size: 0.65rem;">{{ u.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if u.role == 'admin' %}
+                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">ADMIN</span>
+                                {% elif u.role == 'employer' %}
+                                    <span class="badge bg-purple bg-opacity-10 text-purple border border-purple border-opacity-25" style="color: #a855f7;">EMPLOYER</span>
+                                {% else %}
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">USER</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="text-main small">LVL {{ u.xp_profile.level if u.xp_profile else 1 }}</div>
+                                <div class="text-muted" style="font-size: 0.65rem;">{{ data.uploaded_at.strftime('%b %d, %H:%M') }}</div>
+                            </td>
+                            <td class="text-center">
+                                {% set score = data.analysis_result.get('resume_score', 0) %}
+                                <div class="d-inline-flex align-items-center justify-content-center rounded-circle border-2 border-{{ 'success' if score > 70 else 'warning' if score > 40 else 'danger' }}" style="width: 32px; height: 32px; font-size: 0.7rem; font-weight: bold; color: white;">
+                                    {{ score }}
+                                </div>
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-link text-primary p-0" data-bs-toggle="dropdown">
+                                        <i data-feather="more-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end border-glass shadow-lg">
+                                        <li><a href="{{ url_for('admin.view_analysis', user_data_id=data.id) }}" class="dropdown-item d-flex align-items-center gap-2">
+                                            <i data-feather="eye" style="width: 14px;"></i> View Scan
+                                        </a></li>
+                                        <li><hr class="dropdown-divider border-glass"></li>
+                                        <li><h6 class="dropdown-header text-uppercase small">Identity Control</h6></li>
+                                        <li>
+                                            <form action="{{ url_for('admin.update_user_role', user_id=u.id) }}" method="POST">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                <button type="submit" name="role" value="{{ 'user' if u.role != 'user' else 'employer' }}" class="dropdown-item d-flex align-items-center gap-2">
+                                                    <i data-feather="refresh-cw" style="width: 14px;"></i> Toggle Role
+                                                </button>
+                                            </form>
+                                        </li>
+                                        <li>
+                                            <button type="button" class="dropdown-item d-flex align-items-center gap-2" 
+                                                    data-bs-toggle="modal" data-bs-target="#msgModal{{ u.id }}">
+                                                <i data-feather="message-square" style="width: 14px;"></i> Alert User
+                                            </button>
+                                        </li>
+                                        <li><hr class="dropdown-divider border-glass"></li>
+                                        <li>
+                                            <button type="button" class="dropdown-item d-flex align-items-center gap-2 text-danger"
+                                                    data-bs-toggle="modal" data-bs-target="#deleteModal{{ u.id }}">
+                                                <i data-feather="trash-2" style="width: 14px;"></i> Terminate
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Modals for this User (embedded) -->
+                        <div class="modal fade" id="msgModal{{ u.id }}" tabindex="-1">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content bg-surface border-glass">
+                                    <div class="modal-header border-glass">
+                                        <h5 class="modal-title text-main">Alert: {{ u.username }}</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form action="{{ url_for('admin.send_user_notification', user_id=u.id) }}" method="POST">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <textarea name="message" class="form-control bg-surface text-main border-secondary mb-3" placeholder="Enter alert message..." required></textarea>
+                                            <button type="submit" class="btn btn-primary w-100">Transmit Alert</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal fade" id="deleteModal{{ u.id }}" tabindex="-1">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content bg-surface border-glass border-danger">
+                                    <div class="modal-header border-glass">
+                                        <h5 class="modal-title text-danger">Identity Termination</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body text-center">
+                                        <p>Permanently delete <strong>{{ u.username }}</strong> and all associated data?</p>
+                                        <form action="{{ url_for('admin.delete_user', user_id=u.id) }}" method="POST">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <button type="submit" class="btn btn-danger w-100">Confirm Termination</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Live Search
+    document.getElementById('userSearch').addEventListener('keyup', function() {
+        const filter = this.value.toLowerCase();
+        document.querySelectorAll('.user-row').forEach(row => {
+            const name = row.querySelector('.username-cell').textContent.toLowerCase();
+            const email = row.querySelector('.email-cell').textContent.toLowerCase();
+            row.style.display = (name.includes(filter) || email.includes(filter)) ? '' : 'none';
+        });
+    });
+</script>
+
+<!-- Reset Modal -->
+<div class="modal fade animate-in anim-pop" id="resetDbModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-surface border-glass border-danger">
+            <div class="modal-header border-glass">
+                <h5 class="modal-title text-danger fw-bold">⚠️ PROTOCOL OVERRIDE REQUIRED</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                <div class="mb-4">
+                    <i data-feather="alert-triangle" class="text-danger" style="width: 64px; height: 64px;"></i>
+                </div>
+                <h4 class="text-white mb-3">Initiate System-Wide Wipe?</h4>
+                <p class="text-muted small">This action will purge all neural analyses, job vectors, and non-admin entities from the system index. This is irreversible.</p>
+                <form action="{{ url_for('admin.reset_db') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <input type="hidden" name="confirm" value="yes">
-                    <button type="submit" class="btn btn-danger w-100">Delete Whole Thing</button>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger">Execute Purge Protocol</button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abort</button>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Create Job Modal -->
+<div class="modal fade" id="createJobModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-surface border-glass">
+            <div class="modal-header border-bottom border-glass">
+                <h5 class="modal-title fw-bold text-main">Post New Job Listing</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('admin.create_job') }}" method="POST">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        <label class="form-label text-muted small text-uppercase">Job Title</label>
+                        {{ form.title(class="form-control bg-surface border-secondary text-main") }}
+                    </div>
+                    <div class="mb-3">
+                         <div class="d-flex justify-content-between">
+                            <label class="form-label text-muted small text-uppercase">Description</label>
+                            <button type="button" class="btn btn-sm btn-link text-primary p-0" id="generateDescBtn">
+                                <i data-feather="zap" style="width: 12px;"></i> AI Generate
+                            </button>
+                        </div>
+                        {{ form.description(class="form-control bg-surface border-secondary text-main", rows="5") }}
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Publish to Network</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    const ctx = document.getElementById('adminChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: {{ engagement_dates | tojson }},
-            datasets: [{
-                label: 'Resumes Analyzed',
-                data: {{ analysis_counts | tojson }},
-                borderColor: '#ff4b4b',
-                tension: 0.1
-            }]
+    // AI Generation Script for Job Description
+    document.getElementById('generateDescBtn').addEventListener('click', function() {
+        const title = document.querySelector('input[name="title"]').value;
+        if (!title) {
+            alert('Please enter a Job Title first.');
+            return;
         }
+        
+        const btn = this;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Generating...';
+        btn.disabled = true;
+        
+        fetch("{{ url_for('admin.generate_job_desc_api') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': "{{ csrf_token() }}"
+            },
+            body: JSON.stringify({ title: title })
+        })
+        .then(res => res.json())
+        .then(data => {
+            document.querySelector('textarea[name="description"]').value = data.description;
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            feather.replace();
+        })
+        .catch(err => {
+            console.error(err);
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            alert('AI Generation Failed.');
+        });
     });
 </script>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const style = getComputedStyle(document.body);
+        const primary = '#6366f1';
+        const purple = '#a855f7';
+        const textMuted = '#94a3b8';
+        const borderGlass = 'rgba(255, 255, 255, 0.1)';
+
+        // Main Pulse Chart
+        new Chart(document.getElementById('adminPulseChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: {{ engagement_dates | tojson }},
+                datasets: [{
+                    label: 'Scan Frequency',
+                    data: {{ analysis_counts | tojson }},
+                    borderColor: primary,
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: primary
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: borderGlass }, ticks: { color: textMuted } },
+                    x: { grid: { display: false }, ticks: { color: textMuted } }
+                }
+            }
+        });
+
+        // Distribution Chart
+        new Chart(document.getElementById('levelsChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: {{ level_counts.keys()|list|tojson }},
+                datasets: [{
+                    data: {{ level_counts.values()|list|tojson }},
+                    backgroundColor: [primary, purple, '#10b981', '#f59e0b', '#ef4444'],
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: borderGlass }, ticks: { color: textMuted } },
+                    x: { grid: { display: false }, ticks: { color: textMuted } }
+                }
+            }
+        });
+
+        // Cluster Chart
+        new Chart(document.getElementById('skillsChart').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: {{ skill_counts.keys()|list|tojson }},
+                datasets: [{
+                    data: {{ skill_counts.values()|list|tojson }},
+                    backgroundColor: [primary, purple, '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#ec4899'],
+                    borderWidth: 0,
+                    hoverOffset: 15
+                }]
+            },
+            options: {
+                cutout: '70%',
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: textMuted, padding: 20, boxWidth: 10 } }
+                }
+            }
+        });
+    });
+</script>
+<style>
+    .pulse-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 1);
+        animation: pulse-green 2s infinite;
+    }
+    @keyframes pulse-green {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    .hover-lift-sm:hover {
+        transform: translateY(-2px);
+        background: rgba(255,255,255,0.02);
+        transition: all 0.2s ease;
+    }
+    .tag-badge {
+        background: rgba(99, 102, 241, 0.1);
+        color: #818cf8;
+        padding: 0.25rem 0.6rem;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+</style>
 {% endblock %}

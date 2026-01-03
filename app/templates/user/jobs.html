@@ -5,27 +5,277 @@
 {% block user_content %}
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h2">Available Jobs</h1>
+    <div class="input-group w-25">
+         <span class="input-group-text bg-white border-end-0"><span data-feather="search"></span></span>
+         <input type="text" class="form-control border-start-0 ps-0" id="jobSearch" placeholder="Search jobs...">
+    </div>
 </div>
 
-<div class="row">
+{% if not has_resume %}
+<div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+    <span data-feather="alert-triangle" class="me-2"></span>
+    <div>
+        You haven't uploaded a resume yet. Upload one in the <a href="{{ url_for('user.resume_analysis') }}" class="alert-link">Analysis</a> section to see your AI match scores!
+    </div>
+</div>
+{% endif %}
+
+<!-- Recommended Jobs Section -->
+{% if recommended_jobs %}
+<div class="mb-5">
+    <h4 class="mb-3 text-success fw-bold"><i class="fas fa-magic me-2"></i> AI Recommended For You</h4>
+    <div class="row">
+        {% for job in recommended_jobs %}
+        <div class="col-md-6 col-lg-4 mb-4 job-item">
+            <div class="card h-100 shadow-lg border-success position-relative" style="border-width: 2px;">
+                <div class="position-absolute top-0 end-0 p-2">
+                    <span class="badge bg-success">Best Match</span>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                         <h5 class="card-title fw-bold text-success">{{ job.title }}</h5>
+                         <small class="text-muted">{{ job.created_at.strftime('%b %d') }}</small>
+                    </div>
+                    <p class="card-text text-muted flex-grow-1">{{ job.description | truncate(150) }}</p>
+
+                    {% if has_resume %}
+                    <div class="mb-3 small">
+                        <span class="badge bg-light text-dark border">
+                            <i class="fas fa-check-circle text-success"></i> Strong Skill Overlap
+                        </span>
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-auto pt-3 border-top d-flex flex-column gap-2">
+                        <div class="d-flex gap-2">
+                            {% if job.id in applied_job_ids %}
+                                 <button class="btn btn-secondary flex-grow-1" disabled>
+                                    <span data-feather="check"></span> Applied
+                                 </button>
+                            {% else %}
+                                 <a href="{{ url_for('user.apply', job_id=job.id) }}" class="btn btn-primary flex-grow-1">Apply Now</a>
+                            {% endif %}
+                        </div>
+                        {% if has_resume %}
+                        <button class="btn btn-sm btn-outline-info w-100" onclick="generateCoverLetter({{ job.id }}, '{{ job.title|e }}')">
+                            <span data-feather="file-text" class="me-1"></span> Generate AI Cover Letter
+                        </button>
+                        <a href="{{ url_for('user.tailor_resume', job_id=job.id) }}" class="btn btn-sm btn-outline-success w-100">
+                            <span data-feather="edit-3" class="me-1"></span> Tailor Resume & Download
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <hr>
+</div>
+{% endif %}
+
+
+<div class="row assemble-grid" id="jobContainer">
     {% if jobs %}
         {% for job in jobs %}
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100">
+        <div class="col-md-6 col-lg-4 mb-4 job-item">
+            <div class="card h-100 hover-lift shadow-sm border-0 position-relative">
                 <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">{{ job.title }}</h5>
-                    <p class="card-text">{{ job.description | truncate(150) }}</p>
-                    <div class="mt-auto">
-                        <a href="{{ url_for('user.apply', job_id=job.id) }}" class="btn btn-primary">Apply Now</a>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                         <h5 class="card-title fw-bold text-primary">{{ job.title }}</h5>
+                         <small class="text-muted">{{ job.created_at.strftime('%b %d') }}</small>
+                    </div>
+                   
+                    <p class="card-text text-muted flex-grow-1">{{ job.description | truncate(150) }}</p>
+                   
+                    {% if has_resume %}
+                    <div id="match-score-{{ job.id }}" class="mb-3 small match-score-container" data-job-id="{{ job.id }}">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="fw-bold">AI Match:</span>
+                            <span class="score-val fw-bold text-muted">Calculating...</span>
+                        </div>
+                        <div class="progress mb-1" style="height: 6px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-secondary" role="progressbar" style="width: 100%"></div>
+                        </div>
+                        <div class="reason-val text-muted fst-italic" style="font-size: 0.8rem;">Analyzing relevance...</div>
+                    </div>
+                    {% endif %}
+                   
+                    <div class="mt-auto pt-3 border-top d-flex flex-column gap-2">
+                        <div class="d-flex gap-2">
+                            {% if job.id in applied_job_ids %}
+                                 <button class="btn btn-secondary flex-grow-1" disabled>
+                                    <span data-feather="check"></span> Applied
+                                 </button>
+                            {% else %}
+                                 <a href="{{ url_for('user.apply', job_id=job.id) }}" class="btn btn-primary flex-grow-1">Apply Now</a>
+                            {% endif %}
+                        </div>
+                        {% if has_resume %}
+                        <button class="btn btn-sm btn-outline-info w-100" onclick="generateCoverLetter({{ job.id }}, '{{ job.title|e }}')">
+                            <span data-feather="file-text" class="me-1"></span> Generate AI Cover Letter
+                        </button>
+                        <a href="{{ url_for('user.tailor_resume', job_id=job.id) }}" class="btn btn-sm btn-outline-success w-100">
+                            <span data-feather="edit-3" class="me-1"></span> Tailor Resume & Download
+                        </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
         </div>
         {% endfor %}
     {% else %}
-        <div class="col">
-            <p>No jobs are available at the moment. Please check back later.</p>
+        <div class="col-12 text-center py-5">
+            <p class="text-muted">No jobs are available at the moment. Please check back later.</p>
         </div>
     {% endif %}
 </div>
+
+<!-- Cover Letter Modal -->
+<div class="modal fade" id="coverLetterModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-surface border-glass">
+            <div class="modal-header border-glass">
+                <h5 class="modal-title fw-bold">AI Cover Letter: <span id="clModalTitle" class="text-primary"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="clLoading" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-3 text-muted">Analyzing your resume and the job description...<br>This may take a few seconds.</p>
+                </div>
+                <div id="clContent" class="d-none">
+                    <textarea id="clText" class="form-control" rows="15" style="background: rgba(0,0,0,0.1); color: var(--text-primary); border-color: var(--border-glass);"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer border-glass">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="copyCoverLetter()">
+                    <span data-feather="copy" class="me-1"></span> Copy to Clipboard
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let clModal;
+
+function generateCoverLetter(jobId, jobTitle) {
+    if (!clModal) clModal = new bootstrap.Modal(document.getElementById('coverLetterModal'));
+    
+    document.getElementById('clModalTitle').innerText = jobTitle;
+    document.getElementById('clLoading').classList.remove('d-none');
+    document.getElementById('clContent').classList.add('d-none');
+    clModal.show();
+    
+    fetch("{{ url_for('user.api_generate_cover_letter') }}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': "{{ csrf_token() }}"
+        },
+        body: JSON.stringify({ job_id: jobId })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById('clLoading').classList.add('d-none');
+        document.getElementById('clContent').classList.remove('d-none');
+        if(data.error) {
+            document.getElementById('clText').value = "Error: " + data.error;
+        } else {
+            document.getElementById('clText').value = data.cover_letter_text;
+        }
+    })
+    .catch(err => {
+        document.getElementById('clLoading').classList.add('d-none');
+        document.getElementById('clContent').classList.remove('d-none');
+        document.getElementById('clText').value = "Network Error. Please try again.";
+    });
+}
+
+function copyCoverLetter() {
+    const copyText = document.getElementById("clText");
+    copyText.select();
+    copyText.setSelectionRange(0, 99999); 
+    navigator.clipboard.writeText(copyText.value).then(() => {
+        alert("Copied to clipboard!");
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Search Functionality
+    const searchInput = document.getElementById('jobSearch');
+    const jobItems = document.querySelectorAll('.job-item');
+
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function() {
+            const filter = searchInput.value.toLowerCase();
+            jobItems.forEach(item => {
+                const title = item.querySelector('.card-title').textContent.toLowerCase();
+                const desc = item.querySelector('.card-text').textContent.toLowerCase();
+                item.style.display = (title.includes(filter) || desc.includes(filter)) ? "" : "none";
+            });
+        });
+    }
+
+    // Auto-calculate Match Scores
+    const matchContainers = document.querySelectorAll('.match-score-container');
+    
+    matchContainers.forEach((container, index) => {
+        const jobId = container.getAttribute('data-job-id');
+        const scoreVal = container.querySelector('.score-val');
+        const progressBar = container.querySelector('.progress-bar');
+        const reasonVal = container.querySelector('.reason-val');
+
+        setTimeout(() => {
+            fetch("{{ url_for('user.calculate_match') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({ job_id: jobId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.score !== undefined) {
+                    scoreVal.textContent = `${data.score}%`;
+                    progressBar.style.width = `${data.score}%`;
+                    progressBar.classList.remove('progress-bar-striped', 'progress-bar-animated', 'bg-secondary');
+                    reasonVal.textContent = data.reason;
+
+                    if (data.score < 40) {
+                        progressBar.classList.add('bg-danger');
+                        scoreVal.classList.remove('text-muted');
+                        scoreVal.classList.add('text-danger');
+                    } else if (data.score < 70) {
+                        progressBar.classList.add('bg-warning');
+                        scoreVal.classList.remove('text-muted');
+                        scoreVal.classList.add('text-warning');
+                    } else {
+                        progressBar.classList.add('bg-success');
+                        scoreVal.classList.remove('text-muted');
+                        scoreVal.classList.add('text-success');
+                    }
+                } else {
+                    scoreVal.textContent = "N/A";
+                    progressBar.style.width = "0%";
+                    progressBar.classList.remove('progress-bar-animated');
+                    reasonVal.textContent = "Could not calculate match.";
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                scoreVal.textContent = "Error";
+                progressBar.classList.remove('progress-bar-animated');
+                reasonVal.textContent = "Network error.";
+            });
+        }, index * 300);
+    });
+});
+</script>
 {% endblock %}

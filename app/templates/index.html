@@ -1,23 +1,49 @@
 {% extends "base.html" %}
 
-{% block title %}Welcome{% endblock %}
+{% block title %}Smart Resume Analyzer - AI Powered Career Growth{% endblock %}
+
+{% block scripts %}
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+</script>
+<script type="module" src="{{ url_for('static', filename='js/sphere_effect.js') }}"></script>
+{% endblock %}
 
 {% block content %}
-    <div class="p-5 mb-4 rounded-3" style="background-color: var(--sidebar-bg); border: 1px solid var(--border-color);">
-        <div class="container-fluid py-5">
-            <h1 class="display-5 fw-bold">Welcome to the Smart Resume Screener & Analyzer</h1>
-            <p class="col-md-8 fs-4 text-muted">
-                This platform helps job seekers and recruiters streamline the hiring process.
-                Analyze resumes, conduct mock interviews, and find the perfect match.
-            </p>
-            {% if not current_user.is_authenticated %}
-            <div class="d-flex gap-3">
-                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">Get Started</a>
-                <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary btn-lg">Login</a>
-            </div>
+<section class="min-vh-100 d-flex flex-column justify-content-center align-items-center text-center position-relative overflow-hidden">
+    
+    <!-- Hero Content (Overlay) -->
+    <div class="container" style="position: relative; z-index: 10; margin-top: -10vh;">
+        
+        <h1 class="display-3 fw-bold mb-4 text-white anim-up delay-100" style="text-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+            Resume Intelligence <br>
+            <span style="color: #a5b4fc;">Reimagined.</span>
+        </h1>
+        
+        <p class="lead text-light mb-5 mx-auto anim-up delay-200" style="max-width: 600px; opacity: 0.9; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">
+            Analyze. Optimize. Succeed. <br>
+            The AI-powered platform for modern career growth.
+        </p>
+
+        <div class="d-flex gap-3 justify-content-center anim-up delay-300">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('user.dashboard') }}" class="btn btn-light btn-lg px-5 py-3 rounded-pill shadow-lg text-primary fw-bold">
+                    Open Dashboard
+                </a>
             {% else %}
-            <a href="{{ url_for('user.dashboard') if current_user.role == 'user' else url_for('admin.dashboard') }}" class="btn btn-primary btn-lg">Go to Dashboard</a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-light btn-lg px-5 py-3 rounded-pill shadow-lg text-primary fw-bold">
+                    Get Started
+                </a>
+                <a href="{{ url_for('main.flowchart') }}" class="btn btn-outline-light btn-lg px-5 py-3 rounded-pill">
+                    Learn More
+                </a>
             {% endif %}
         </div>
     </div>
+</section>
 {% endblock %}
