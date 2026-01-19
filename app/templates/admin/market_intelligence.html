@@ -9,27 +9,31 @@
             <h1 class="display-5 fw-bold text-main">Market Intelligence</h1>
             <p class="text-muted">AI-driven analysis of Supply (Users) vs. Demand (Jobs)</p>
         </div>
-        <div>
-            <span class="badge bg-primary fs-6">Live Analysis</span>
+        <div class="d-flex align-items-center gap-2">
+            <span class="pulse-dot bg-success"></span>
+            <span class="text-success small fw-bold tracking-wider">LIVE STREAM</span>
         </div>
     </div>
 
     <!-- Health Score -->
     <div class="row mb-5 animate-up delay-100">
         <div class="col-md-12">
-            <div class="card border-glass p-4 position-relative overflow-hidden">
-                <div class="position-absolute top-0 end-0 p-3 opacity-25">
-                    <i data-feather="activity" style="width: 100px; height: 100px;"></i>
-                </div>
-                <div class="d-flex align-items-center">
-                    <div class="me-4">
-                        <div class="display-3 fw-bold {{ 'text-success' if analysis.market_health_score > 70 else 'text-warning' }}">
-                            {{ analysis.market_health_score }}
+            <div class="card border-glass p-0 position-relative overflow-hidden">
+                <!-- Background Pulse Effect -->
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: linear-gradient(90deg, transparent, {{ 'var(--success)' if analysis.market_health_score > 70 else 'var(--warning)' }}, transparent); animation: scanline 3s infinite;"></div>
+                
+                <div class="card-body p-5">
+                    <div class="row align-items-center">
+                        <div class="col-md-2 text-center border-end border-glass">
+                            <div class="display-1 fw-bold {{ 'text-success' if analysis.market_health_score > 70 else 'text-warning' }}" style="text-shadow: 0 0 20px rgba(0,0,0,0.5);">
+                                {{ analysis.market_health_score }}
+                            </div>
+                            <div class="text-muted text-uppercase tracking-wider small fw-bold">System Health</div>
                         </div>
-                        <div class="text-muted text-uppercase tracking-wider">Platform Health Score</div>
-                    </div>
-                    <div class="border-start border-glass ps-4">
-                        <p class="mb-0 text-main fst-italic">"{{ analysis.strategic_advice }}"</p>
+                        <div class="col-md-10 ps-md-5">
+                            <h4 class="text-main fw-bold mb-3">Strategic Overview</h4>
+                            <p class="text-main fs-5 fst-italic mb-0" style="opacity: 0.9;">"{{ analysis.strategic_advice }}"</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -40,32 +44,50 @@
     <div class="row g-4 mb-5 animate-up delay-200">
         <!-- Undersupplied (High Opportunity) -->
         <div class="col-md-4">
-            <div class="card border-glass h-100 border-top-0 border-end-0 border-bottom-0 border-3 border-danger">
-                <div class="card-header bg-transparent fw-bold text-danger">
-                    <i data-feather="trending-up" class="me-2"></i>High Demand / Low Supply
+            <div class="card border-glass h-100 border-top-0 border-end-0 border-bottom-0 border-3 border-danger hover-lift">
+                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-danger bg-opacity-10 p-3 rounded-circle text-danger">
+                            <i data-feather="trending-up"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold text-main mb-0">Skill Gaps</h5>
+                            <span class="text-danger small fw-bold">High Demand / Low Supply</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <p class="small text-muted mb-3">Users need these skills to match current job postings.</p>
+                <div class="card-body px-4">
+                    <p class="small text-muted mb-4">Users lacking these critical skills are missing placement opportunities.</p>
                     <div class="d-flex flex-wrap gap-2">
                         {% for skill in analysis.undersupplied_skills %}
                         <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 p-2">{{ skill }}</span>
                         {% endfor %}
                     </div>
                 </div>
-                <div class="card-footer bg-transparent border-0">
-                    <button class="btn btn-sm btn-outline-danger w-100">Create "Quest" for these</button>
+                <div class="card-footer bg-transparent border-0 px-4 pb-4">
+                    <button class="btn btn-sm btn-outline-danger w-100 d-flex align-items-center justify-content-center gap-2">
+                        <i data-feather="plus-circle" style="width: 14px;"></i> Deploy Learning Quest
+                    </button>
                 </div>
             </div>
         </div>
 
         <!-- Oversupplied (Saturation) -->
         <div class="col-md-4">
-            <div class="card border-glass h-100 border-top-0 border-end-0 border-bottom-0 border-3 border-warning">
-                <div class="card-header bg-transparent fw-bold text-warning">
-                    <i data-feather="users" class="me-2"></i>Saturated Skills
+            <div class="card border-glass h-100 border-top-0 border-end-0 border-bottom-0 border-3 border-warning hover-lift">
+                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-warning bg-opacity-10 p-3 rounded-circle text-warning">
+                            <i data-feather="users"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold text-main mb-0">Saturation</h5>
+                            <span class="text-warning small fw-bold">High Supply / Low Demand</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <p class="small text-muted mb-3">Many users have these, but demand is stabilizing.</p>
+                <div class="card-body px-4">
+                    <p class="small text-muted mb-4">The market is flooded with these skills. Advise users to diversify.</p>
                     <div class="d-flex flex-wrap gap-2">
                         {% for skill in analysis.oversupplied_skills %}
                         <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 p-2">{{ skill }}</span>
@@ -77,23 +99,46 @@
 
         <!-- Emerging Trends -->
         <div class="col-md-4">
-            <div class="card border-glass h-100 border-top-0 border-end-0 border-bottom-0 border-3 border-success">
-                <div class="card-header bg-transparent fw-bold text-success">
-                    <i data-feather="zap" class="me-2"></i>Emerging Trends
+            <div class="card border-glass h-100 border-top-0 border-end-0 border-bottom-0 border-3 border-success hover-lift">
+                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success">
+                            <i data-feather="zap"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold text-main mb-0">Emerging</h5>
+                            <span class="text-success small fw-bold">Rising Keywords</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <p class="small text-muted mb-3">Keywords appearing frequently in new job descriptions.</p>
-                    <ul class="list-group list-group-flush bg-transparent">
+                <div class="card-body px-4">
+                    <p class="small text-muted mb-4">Detected new terminology in recent job postings.</p>
+                    <div class="d-flex flex-column gap-2">
                         {% for trend in analysis.emerging_trends %}
-                        <li class="list-group-item bg-transparent text-main border-glass d-flex justify-content-between align-items-center px-0">
-                            {{ trend }}
+                        <div class="d-flex justify-content-between align-items-center p-2 rounded bg-surface border border-glass">
+                            <span class="text-main small fw-bold">{{ trend }}</span>
                             <i data-feather="arrow-up-right" class="text-success" style="width: 14px;"></i>
-                        </li>
+                        </div>
                         {% endfor %}
-                    </ul>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    @keyframes scanline {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    .pulse-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 1);
+        animation: pulse-green 2s infinite;
+    }
+</style>
 {% endblock %}

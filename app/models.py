@@ -61,10 +61,27 @@ class JobApplication(db.Model):
     # e.g., submitted, under review, rejected, accepted
     status = db.Column(db.String(20), default='submitted')
     applied_at = db.Column(db.DateTime, default=datetime.utcnow)
+    notes = db.Column(db.Text)
     user = db.relationship('User', backref=db.backref(
         'applications', lazy=True, cascade='all, delete-orphan'))
     job = db.relationship(
         'JobPosting', backref=db.backref('applications', lazy=True, cascade='all, delete-orphan'))
+
+
+class ExternalApplication(db.Model):
+    __tablename__ = 'external_applications'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    company_name = db.Column(db.String(255))
+    job_title = db.Column(db.String(255))
+    job_url = db.Column(db.String(500))
+    job_description = db.Column(db.Text)
+    status = db.Column(db.String(50), default='Wishlist') # Wishlist, Applied, Interviewing, Offer, Rejected
+    match_score = db.Column(db.Integer)
+    match_summary = db.Column(db.Text)
+    applied_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user = db.relationship('User', backref=db.backref('external_applications', lazy=True, cascade='all, delete-orphan'))
 
 
 class MockTest(db.Model):

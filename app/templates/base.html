@@ -27,11 +27,6 @@
     <!-- Noise Texture -->
     <div class="noise-overlay"></div>
     
-    <!-- Page Loader -->
-    <div class="page-loader" id="page-loader">
-        <div class="spinner"></div>
-    </div>
-
     <!-- Top Navigation Bar -->
     <nav class="navbar navbar-expand-lg">
         <div class="container nav-content">
@@ -55,8 +50,6 @@
                         {% elif current_user.role == 'admin' %}
                             <a href="{{ url_for('admin.dashboard') }}" class="nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">Dashboard</a>
                             <a href="{{ url_for('admin.market_intelligence') }}" class="nav-link {% if request.endpoint == 'admin.market_intelligence' %}active{% endif %}">Market Intel</a>
-                            <a href="{{ url_for('admin.controls') }}" class="nav-link {% if request.endpoint == 'admin.controls' %}active{% endif %}">Controls</a>
-                            <a href="{{ url_for('admin.actions') }}" class="nav-link {% if request.endpoint == 'admin.actions' %}active{% endif %}">Actions</a>
                             <a href="{{ url_for('admin.interview_funnel') }}" class="nav-link {% if request.endpoint == 'admin.interview_funnel' %}active{% endif %}">Funnel</a>
                             <a href="{{ url_for('admin.user_management') }}" class="nav-link {% if request.endpoint == 'admin.user_management' %}active{% endif %}">Users</a>
                         {% endif %}
@@ -157,15 +150,6 @@
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script>
       feather.replace()
-      
-      // Hide loader when page is loaded
-      window.addEventListener('load', () => {
-          const loader = document.getElementById('page-loader');
-          if (loader) {
-              loader.classList.add('hidden');
-              setTimeout(() => { loader.style.display = 'none'; }, 500);
-          }
-      });
 
       // Handle Notifications Mark Read
       const markAllBtn = document.getElementById('markAllRead');
@@ -197,6 +181,9 @@
     <script src="{{ url_for('static', filename='js/landing_animations.js') }}"></script>
     
     {% block scripts %}{% endblock %}
+    {% block extra_scripts %}{% endblock %}
+    {% block extra_content %}{% endblock %}
+    
     <!-- AI Chatbot Widget -->
     <div id="ai-chatbot-widget">
         <!-- Floating Button -->

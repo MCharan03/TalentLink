@@ -1,33 +1,33 @@
-# Use an official Python runtime as a parent image
+# Dockerfile for Smart Resume Analyzer
+
+# Use official Python runtime as a parent image
 FROM python:3.9-slim
 
-# Set the working directory in the container
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Set work directory
 WORKDIR /app
 
-# Install system dependencies (needed for PDF processing and DB)
+# Install system dependencies (e.g., for PDF parsing, database drivers)
 RUN apt-get update && apt-get install -y \
     build-essential \
     default-libmysqlclient-dev \
-    tesseract-ocr \
+    pkg-config \
     poppler-utils \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the requirements file into the container
-COPY requirements.txt .
-
-# Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies
+COPY requirements.txt /app/
+RUN pip install --upgrade pip && pip install -r requirements.txt
 RUN pip install gunicorn
 
-# Copy the current directory contents into the container at /app
-COPY . .
+# Copy project
+COPY . /app/
 
-# Make port 8000 available to the world outside this container
-EXPOSE 8000
+# Expose port
+EXPOSE 5000
 
-# Define environment variable
-ENV FLASK_APP=wsgi.py
-ENV FLASK_CONFIG=production
-
-# Run app.py when the container launches
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--worker-class", "eventlet", "-w", "1", "wsgi:app"]
+# Run with Gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "run:app"]

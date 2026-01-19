@@ -188,6 +188,66 @@ def generate_resume_pdf(data, file_path):
 
     pdf.output(file_path)
 
+def generate_tailored_resume_pdf(data, file_path):
+    """
+    Generates a PDF for a tailored resume where data follows the structure:
+    {
+        "full_name": ..., 
+        "summary": "AI tailored...", 
+        "experience": [{"role":..., "company":..., "points": ["..."]}],
+        ...
+    }
+    """
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    
+    def safe_text(text):
+        if not text: return ""
+        return text.encode('latin-1', 'replace').decode('latin-1')
+
+    # Header
+    pdf.set_font("Arial", 'B', 18)
+    pdf.cell(0, 10, safe_text(data.get('full_name', 'Resume')), 0, 1, 'C')
+    pdf.set_font("Arial", '', 10)
+    pdf.cell(0, 5, safe_text(f"{data.get('email', '')} | {data.get('phone', '')}"), 0, 1, 'C')
+    pdf.ln(5)
+
+    # Summary
+    if data.get('summary'):
+        pdf.set_font("Arial", 'B', 12)
+        pdf.cell(0, 8, "SUMMARY", 0, 1)
+        pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+        pdf.ln(2)
+        pdf.set_font("Arial", '', 11)
+        pdf.multi_cell(0, 5, safe_text(data.get('summary')))
+        pdf.ln(5)
+
+    # Experience (Special format for tailored resume: List of bullet points)
+    if data.get('experience'):
+        pdf.set_font("Arial", 'B', 12)
+        pdf.cell(0, 8, "EXPERIENCE", 0, 1)
+        pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+        pdf.ln(2)
+        
+        for job in data.get('experience', []):
+            role = safe_text(job.get('role', 'Role'))
+            company = safe_text(job.get('company', 'Company'))
+            
+            pdf.set_font("Arial", 'B', 11)
+            pdf.cell(0, 6, f"{role} at {company}", 0, 1)
+            
+            pdf.set_font("Arial", '', 10)
+            points = job.get('points', [])
+            if isinstance(points, list):
+                for p in points:
+                    pdf.cell(5) # Indent
+                    pdf.multi_cell(0, 5, f"- {safe_text(p)}")
+            else:
+                pdf.multi_cell(0, 5, safe_text(str(points)))
+            pdf.ln(3)
+
+    pdf.output(file_path)
 
 def generate_resume_pdf_from_profile(data, file_path):
     pdf = FPDF()

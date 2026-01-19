@@ -89,12 +89,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const velocities = new Float32Array(CONFIG.particleCount * 3);
 
     const material = new THREE.PointsMaterial({
-        color: 0xffffff,
+        color: 0xa855f7, // Purple glow
         size: CONFIG.particleSize,
         sizeAttenuation: true,
         transparent: true,
         opacity: 0.8,
-        blending: THREE.AdditiveBlending
+        blending: THREE.AdditiveBlending // Glow effect
     });
 
     const particleSystem = new THREE.Points(geometry, material);

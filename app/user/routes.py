@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 from . import user
 from .forms import ResumeAnalysisForm, MockTestForm, ResumeBuilderForm, LinkedInBuilderForm, ProfileForm, ChangePasswordForm
 from ..extensions import db, socketio
-from ..models import UserData, MockTest, JobPosting, JobApplication, Notification, MockInterview, User
+from ..models import UserData, MockTest, JobPosting, JobApplication, Notification, MockInterview, User, ExternalApplication
 from ..utils.ai_utils import (
     analyze_resume,
     generate_next_assessment_question,
@@ -109,11 +109,21 @@ def tailor_resume(job_id):
             flash('Failed to generate tailored resume. Please try again.', 'danger')
             return redirect(url_for('user.jobs'))
 
+        # Merge with basic info (Name, Email, etc.) - In a real app, parse this from resume_text or DB
+        # For now, we'll use current_user data or placeholders if parsing is complex
+        final_data = {
+            "full_name": current_user.username, # Placeholder if name not parsed
+            "email": current_user.email,
+            "summary": tailored_data.get('summary'),
+            "experience": tailored_data.get('experience')
+        }
+
         # Generate the new PDF
         filename = f"Tailored_Resume_{job.id}_{int(time.time())}.pdf"
         save_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
         
-        generate_resume_pdf_from_profile(tailored_data, save_path)
+        from ..utils.report_utils import generate_tailored_resume_pdf
+        generate_tailored_resume_pdf(final_data, save_path)
         
         return send_file(
             save_path, 
@@ -161,9 +171,11 @@ def profile():
     return render_template('user/profile.html', profile_form=profile_form, password_form=password_form)
 
 @user.route('/dashboard')
-
 @login_required
 def dashboard():
+    if current_user.role == 'admin':
+        return redirect(url_for('admin.dashboard'))
+
     page = request.args.get('page', 1, type=int)
     
     # Pagination for analyses (5 per page)
@@ -174,42 +186,27 @@ def dashboard():
     analyses = analyses_pagination.items
 
     applications = JobApplication.query.filter_by(user_id=current_user.id).order_by(JobApplication.applied_at.desc()).all()
+    external_apps = ExternalApplication.query.filter_by(user_id=current_user.id).order_by(ExternalApplication.applied_at.desc()).all()
     tests = MockTest.query.filter_by(user_id=current_user.id).order_by(MockTest.taken_at.desc()).all()
     interviews = MockInterview.query.filter_by(user_id=current_user.id).order_by(MockInterview.started_at.desc()).all()
     
     resume_form = ResumeBuilderForm()
     linkedin_form = LinkedInBuilderForm()
     
-    # Prepare data for Progress Chart (Get all for trend, independent of pagination)
-    all_analyses = UserData.query.filter_by(user_id=current_user.id).order_by(UserData.uploaded_at.asc()).all()
+    # Calculate resume scores for chart
     resume_scores = []
-    for a in all_analyses:
-        score = a.analysis_result.get('resume_score')
-        if score:
-            try:
-                resume_scores.append({
-                    'timestamp': a.uploaded_at.strftime('%Y-%m-%d %H:%M'),
-                    'score': int(score)
-                })
-            except:
-                pass
-    
-    # Gamification Data
+    for a in analyses:
+         score = a.analysis_result.get('resume_score', 0) if a.analysis_result else 0
+         resume_scores.append(score)
+    resume_scores.reverse() 
+
+    # Gamification
     xp_profile = UserXP.query.filter_by(user_id=current_user.id).first()
     if not xp_profile:
-        xp_profile = UserXP(user_id=current_user.id, total_xp=0, level=1)
+        xp_profile = UserXP(user_id=current_user.id)
         db.session.add(xp_profile)
         db.session.commit()
     
-    # Auto-assign the first quest if none active
-    active_quests = UserQuest.query.filter_by(user_id=current_user.id).all()
-    if not active_quests:
-        first_quest = Quest.query.first()
-        if first_quest:
-            uq = UserQuest(user_id=current_user.id, quest_id=first_quest.id, status='in_progress', progress={'count': 0})
-            db.session.add(uq)
-            db.session.commit()
-            
     active_quests = UserQuest.query.filter_by(user_id=current_user.id, status='in_progress').all()
     completed_quests = UserQuest.query.filter_by(user_id=current_user.id, status='completed').all()
 
@@ -217,6 +214,7 @@ def dashboard():
                            analyses=analyses, 
                            analyses_pagination=analyses_pagination,
                            applications=applications, 
+                           external_apps=external_apps,
                            tests=tests, 
                            interviews=interviews,
                            resume_form=resume_form,
@@ -225,6 +223,85 @@ def dashboard():
                            xp_profile=xp_profile,
                            active_quests=active_quests,
                            completed_quests=completed_quests)
+
+# --- External Application Tracker ---
+
+@user.route('/api/external_app/add', methods=['POST'])
+@login_required
+def add_external_app():
+    data = request.get_json()
+    if not data or not data.get('company_name') or not data.get('job_title'):
+        return jsonify({'error': 'Company and Job Title are required'}), 400
+        
+    match_score = None
+    match_summary = None
+    jd = data.get('job_description', '')
+    
+    if jd:
+        # Calculate match score if JD provided
+        latest_resume = UserData.query.filter_by(user_id=current_user.id).order_by(UserData.uploaded_at.desc()).first()
+        if latest_resume:
+            try:
+                resume_path = os.path.join(current_app.config['UPLOAD_FOLDER'], latest_resume.resume_path)
+                resume_text = extract_text_from_pdf(resume_path)
+                
+                from ..utils.ai_utils import _call_gemini
+                prompt = f"""Rate the match between this resume and job description from 0 to 100.
+                Return ONLY a JSON object: {{"score": 85, "reason": "short explanation"}}
+                
+                Resume: {resume_text[:2000]}
+                Job: {jd[:1000]}"""
+                
+                result = _call_gemini(prompt, response_mime_type='application/json')
+                if result:
+                    match_score = result.get('score')
+                    match_summary = result.get('reason')
+            except Exception as e:
+                current_app.logger.error(f"Match calculation error: {e}")
+
+    app = ExternalApplication(
+        user_id=current_user.id,
+        company_name=data.get('company_name'),
+        job_title=data.get('job_title'),
+        job_url=data.get('job_url'),
+        job_description=jd,
+        status=data.get('status', 'Wishlist'),
+        match_score=match_score,
+        match_summary=match_summary
+    )
+    db.session.add(app)
+    db.session.commit()
+    
+    # Gamification
+    award_xp(current_user, 15, "tracking external application")
+    
+    return jsonify({'success': True, 'id': app.id})
+
+@user.route('/api/external_app/update_status', methods=['POST'])
+@login_required
+def update_external_app_status():
+    data = request.get_json()
+    app_id = data.get('id')
+    new_status = data.get('status')
+    
+    app = ExternalApplication.query.get_or_404(app_id)
+    if app.user_id != current_user.id:
+        abort(403)
+        
+    app.status = new_status
+    db.session.commit()
+    return jsonify({'success': True})
+
+@user.route('/api/external_app/delete/<int:app_id>', methods=['POST'])
+@login_required
+def delete_external_app(app_id):
+    app = ExternalApplication.query.get_or_404(app_id)
+    if app.user_id != current_user.id:
+        abort(403)
+        
+    db.session.delete(app)
+    db.session.commit()
+    return jsonify({'success': True})
 
 # --- Resume Analysis ---
 
@@ -264,6 +341,17 @@ def resume_analysis():
 
             analysis_result['page_count'] = page_count
 
+            # Check for improvement before awarding XP
+            previous_best = UserData.query.filter_by(user_id=current_user.id).all()
+            max_prev_score = 0
+            for pb in previous_best:
+                try:
+                    s = int(pb.analysis_result.get('resume_score', 0))
+                    if s > max_prev_score: max_prev_score = s
+                except: continue
+
+            new_score = int(analysis_result.get('resume_score', 0))
+
             user_data = UserData(user_id=current_user.id,
                                  resume_path=filename,
                                  analysis_result=analysis_result)
@@ -277,9 +365,13 @@ def resume_analysis():
             except Exception as e:
                 current_app.logger.error(f"Vector Indexing Error: {e}")
 
-            # Gamification
-            award_xp(current_user, 50, "Resume Analysis")
-            check_quest_progress(current_user, "resume_analysis")
+            # Gamification: Award XP only if improvement found
+            if new_score > max_prev_score:
+                improvement = new_score - max_prev_score
+                award_xp(current_user, 50 + (improvement * 2), f"improving resume score to {new_score}")
+                check_quest_progress(current_user, "resume_analysis")
+            else:
+                flash("Note: No score improvement detected. Keep optimizing to earn more XP!", "info")
 
             redirect_url = url_for(
                 'user.resume_analysis_result', user_data_id=user_data.id)
@@ -929,6 +1021,43 @@ def api_co_writer_suggest():
     
     result = _call_gemini(prompt, response_mime_type='application/json')
     return jsonify(result or {'suggestions': []})
+
+@user.route('/networking')
+@login_required
+def networking():
+    return render_template('user/networking.html')
+
+@user.route('/api/generate_reachout', methods=['POST'])
+@login_required
+def api_generate_reachout():
+    data = request.get_json()
+    company = data.get('company')
+    role = data.get('role')
+    platform = data.get('platform', 'LinkedIn')
+    
+    if not company or not role:
+        return jsonify({'error': 'Company and Role are required'}), 400
+        
+    latest_resume = UserData.query.filter_by(user_id=current_user.id).order_by(UserData.uploaded_at.desc()).first()
+    resume_text = ""
+    if latest_resume:
+        try:
+            resume_path = os.path.join(current_app.config['UPLOAD_FOLDER'], latest_resume.resume_path)
+            resume_text = extract_text_from_pdf(resume_path)
+        except:
+            pass
+            
+    from ..utils.ai_utils import _call_gemini
+    prompt = f"""You are a professional networking expert. Generate a highly personalized and professional {platform} message to a Recruiter at {company} for the position of {role}.
+    
+    Context:
+    Resume: {resume_text[:2000]}
+    
+    The message should be concise, highlight 1-2 relevant points from the resume, and have a clear call to action.
+    Return ONLY a JSON object: {{"message": "the message text"}}"""
+    
+    result = _call_gemini(prompt, response_mime_type='application/json')
+    return jsonify(result)
 
 @user.route('/agent_chat')
 @login_required

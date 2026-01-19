@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Networking Assistant{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <h2 class="fw-bold mb-0 text-white">Networking Assistant</h2>
+        <a href="{{ url_for('user.dashboard') }}" class="btn btn-outline-light btn-sm rounded-pill px-3">Back to Dashboard</a>
+    </div>
+
+    <div class="card p-5 border-glass">
+        <div class="row">
+            <div class="col-md-5">
+                <form id="reachoutForm">
+                    <div class="mb-4">
+                        <label class="form-label small text-muted text-uppercase fw-bold">Target Company</label>
+                        <input type="text" class="form-control form-control-lg bg-dark border-glass text-white" id="targetCompany" placeholder="e.g. Google" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small text-muted text-uppercase fw-bold">Target Role</label>
+                        <input type="text" class="form-control form-control-lg bg-dark border-glass text-white" id="targetRole" placeholder="e.g. Software Engineer" required>
+                    </div>
+                    <div class="mb-5">
+                        <label class="form-label small text-muted text-uppercase fw-bold">Platform</label>
+                        <select class="form-select form-select-lg bg-dark border-glass text-white" id="reachoutPlatform">
+                            <option value="LinkedIn Connection">LinkedIn Connection Request</option>
+                            <option value="LinkedIn InMail">LinkedIn InMail / Message</option>
+                            <option value="Cold Email">Cold Email</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow-lg hover-scale">
+                        Generate Personalized Message
+                    </button>
+                </form>
+            </div>
+            
+            <div class="col-md-1 d-flex justify-content-center align-items-center">
+                <div class="vr bg-white opacity-10 h-100"></div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="h-100 d-flex flex-column">
+                    <label class="form-label small text-muted text-uppercase fw-bold mb-3">Generated Result</label>
+                    <div id="reachoutResult" class="flex-grow-1 p-4 rounded bg-black bg-opacity-30 border border-glass text-light" style="min-height: 300px; font-size: 1.1rem; line-height: 1.6; white-space: pre-wrap;">
+                        <p class="text-muted fst-italic text-center mt-5">Your personalized message will appear here...</p>
+                    </div>
+                    <button class="btn btn-light w-100 mt-4 py-2 fw-bold" id="copyReachoutBtn" style="display: none;">
+                        <span data-feather="copy" class="me-2"></span> Copy to Clipboard
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('reachoutForm')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const btn = this.querySelector('button');
+        const resultDiv = document.getElementById('reachoutResult');
+        const copyBtn = document.getElementById('copyReachoutBtn');
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Generating with AI...';
+        resultDiv.innerHTML = '<div class="d-flex flex-column justify-content-center align-items-center h-100"><div class="spinner-border text-primary mb-3"></div><p class="text-muted">Personalizing message based on your resume...</p></div>';
+
+        const data = {
+            company: document.getElementById('targetCompany').value,
+            role: document.getElementById('targetRole').value,
+            platform: document.getElementById('reachoutPlatform').value
+        };
+
+        fetch('/user/api/generate_reachout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        }).then(res => res.json()).then(data => {
+            btn.disabled = false;
+            btn.innerText = 'Generate Personalized Message';
+            if (data.message) {
+                resultDiv.innerText = data.message;
+                copyBtn.style.display = 'block';
+                feather.replace();
+            } else {
+                resultDiv.innerText = 'Error: ' + data.error;
+            }
+        });
+    });
+
+    document.getElementById('copyReachoutBtn')?.addEventListener('click', function() {
+        const text = document.getElementById('reachoutResult').innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            const originalHtml = this.innerHTML;
+            this.innerText = 'Copied!';
+            setTimeout(() => {
+                this.innerHTML = originalHtml;
+                feather.replace();
+            }, 2000);
+        });
+    });
+</script>
+{% endblock %}

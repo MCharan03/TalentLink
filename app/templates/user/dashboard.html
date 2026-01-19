@@ -14,8 +14,17 @@
                 <button class="nav-link text-start d-flex align-items-center" id="v-pills-analyses-tab" data-bs-toggle="pill" data-bs-target="#v-pills-analyses" type="button">
                     <span data-feather="file-text" class="me-3"></span> Analyses
                 </button>
+                <a href="{{ url_for('user.jobs') }}" class="nav-link text-start d-flex align-items-center">
+                    <span data-feather="search" class="me-3"></span> Find Jobs
+                </a>
                 <button class="nav-link text-start d-flex align-items-center" id="v-pills-jobs-tab" data-bs-toggle="pill" data-bs-target="#v-pills-jobs" type="button">
-                    <span data-feather="briefcase" class="me-3"></span> Jobs
+                    <span data-feather="briefcase" class="me-3"></span> My Applications
+                </button>
+                <button class="nav-link text-start d-flex align-items-center" id="v-pills-tracker-tab" data-bs-toggle="pill" data-bs-target="#v-pills-tracker" type="button">
+                    <span data-feather="trello" class="me-3"></span> Application Tracker
+                </button>
+                <button class="nav-link text-start d-flex align-items-center" id="v-pills-networking-tab" data-bs-toggle="pill" data-bs-target="#v-pills-networking" type="button">
+                    <span data-feather="users" class="me-3"></span> Networking
                 </button>
                 <button class="nav-link text-start d-flex align-items-center" id="v-pills-interviews-tab" data-bs-toggle="pill" data-bs-target="#v-pills-interviews" type="button">
                     <span data-feather="video" class="me-3"></span> Interviews
@@ -291,6 +300,111 @@
                 {% endif %}
             </div>
 
+            <!-- 3. Application Tracker Tab -->
+            <div class="tab-pane fade animate-in" id="v-pills-tracker" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="fw-bold mb-0">External Application Tracker</h3>
+                    <button class="btn btn-primary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addAppModal">
+                        <span data-feather="plus" class="me-1"></span> Add Job
+                    </button>
+                </div>
+
+                <!-- Kanban Board -->
+                <div class="row g-3 kanban-board">
+                    {% set statuses = ['Wishlist', 'Applied', 'Interviewing', 'Offer', 'Rejected'] %}
+                    {% for status in statuses %}
+                    <div class="col-lg-2-5 col-md-4">
+                        <div class="kanban-column p-3 rounded bg-white bg-opacity-5 h-100" style="min-height: 500px; border: 1px dashed rgba(255,255,255,0.1);">
+                            <h6 class="text-uppercase small fw-bold mb-3 text-muted d-flex justify-content-between">
+                                {{ status }}
+                                <span class="badge bg-secondary bg-opacity-25 text-muted">{{ external_apps|selectattr('status', 'equalto', status)|list|length }}</span>
+                            </h6>
+                            
+                            <div class="kanban-cards d-flex flex-column gap-3">
+                                {% for app in external_apps if app.status == status %}
+                                <div class="card p-3 border-0 shadow-sm hover-lift" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05) !important;">
+                                    <h6 class="fw-bold mb-1 text-white">{{ app.job_title }}</h6>
+                                    <p class="small text-muted mb-2">{{ app.company_name }}</p>
+                                    
+                                    {% if app.match_score %}
+                                    <div class="d-flex align-items-center gap-2 mb-3">
+                                        <div class="progress flex-grow-1" style="height: 4px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ app.match_score }}%"></div>
+                                        </div>
+                                        <span class="small fw-bold text-success">{{ app.match_score }}%</span>
+                                    </div>
+                                    {% endif %}
+
+                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                        <div class="dropdown">
+                                            <button class="btn btn-dark btn-sm p-1 rounded-circle" data-bs-toggle="dropdown">
+                                                <span data-feather="more-horizontal" style="width: 14px; height: 14px;"></span>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-dark">
+                                                <li><h6 class="dropdown-header">Move to</h6></li>
+                                                {% for s in statuses if s != status %}
+                                                <li><a class="dropdown-item small" href="javascript:void(0)" onclick="updateAppStatus({{ app.id }}, '{{ s }}')">{{ s }}</a></li>
+                                                {% endfor %}
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item small text-danger" href="javascript:void(0)" onclick="deleteApp({{ app.id }})">Delete</a></li>
+                                            </ul>
+                                        </div>
+                                        {% if app.job_url %}
+                                        <a href="{{ app.job_url }}" target="_blank" class="btn btn-outline-primary btn-sm py-0 px-2" style="font-size: 0.7rem;">Link</a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- 4. Networking Tab -->
+            <div class="tab-pane fade animate-in" id="v-pills-networking" role="tabpanel">
+                <h3 class="fw-bold mb-4">Networking Assistant</h3>
+                <div class="card p-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <form id="reachoutForm">
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted text-uppercase fw-bold">Target Company</label>
+                                    <input type="text" class="form-control" id="targetCompany" placeholder="e.g. Google" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted text-uppercase fw-bold">Target Role</label>
+                                    <input type="text" class="form-control" id="targetRole" placeholder="e.g. Software Engineer" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label small text-muted text-uppercase fw-bold">Platform</label>
+                                    <select class="form-select" id="reachoutPlatform">
+                                        <option value="LinkedIn Connection">LinkedIn Connection Request</option>
+                                        <option value="LinkedIn InMail">LinkedIn InMail / Message</option>
+                                        <option value="Cold Email">Cold Email</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 py-3 fw-bold">
+                                    Generate Personalized Message
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-6 border-start border-white border-opacity-10">
+                            <div class="p-3">
+                                <label class="form-label small text-muted text-uppercase fw-bold">Result</label>
+                                <div id="reachoutResult" class="p-4 rounded bg-dark border border-white border-opacity-10 text-light" style="min-height: 200px; font-size: 0.95rem; line-height: 1.6;">
+                                    <p class="text-muted italic">Fill out the form to generate a message...</p>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm mt-3 w-100" id="copyReachoutBtn" style="display: none;">
+                                    Copy to Clipboard
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="tab-pane fade" id="v-pills-resume" role="tabpanel">
                 <div class="card p-4">
                     <h3 class="fw-bold mb-3">Resume Builder</h3>
@@ -371,4 +485,156 @@
     });
 </script>
 {% endif %}
+{% endblock %}
+
+{% block extra_content %}
+<!-- Add Application Modal -->
+<div class="modal fade" id="addAppModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border-white border-opacity-10 shadow-2xl">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-white">Track New Application</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addAppForm">
+                    <div class="mb-3">
+                        <label class="form-label small text-muted text-uppercase fw-bold">Company Name*</label>
+                        <input type="text" class="form-control" id="appCompany" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted text-uppercase fw-bold">Job Title*</label>
+                        <input type="text" class="form-control" id="appTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted text-uppercase fw-bold">Job URL</label>
+                        <input type="url" class="form-control" id="appUrl" placeholder="https://linkedin.com/jobs/...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted text-uppercase fw-bold">Job Description (Optional)</label>
+                        <textarea class="form-control" id="appJD" rows="4" placeholder="Paste JD for AI Match Score..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-3 fw-bold mt-3">Save & Analyze Match</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function updateAppStatus(id, status) {
+        fetch('/user/api/external_app/update_status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, status })
+        }).then(() => window.location.reload());
+    }
+
+    function deleteApp(id) {
+        if (confirm('Are you sure you want to delete this application?')) {
+            fetch(`/user/api/external_app/delete/${id}`, {
+                method: 'POST'
+            }).then(() => window.location.reload());
+        }
+    }
+
+    document.getElementById('addAppForm')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const btn = this.querySelector('button');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Analyzing...';
+
+        const data = {
+            company_name: document.getElementById('appCompany').value,
+            job_title: document.getElementById('appTitle').value,
+            job_url: document.getElementById('appUrl').value,
+            job_description: document.getElementById('appJD').value,
+            status: 'Wishlist'
+        };
+
+        fetch('/user/api/external_app/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        }).then(res => res.json()).then(data => {
+            if (data.success) window.location.reload();
+            else alert(data.error);
+        });
+    });
+
+    document.getElementById('reachoutForm')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const btn = this.querySelector('button');
+        const resultDiv = document.getElementById('reachoutResult');
+        const copyBtn = document.getElementById('copyReachoutBtn');
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Generating...';
+        resultDiv.innerHTML = '<div class="d-flex justify-content-center p-5"><div class="spinner-grow text-primary"></div></div>';
+
+        const data = {
+            company: document.getElementById('targetCompany').value,
+            role: document.getElementById('targetRole').value,
+            platform: document.getElementById('reachoutPlatform').value
+        };
+
+        fetch('/user/api/generate_reachout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        }).then(res => res.json()).then(data => {
+            btn.disabled = false;
+            btn.innerText = 'Generate Personalized Message';
+            if (data.message) {
+                resultDiv.innerText = data.message;
+                copyBtn.style.display = 'block';
+            } else {
+                resultDiv.innerText = 'Error: ' + data.error;
+            }
+        });
+    });
+
+    document.getElementById('copyReachoutBtn')?.addEventListener('click', function() {
+        const text = document.getElementById('reachoutResult').innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            this.innerText = 'Copied!';
+            setTimeout(() => this.innerText = 'Copy to Clipboard', 2000);
+        });
+    });
+</script>
+<style>
+    .kanban-board {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 1rem;
+    }
+    .col-lg-2-5 {
+        flex: 0 0 auto;
+        width: 20%;
+        min-width: 250px;
+    }
+    .kanban-column {
+        transition: background 0.3s ease;
+    }
+    .kanban-column:hover {
+        background: rgba(255,255,255,0.08) !important;
+    }
+    .hover-lift {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.3) !important;
+    }
+    .btn-dark {
+        background: rgba(255,255,255,0.1);
+        border: none;
+    }
+    .btn-dark:hover {
+        background: rgba(255,255,255,0.2);
+    }
+</style>
 {% endblock %}

@@ -88,33 +88,67 @@
     const questionDisplay = document.getElementById('question-display');
     const feedbackStream = document.getElementById('feedback-stream');
     
-    // Speech Recognition Setup
+    // --- Speech Recognition Setup ---
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition = null;
-    let isRecording = false;
-    let currentQuestion = "Tell me about yourself."; // Default starter
+    let isSpeaking = false; 
+    let currentQuestion = "Tell me about yourself."; 
+
+    // --- Text-to-Speech Setup ---
+    const synth = window.speechSynthesis;
+    let voices = [];
+
+    function loadVoices() {
+        voices = synth.getVoices();
+    }
+    
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    function speak(text) {
+        if (synth.speaking) {
+            console.error('speechSynthesis.speaking');
+            return;
+        }
+        if (text !== '') {
+            const utterThis = new SpeechSynthesisUtterance(text);
+            // Try to find a good English voice
+            const voice = voices.find(v => v.lang === 'en-US' && v.name.includes('Google')) || voices[0];
+            if(voice) utterThis.voice = voice;
+            
+            utterThis.onend = function (event) {
+                console.log('SpeechSynthesisUtterance.onend');
+                // Auto-start listening after AI finishes speaking
+                startListening();
+            };
+            
+            utterThis.onerror = function (event) {
+                console.error('SpeechSynthesisUtterance.onerror');
+            };
+            
+            synth.speak(utterThis);
+        }
+    }
 
     if (SpeechRecognition) {
         recognition = new SpeechRecognition();
-        recognition.continuous = false; // Capture one sentence/answer at a time
+        recognition.continuous = false; 
         recognition.lang = 'en-US';
         recognition.interimResults = false;
 
         recognition.onstart = function() {
-            isRecording = true;
             statusText.innerText = "Listening...";
-            indicator.style.boxShadow = "0 0 20px var(--primary)";
-            indicator.classList.add('pulse-animation'); // Assume CSS class exists or add it
+            indicator.style.background = "rgba(255, 0, 0, 0.1)";
+            indicator.style.borderColor = "red";
+            indicator.querySelector('span').classList.add('text-danger');
+            indicator.querySelector('span').classList.remove('text-primary');
+            indicator.classList.add('pulse-animation');
         };
 
         recognition.onend = function() {
-            isRecording = false;
             statusText.innerText = "Processing...";
-            indicator.style.boxShadow = "none";
-            indicator.classList.remove('pulse-animation');
-            // Don't auto-restart immediately, wait for user or feedback
-            btnStart.classList.remove('d-none');
-            btnStop.classList.add('d-none');
+            resetIndicator();
         };
 
         recognition.onresult = function(event) {
@@ -122,8 +156,7 @@
             addMessage('You', transcript);
             
             // Send to Server
-            socket.emit('analyze_answer', {
-                question: currentQuestion,
+            socket.emit('send_answer', {
                 answer: transcript
             });
             statusText.innerText = "Analyzing...";
@@ -132,7 +165,7 @@
         recognition.onerror = function(event) {
             console.error(event.error);
             statusText.innerText = "Error: " + event.error;
-            isRecording = false;
+            resetIndicator();
             btnStart.classList.remove('d-none');
             btnStop.classList.add('d-none');
         };
@@ -140,20 +173,41 @@
         alert("Your browser does not support Speech Recognition. Please use Chrome.");
     }
 
+    function startListening() {
+        if (recognition) {
+            try {
+                recognition.start();
+                btnStart.classList.add('d-none');
+                btnStop.classList.remove('d-none');
+            } catch (e) {
+                console.error("Recognition start error:", e);
+            }
+        }
+    }
+
+    function resetIndicator() {
+        indicator.style.background = "var(--bg-surface)";
+        indicator.style.borderColor = "var(--primary)";
+        indicator.querySelector('span').classList.remove('text-danger');
+        indicator.querySelector('span').classList.add('text-primary');
+        indicator.classList.remove('pulse-animation');
+    }
+
     // UI Events
     btnStart.addEventListener('click', () => {
-        if (recognition) {
-            recognition.start();
-            questionDisplay.innerText = currentQuestion;
-            btnStart.classList.add('d-none');
-            btnStop.classList.remove('d-none');
-        }
+        // Initial Start
+        socket.emit('start_interview', {});
+        btnStart.classList.add('d-none');
+        btnStop.classList.remove('d-none');
+        statusText.innerText = "Connecting...";
     });
 
     btnStop.addEventListener('click', () => {
-        if (recognition) {
-            recognition.stop();
-        }
+        if (recognition) recognition.stop();
+        if (synth.speaking) synth.cancel();
+        btnStart.classList.remove('d-none');
+        btnStop.classList.add('d-none');
+        statusText.innerText = "Session Stopped.";
     });
 
     // Socket Events
@@ -161,37 +215,36 @@
         console.log("Connected to AI Coach");
     });
 
-    socket.on('coach_feedback', (data) => {
+    socket.on('interview_question', (data) => {
         if (data.error) {
             addMessage('System', 'Error: ' + data.error);
             return;
         }
 
-        // Update UI with feedback
-        addMessage('AI Coach', data.feedback, true);
+        currentQuestion = data.question;
+        questionDisplay.innerText = currentQuestion;
         
-        // Update Metrics
-        document.getElementById('score-bar').style.width = data.score * 10 + '%';
-        document.getElementById('latest-feedback').innerText = data.feedback;
-        document.getElementById('latest-tip').innerText = data.improvement_tip;
+        // Add to chat
+        addMessage('AI Coach', currentQuestion, true);
         
-        statusText.innerText = "Ready for next input.";
+        // Speak it
+        speak(currentQuestion);
     });
 
     function addMessage(sender, text, isAi = false) {
         const div = document.createElement('div');
-        div.className = `mb-3 ${isAi ? 'text-end' : ''}`;
+        div.className = `mb-3 ${isAi ? 'text-start' : 'text-end'}`; // Corrected alignment
         div.innerHTML = `
             <small class="fw-bold ${isAi ? 'text-primary' : 'text-muted'}">${sender}</small>
-            <div class="p-2 rounded mt-1 ${isAi ? 'bg-primary text-white' : 'bg-light text-dark'}" 
-                 style="display: inline-block; max-width: 80%;">
+            <div class="p-3 rounded-3 mt-1 shadow-sm ${isAi ? 'bg-primary bg-opacity-10 text-main border border-primary border-opacity-25' : 'bg-secondary bg-opacity-10 text-white border border-white border-opacity-10'}" 
+                 style="display: inline-block; max-width: 85%; text-align: left;">
                 ${text}
             </div>
         `;
         feedbackStream.appendChild(div);
         feedbackStream.scrollTop = feedbackStream.scrollHeight;
         
-        // Clear placeholder if exists
+        // Clear placeholder
         const placeholder = feedbackStream.querySelector('.text-center');
         if (placeholder) placeholder.remove();
     }

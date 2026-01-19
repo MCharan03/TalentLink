@@ -171,6 +171,10 @@ def dashboard():
     analysis_counts = [d[1] for d in analysis_dates]
 
     form = JobPostingForm()
+    
+    # Fetch settings for inline controls
+    all_settings = SystemSetting.query.all()
+    settings_dict = {s.key: s.value for s in all_settings}
 
     return render_template('admin/dashboard.html', 
                            user_data=user_data,
@@ -179,7 +183,8 @@ def dashboard():
                            field_counts=field_counts,
                            level_counts=level_counts,
                            skill_counts=skill_counts,
-                           form=form)
+                           form=form,
+                           settings=settings_dict)
 
 @admin.route('/actions')
 @admin_required
@@ -376,20 +381,48 @@ def job_applicants(job_id):
 @admin_required
 def update_application_status(app_id, status):
     application = JobApplication.query.get_or_404(app_id)
-    if status not in ['shortlisted', 'rejected']:
+    valid_statuses = ['submitted', 'shortlisted', 'interviewing', 'rejected', 'hired']
+    
+    if status not in valid_statuses:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'status': 'error', 'message': 'Invalid status'}), 400
         flash('Invalid status update.', 'danger')
         return redirect(url_for('admin.job_applicants', job_id=application.job_id))
     
     application.status = status
     
     # Create notification for the user
-    msg = f"Update on your application for '{application.job.title}': You have been {status}."
+    status_msg = {
+        'shortlisted': 'You have been shortlisted!',
+        'interviewing': 'We would like to invite you for an interview.',
+        'rejected': 'Thank you for your interest, but we are moving forward with other candidates.',
+        'hired': 'Congratulations! You have been hired.',
+        'submitted': 'Your application status has been reset to submitted.'
+    }
+    
+    msg = f"Update on your application for '{application.job.title}': {status_msg.get(status, status)}"
     notification = Notification(user_id=application.user_id, message=msg)
     
     db.session.add(notification)
     db.session.commit()
     
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({'status': 'success', 'new_status': status})
+        
     flash(f"Application status updated to {status}.", 'success')
+    return redirect(url_for('admin.job_applicants', job_id=application.job_id))
+
+@admin.route('/update_application_notes/<int:app_id>', methods=['POST'])
+@admin_required
+def update_application_notes(app_id):
+    application = JobApplication.query.get_or_404(app_id)
+    application.notes = request.form.get('notes')
+    db.session.commit()
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({'status': 'success'})
+        
+    flash('Notes updated.', 'success')
     return redirect(url_for('admin.job_applicants', job_id=application.job_id))
 
 @admin.route('/view_analysis/<int:user_data_id>')
