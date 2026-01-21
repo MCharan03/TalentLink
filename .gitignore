@@ -90,3 +90,6 @@ env/
 
 # Custom
 flask.session.sql
+chroma_db/
+uploads/
+Screenshot*.png

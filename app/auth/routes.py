@@ -127,22 +127,28 @@ def oauth_authorize(provider):
         return redirect(url_for('user.dashboard'))
 
 
+from ..models import User, Notification, Company, EmployerProfile
+from .forms import LoginForm, RegistrationForm, EmployerRegistrationForm
+
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user is not None and user.check_password(form.password.data):
-            # Enforce Role Separation
-            if user.role != form.role.data:
-                flash(f'Access Denied: You cannot login as {form.role.data.capitalize()} with this account.', 'danger')
-                return render_template('auth/login.html', form=form)
+            # Check for employer approval
+            if user.role == 'employer':
+                if not user.employer_profile or not user.employer_profile.is_verified:
+                    flash('Your account is pending approval. Please check your email for status updates.', 'warning')
+                    return render_template('auth/login.html', form=form)
 
             login_user(user, form.remember_me.data)
             next = request.args.get('next')
             if next is None or not next.startswith('/'):
                 if user.role == 'admin':
                     next = url_for('admin.dashboard')
+                elif user.role == 'employer':
+                    next = url_for('employer.dashboard')
                 else:
                     next = url_for('user.dashboard')
             return redirect(next)
@@ -160,10 +166,12 @@ def logout():
 
 @auth.route('/register', methods=['GET', 'POST'])
 def register():
+    # Candidate Registration
     form = RegistrationForm()
     if form.validate_on_submit():
         user = User(email=form.email.data,
-                    username=form.username.data)
+                    username=form.username.data,
+                    role='user')
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
@@ -178,12 +186,13 @@ def register():
         db.session.add(notification)
         db.session.commit()
 
-        # Send welcome email
+        # Send welcome email (Welcome Persona)
         try:
             send_email(
                 to=user.email,
                 subject="Welcome to Smart Resume Analyzer",
                 template=None,
+                category='general',
                 body=f"Hello {user.username},\n\nWelcome to Smart Resume Analyzer! We are excited to have you on board.\n\nStart analyzing your resume today!"
             )
         except Exception as e:
@@ -192,3 +201,53 @@ def register():
         flash('Congratulations, you are now a registered user!')
         return redirect(url_for('auth.login'))
     return render_template('auth/register.html', form=form)
+
+
+@auth.route('/register/employer', methods=['GET', 'POST'])
+def register_employer():
+    form = EmployerRegistrationForm()
+    if form.validate_on_submit():
+        # 1. Create User (No password yet, or random unusable one)
+        # We set a placeholder password that cannot be used until admin resets it
+        import secrets
+        temp_pass = secrets.token_urlsafe(16)
+        
+        user = User(email=form.email.data,
+                    username=form.username.data,
+                    role='employer')
+        user.set_password(temp_pass)
+        db.session.add(user)
+        db.session.flush() # Get ID
+
+        # 2. Create Company & Profile
+        company = Company.query.filter_by(name=form.company_name.data).first()
+        if not company:
+            company = Company(name=form.company_name.data)
+            db.session.add(company)
+            db.session.flush()
+            
+        profile = EmployerProfile(user_id=user.id, company_id=company.id, is_verified=False)
+        db.session.add(profile)
+        db.session.commit()
+
+        # 3. Send Email to Applicant
+        try:
+            send_email(
+                to=user.email,
+                subject="Employer Request Received - SRA",
+                template=None,
+                category='general',
+                body=f"Hello {user.username},\n\nWe have received your request to join as an Employer/Recruiter for {company.name}.\n\nOur admin team will review your application. Upon approval, you will receive your login credentials via email.\n\nThank you,\nSRA Team"
+            )
+        except Exception as e:
+            print(f"Error sending email: {e}")
+
+        # 4. Notify Admin (Optional: Email or DB Notification)
+        # For now, we assume admin checks dashboard or gets a notification if we had an admin user to target
+        
+        flash('Request submitted successfully! We will notify you via email upon approval.', 'success')
+        return redirect(url_for('auth.login'))
+        
+    return render_template('auth/employer_register.html', form=form)
+
+

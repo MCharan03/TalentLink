@@ -74,6 +74,20 @@ def mark_notifications_read():
     return jsonify({'status': 'success'})
 
 
+@main.route('/notifications/<int:notif_id>/delete', methods=['POST'])
+@login_required
+def delete_notification(notif_id):
+    from ..models import Notification
+    n = Notification.query.get_or_404(notif_id)
+    if n.user_id != current_user.id:
+        return jsonify({'status': 'error', 'message': 'Forbidden'}), 403
+
+    was_unread = not n.is_read
+    db.session.delete(n)
+    db.session.commit()
+    return jsonify({'status': 'success', 'was_unread': was_unread})
+
+
 @main.route('/uploads/<path:filename>')
 def uploaded_file(filename):
     return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)

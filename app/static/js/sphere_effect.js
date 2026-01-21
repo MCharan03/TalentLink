@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
         side: THREE.DoubleSide
     });
     const cursorMesh = new THREE.Mesh(cursorGeometry, cursorMaterial);
-    cursorMesh.position.z = 10; // Slightly in front of origin but behind UI
+    cursorMesh.position.z = 10;
     scene.add(cursorMesh);
 
     // --- Interaction ---

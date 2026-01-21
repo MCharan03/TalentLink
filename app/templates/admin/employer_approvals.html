@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Employer Approvals | SRA Admin{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-5 animate-up">
+        <div>
+            <h1 class="display-5 fw-bold text-main">Pending Approvals</h1>
+            <p class="text-muted">Review and verify employer registration requests</p>
+        </div>
+        <div>
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">Back to Dashboard</a>
+        </div>
+    </div>
+
+    {% if pending_employers %}
+    <div class="row g-4">
+        {% for profile in pending_employers %}
+        <div class="col-md-6 col-lg-4 animate-up" style="animation-delay: {{ loop.index * 100 }}ms;">
+            <div class="card border-glass h-100 hover-lift">
+                <div class="card-header bg-transparent border-glass d-flex justify-content-between align-items-center">
+                    <span class="badge bg-warning text-dark">Pending</span>
+                    <small class="text-muted">{{ profile.user.created_at.strftime('%Y-%m-%d') }}</small>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title fw-bold text-main">{{ profile.company.name }}</h5>
+                    <p class="card-text text-muted mb-4">
+                        <strong>Applicant:</strong> {{ profile.user.username }}<br>
+                        <strong>Email:</strong> {{ profile.user.email }}
+                    </p>
+                    
+                    <div class="d-grid gap-2">
+                        <form action="{{ url_for('admin.approve_employer', profile_id=profile.id) }}" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-success w-100 fw-bold">
+                                <span data-feather="check-circle" class="me-2"></span> Approve & Send Credentials
+                            </button>
+                        </form>
+                        <form action="{{ url_for('admin.reject_employer', profile_id=profile.id) }}" method="POST" onsubmit="return confirm('Are you sure? This will delete the request.');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-outline-danger w-100">
+                                <span data-feather="x-circle" class="me-2"></span> Reject Request
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5 animate-up">
+        <div class="mb-3 text-muted opacity-50">
+            <span data-feather="inbox" style="width: 64px; height: 64px;"></span>
+        </div>
+        <h3 class="text-muted">No pending requests</h3>
+        <p class="text-muted">All employer applications have been processed.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

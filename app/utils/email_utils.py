@@ -9,9 +9,14 @@ def send_async_email(app, msg):
         mail.send(msg)
 
 
-def send_email(to, subject, template, **kwargs):
+def send_email(to, subject, template, category='default', **kwargs):
     app = current_app._get_current_object()
-    msg = Message(subject, sender=app.config['ADMIN_EMAIL'], recipients=[to])
+    
+    # Select sender based on category
+    senders = app.config.get('EMAIL_SENDERS', {})
+    sender = senders.get(category, senders.get('default', app.config.get('ADMIN_EMAIL')))
+    
+    msg = Message(subject, sender=sender, recipients=[to])
     # msg.body = render_template(template + '.txt', **kwargs)
     # msg.html = render_template(template + '.html', **kwargs)
     # For now, just sending simple text if template is not handled or assuming content is passed

@@ -659,31 +659,56 @@ def download_resume_pdf_optimized():
 @user.route('/jobs')
 @login_required
 def jobs():
-    # Fetch all jobs sorted by date
-    all_jobs = JobPosting.query.order_by(JobPosting.created_at.desc()).all()
+    # Pagination for jobs
+    page = request.args.get('page', 1, type=int)
+    per_page = 9
+    jobs_pagination = JobPosting.query.order_by(JobPosting.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    all_jobs = jobs_pagination.items
+    
     applied_job_ids = [app.job_id for app in current_user.applications]
     
+    # Check if user has a resume for UI logic, but don't parse it here
+    latest_resume = UserData.query.filter_by(user_id=current_user.id).order_by(UserData.uploaded_at.desc()).first()
+
+    return render_template('user/jobs.html', 
+                           jobs=all_jobs, 
+                           pagination=jobs_pagination,
+                           recommended_jobs=[], # Loaded async
+                           applied_job_ids=applied_job_ids, 
+                           has_resume=bool(latest_resume))
+
+
+@user.route('/partials/recommended_jobs')
+@login_required
+def load_recommended_jobs():
+    latest_resume = UserData.query.filter_by(user_id=current_user.id).order_by(UserData.uploaded_at.desc()).first()
+    applied_job_ids = [app.job_id for app in current_user.applications]
     recommended_jobs = []
     
-    # Get user's latest resume text for match calculation
-    latest_resume = UserData.query.filter_by(user_id=current_user.id).order_by(UserData.uploaded_at.desc()).first()
-    
-    resume_text = ""
     if latest_resume:
         try:
             resume_path = os.path.join(current_app.config['UPLOAD_FOLDER'], latest_resume.resume_path)
+            # This is the slow part, now async
             resume_text = extract_text_from_pdf(resume_path)
             
-            # Vector Search for Recommendations
+            # Vector Search
+            # We fetch all jobs ID to check against, or just let vector search return IDs
+            all_job_ids = [j.id for j in JobPosting.query.with_entities(JobPosting.id).all()]
+            
+            # Pass only extract logic if needed, but vector search handles embedding
             recommended_ids = search_jobs_by_resume(resume_text, n_results=3)
+            
             if recommended_ids:
-                recommended_jobs = [j for j in all_jobs if j.id in recommended_ids]
+                recommended_jobs = JobPosting.query.filter(JobPosting.id.in_(recommended_ids)).all()
                 
         except Exception as e:
             current_app.logger.error(f"Vector search failed: {e}")
             pass
 
-    return render_template('user/jobs.html', jobs=all_jobs, recommended_jobs=recommended_jobs, applied_job_ids=applied_job_ids, has_resume=bool(latest_resume))
+    return render_template('user/partials/recommended_jobs.html', 
+                           recommended_jobs=recommended_jobs, 
+                           applied_job_ids=applied_job_ids,
+                           has_resume=True)
 
 @user.route('/application_details/<int:app_id>')
 @login_required
@@ -927,7 +952,21 @@ def uploaded_file(filename):
         abort(404)
     file_owner_id = int(file_owner_id_str)
 
-    if current_user.role != 'admin' and current_user.id != file_owner_id:
+    # Access Control
+    is_owner = (current_user.id == file_owner_id)
+    is_admin = (current_user.role == 'admin')
+    
+    is_authorized_employer = False
+    if current_user.role == 'employer':
+        # Check if the file owner has applied to any job created by this employer
+        has_application = JobApplication.query.join(JobPosting).filter(
+            JobApplication.user_id == file_owner_id,
+            JobPosting.created_by == current_user.id
+        ).first()
+        if has_application:
+            is_authorized_employer = True
+
+    if not (is_owner or is_admin or is_authorized_employer):
         abort(403)
 
     upload_folder = current_app.config['UPLOAD_FOLDER']

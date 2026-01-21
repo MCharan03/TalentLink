@@ -55,26 +55,44 @@
             <!-- 1. Overview Tab -->
             <div class="tab-pane fade show active assemble-in anim-up" id="v-pills-overview" role="tabpanel">
                 
-                <!-- Gamification Header -->
-                <div class="card p-4 mb-4 border-0 position-relative overflow-hidden" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="d-flex align-items-center">
-                            <div class="level-badge me-4 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px; background: var(--primary); border-radius: 15px; transform: rotate(5deg);">
-                                <h3 class="fw-bold mb-0 text-white" style="transform: rotate(-5deg);">{{ xp_profile.level }}</h3>
-                            </div>
-                            <div>
-                                <h4 class="fw-bold mb-1">Career Level {{ xp_profile.level }}</h4>
-                                <div class="d-flex align-items-center gap-2" style="width: 300px;">
-                                    <div class="progress flex-grow-1" style="height: 10px; background: rgba(255,255,255,0.1);">
-                                        <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ xp_profile.total_xp % 100 }}%"></div>
+                <!-- Sentient Awareness & Gamification Header -->
+                <div class="row g-4 mb-4">
+                    <div class="col-lg-8">
+                        <div class="card p-4 h-100 border-0 position-relative overflow-hidden" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <div class="level-badge me-4 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px; background: var(--primary); border-radius: 15px; transform: rotate(5deg);">
+                                        <h3 class="fw-bold mb-0 text-white" style="transform: rotate(-5deg);">{{ xp_profile.level }}</h3>
                                     </div>
-                                    <span class="small text-muted fw-bold">{{ xp_profile.total_xp % 100 }}/100 XP</span>
+                                    <div>
+                                        <h4 class="fw-bold mb-1">Career Level {{ xp_profile.level }}</h4>
+                                        <div class="d-flex align-items-center gap-2" style="width: 300px;">
+                                            <div class="progress flex-grow-1" style="height: 10px; background: rgba(255,255,255,0.1);">
+                                                <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ xp_profile.total_xp % 100 }}%"></div>
+                                            </div>
+                                            <span class="small text-muted fw-bold">{{ xp_profile.total_xp % 100 }}/100 XP</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <p class="small text-muted text-uppercase mb-0">Total Experience</p>
+                                    <h5 class="fw-bold mb-0 text-primary">{{ xp_profile.total_xp }} XP</h5>
                                 </div>
                             </div>
                         </div>
-                        <div class="text-end">
-                            <p class="small text-muted text-uppercase mb-0">Total Experience</p>
-                            <h5 class="fw-bold mb-0 text-primary">{{ xp_profile.total_xp }} XP</h5>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card p-4 h-100 border-0 bg-dark bg-opacity-50">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="small fw-bold text-uppercase tracking-widest text-muted mb-0">Sentient Awareness</h6>
+                                <div class="sentient-pulse"></div>
+                            </div>
+                            <div class="agent-activity-logs" style="font-family: 'Courier New', Courier, monospace; font-size: 0.75rem;">
+                                <div class="text-success mb-1">● OS Layer: Optimal</div>
+                                <div class="text-primary mb-1">● Scanning job market trends...</div>
+                                <div class="text-muted mb-1">● Passive monitoring active</div>
+                                <div class="text-muted">● Analyzing user focus: Resume</div>
+                            </div>
                         </div>
                     </div>
                 </div>

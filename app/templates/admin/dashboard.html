@@ -390,8 +390,44 @@
             row.style.display = (name.includes(filter) || email.includes(filter)) ? '' : 'none';
         });
     });
+
+    // Inline Settings Handlers
+    function updateVal(val) {
+        document.getElementById('xpDisplay').innerText = val + 'x';
+    }
+
+    function saveSetting(key, value) {
+        fetch("{{ url_for('admin.update_setting') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': "{{ csrf_token() }}"
+            },
+            body: JSON.stringify({ key: key, value: String(value) })
+        })
+        .then(res => res.json())
+        .then(data => {
+            // Optional: Toast notification here
+            const toast = document.createElement('div');
+            toast.className = 'position-fixed bottom-0 end-0 p-3';
+            toast.style.zIndex = 1100;
+            toast.innerHTML = `<div class="toast show align-items-center text-white bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+              <div class="d-flex">
+                <div class="toast-body">
+                  ${data.message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+              </div>
+            </div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        });
+    }
 </script>
 
+{% endblock %}
+
+{% block extra_content %}
 <!-- Reset Modal -->
 <div class="modal fade animate-in anim-pop" id="resetDbModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -489,46 +525,6 @@
         });
     });
 </script>
-
-<script>
-    // Inline Settings Handlers
-    function updateVal(val) {
-        document.getElementById('xpDisplay').innerText = val + 'x';
-    }
-
-    function saveSetting(key, value) {
-        fetch("{{ url_for('admin.update_setting') }}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': "{{ csrf_token() }}"
-            },
-            body: JSON.stringify({ key: key, value: String(value) })
-        })
-        .then(res => res.json())
-        .then(data => {
-            // Optional: Toast notification here
-            const toast = document.createElement('div');
-            toast.className = 'position-fixed bottom-0 end-0 p-3';
-            toast.style.zIndex = 1100;
-            toast.innerHTML = `<div class="toast show align-items-center text-white bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
-              <div class="d-flex">
-                <div class="toast-body">
-                  ${data.message}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-              </div>
-            </div>`;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        });
-    }
-    
-    // Fetch initial values (simulated or rendered)
-    // In a real template, we'd pass these values. For now, we assume defaults or fetch.
-    // Ideally, pass 'settings' dict to this template in routes.py
-</script>
-
 {% endblock %}
 
 {% block scripts %}

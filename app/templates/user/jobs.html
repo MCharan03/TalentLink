@@ -18,59 +18,13 @@
         You haven't uploaded a resume yet. Upload one in the <a href="{{ url_for('user.resume_analysis') }}" class="alert-link">Analysis</a> section to see your AI match scores!
     </div>
 </div>
-{% endif %}
-
-<!-- Recommended Jobs Section -->
-{% if recommended_jobs %}
-<div class="mb-5">
-    <h4 class="mb-3 text-success fw-bold"><i class="fas fa-magic me-2"></i> AI Recommended For You</h4>
-    <div class="row">
-        {% for job in recommended_jobs %}
-        <div class="col-md-6 col-lg-4 mb-4 job-item">
-            <div class="card h-100 shadow-lg border-success position-relative" style="border-width: 2px;">
-                <div class="position-absolute top-0 end-0 p-2">
-                    <span class="badge bg-success">Best Match</span>
-                </div>
-                <div class="card-body d-flex flex-column">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                         <h5 class="card-title fw-bold text-success">{{ job.title }}</h5>
-                         <small class="text-muted">{{ job.created_at.strftime('%b %d') }}</small>
-                    </div>
-                    <p class="card-text text-muted flex-grow-1">{{ job.description | truncate(150) }}</p>
-
-                    {% if has_resume %}
-                    <div class="mb-3 small">
-                        <span class="badge bg-light text-dark border">
-                            <i class="fas fa-check-circle text-success"></i> Strong Skill Overlap
-                        </span>
-                    </div>
-                    {% endif %}
-
-                    <div class="mt-auto pt-3 border-top d-flex flex-column gap-2">
-                        <div class="d-flex gap-2">
-                            {% if job.id in applied_job_ids %}
-                                 <button class="btn btn-secondary flex-grow-1" disabled>
-                                    <span data-feather="check"></span> Applied
-                                 </button>
-                            {% else %}
-                                 <a href="{{ url_for('user.apply', job_id=job.id) }}" class="btn btn-primary flex-grow-1">Apply Now</a>
-                            {% endif %}
-                        </div>
-                        {% if has_resume %}
-                        <button class="btn btn-sm btn-outline-info w-100" onclick="generateCoverLetter({{ job.id }}, '{{ job.title|e }}')">
-                            <span data-feather="file-text" class="me-1"></span> Generate AI Cover Letter
-                        </button>
-                        <a href="{{ url_for('user.tailor_resume', job_id=job.id) }}" class="btn btn-sm btn-outline-success w-100">
-                            <span data-feather="edit-3" class="me-1"></span> Tailor Resume & Download
-                        </a>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
+{% else %}
+<!-- Async Recommended Jobs Container -->
+<div id="recommended-jobs-container" class="mb-4">
+    <div class="text-center py-4 text-muted">
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        Finding the best AI matches for you...
     </div>
-    <hr>
 </div>
 {% endif %}
 
@@ -131,6 +85,32 @@
     {% endif %}
 </div>
 
+<!-- Pagination -->
+{% if pagination.pages > 1 %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('user.jobs', page=pagination.prev_num) if pagination.has_prev else '#' }}">Previous</a>
+        </li>
+        {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+            {% if page_num %}
+                <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('user.jobs', page=page_num) }}">{{ page_num }}</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('user.jobs', page=pagination.next_num) if pagination.has_next else '#' }}">Next</a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+
+{% endblock %}
+
+{% block user_extra_content %}
 <!-- Cover Letter Modal -->
 <div class="modal fade" id="coverLetterModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -157,7 +137,6 @@
         </div>
     </div>
 </div>
-
 {% endblock %}
 
 {% block scripts %}
@@ -165,6 +144,7 @@
 let clModal;
 
 function generateCoverLetter(jobId, jobTitle) {
+    // ... existing function ...
     if (!clModal) clModal = new bootstrap.Modal(document.getElementById('coverLetterModal'));
     
     document.getElementById('clModalTitle').innerText = jobTitle;
@@ -207,6 +187,24 @@ function copyCoverLetter() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // 1. Fetch Recommended Jobs (Async)
+    const recContainer = document.getElementById('recommended-jobs-container');
+    if (recContainer) {
+        fetch("{{ url_for('user.load_recommended_jobs') }}")
+        .then(response => response.text())
+        .then(html => {
+            if (html.trim()) {
+                recContainer.innerHTML = html;
+            } else {
+                recContainer.style.display = 'none';
+            }
+        })
+        .catch(err => {
+            console.error("Failed to load recommendations", err);
+            recContainer.innerHTML = '<div class="alert alert-warning">Could not load recommendations at this time.</div>';
+        });
+    }
+
     // Search Functionality
     const searchInput = document.getElementById('jobSearch');
     const jobItems = document.querySelectorAll('.job-item');
@@ -221,7 +219,8 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
-
+    
+    // ... existing match score code ...
     // Auto-calculate Match Scores
     const matchContainers = document.querySelectorAll('.match-score-container');
     

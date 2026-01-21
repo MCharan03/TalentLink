@@ -2,6 +2,29 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('analysis-form');
     if (!form) return;
 
+    const neuralOverlay = document.getElementById('neural-overlay');
+    const logContainer = document.getElementById('log-container');
+
+    const agentLogs = [
+        "● Extracting semantic layers from PDF...",
+        "● Identifying key skill vectors...",
+        "● Cross-referencing industry benchmarks...",
+        "● Matching candidate profile with job market data...",
+        "● Synthesizing career advancement recommendations...",
+        "● Finalizing neural report..."
+    ];
+
+    function addLog(text, index) {
+        setTimeout(() => {
+            const div = document.createElement('div');
+            div.className = "text-muted animate-in";
+            div.textContent = text;
+            logContainer.appendChild(div);
+            // Auto-scroll logs
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }, index * 1200);
+    }
+
     form.addEventListener('submit', function(event) {
         event.preventDefault();
         console.log("DEBUG: Analysis form submitted.");
@@ -12,59 +35,57 @@ document.addEventListener('DOMContentLoaded', function() {
         const submitButton = form.querySelector('button[type="submit"]');
         const errorMessage = document.getElementById('error-message');
 
-        // Show spinner and disable button
-        if (spinner) spinner.style.display = 'inline-block';
-        if (buttonText) buttonText.textContent = 'Uploading...';
+        // Show neural overlay
+        if (neuralOverlay) {
+            neuralOverlay.classList.remove('d-none');
+            neuralOverlay.classList.add('d-flex');
+            agentLogs.forEach((log, i) => addLog(log, i));
+        }
+
+        // Disable button
         if (submitButton) submitButton.disabled = true;
         if (errorMessage) errorMessage.style.display = 'none';
 
         // Using XHR for progress tracking
         const xhr = new XMLHttpRequest();
         
-        xhr.upload.addEventListener('progress', function(e) {
-            if (e.lengthComputable) {
-                const percent = Math.round((e.loaded / e.total) * 100);
-                console.log("DEBUG: Upload progress: " + percent + "%");
-                if (buttonText) buttonText.textContent = 'Uploading (' + percent + '%)...';
-            }
-        });
-
         xhr.addEventListener('load', function() {
             console.log("DEBUG: XHR Load complete. Status: " + xhr.status);
-            if (buttonText) buttonText.textContent = 'Processing...';
             
             try {
                 const result = JSON.parse(xhr.responseText);
                 if (xhr.status === 200) {
                     if (result.redirect_url) {
-                        window.location.href = result.redirect_url;
+                        // Delay redirect slightly to show logs
+                        setTimeout(() => {
+                            window.location.href = result.redirect_url;
+                        }, 2000);
                     } else {
                         throw new Error('No redirect URL provided.');
                     }
                 } else {
+                    if (neuralOverlay) neuralOverlay.classList.add('d-none');
                     if (errorMessage) {
                         errorMessage.textContent = result.error || 'An unknown error occurred.';
                         errorMessage.style.display = 'block';
                     }
                 }
             } catch (e) {
+                if (neuralOverlay) neuralOverlay.classList.add('d-none');
                 if (errorMessage) {
                     errorMessage.textContent = 'Server processing failed.';
                     errorMessage.style.display = 'block';
                 }
             }
             
-            if (spinner) spinner.style.display = 'none';
-            if (buttonText) buttonText.textContent = 'Analyze Resume';
             if (submitButton) submitButton.disabled = false;
         });
 
         xhr.addEventListener('error', function() {
             console.log("DEBUG: XHR Network Error");
+            if (neuralOverlay) neuralOverlay.classList.add('d-none');
             errorMessage.textContent = 'A network error occurred.';
             errorMessage.style.display = 'block';
-            spinner.style.display = 'none';
-            buttonText.textContent = 'Analyze Resume';
             submitButton.disabled = false;
         });
 

@@ -30,8 +30,9 @@
     <!-- Top Navigation Bar -->
     <nav class="navbar navbar-expand-lg">
         <div class="container nav-content">
-            <a href="{{ url_for('main.index') }}" class="nav-logo me-5">
-                SRA
+            <a href="{{ url_for('main.index') }}" class="nav-logo me-5 d-flex align-items-center gap-2">
+                <div class="sentient-pulse" style="width: 10px; height: 10px;"></div>
+                <span>SRA <span class="text-primary small fw-light">CHERRY</span></span>
             </a>
             
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,9 +50,13 @@
                             <a href="{{ url_for('user.interview_prep') }}" class="nav-link {% if request.endpoint == 'user.interview_prep' %}active{% endif %}">Prep</a>
                         {% elif current_user.role == 'admin' %}
                             <a href="{{ url_for('admin.dashboard') }}" class="nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">Dashboard</a>
+                            <a href="{{ url_for('admin.employer_approvals') }}" class="nav-link {% if request.endpoint == 'admin.employer_approvals' %}active{% endif %}">Approvals</a>
                             <a href="{{ url_for('admin.market_intelligence') }}" class="nav-link {% if request.endpoint == 'admin.market_intelligence' %}active{% endif %}">Market Intel</a>
                             <a href="{{ url_for('admin.interview_funnel') }}" class="nav-link {% if request.endpoint == 'admin.interview_funnel' %}active{% endif %}">Funnel</a>
                             <a href="{{ url_for('admin.user_management') }}" class="nav-link {% if request.endpoint == 'admin.user_management' %}active{% endif %}">Users</a>
+                        {% elif current_user.role == 'employer' %}
+                            <a href="{{ url_for('employer.dashboard') }}" class="nav-link {% if request.endpoint == 'employer.dashboard' %}active{% endif %}">Talent Search</a>
+                            <!-- Add more employer links here as needed -->
                         {% endif %}
                     {% endif %}
                 </div>
@@ -61,10 +66,10 @@
                 <!-- Notifications Dropdown -->
                 {% set unread_count = current_user.notifications.filter_by(is_read=False).count() %}
                 <div class="dropdown">
-                    <button class="btn border-0 position-relative" type="button" id="notifMenu" data-bs-toggle="dropdown" aria-expanded="false" style="background: transparent;">
-                        <span data-feather="bell" class="text-main"></span>
+                    <button class="btn border-0 position-relative notif-button" type="button" id="notifMenu" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Open notifications" title="Notifications">
+                        <span data-feather="bell" class="text-main notif-icon"></span>
                         {% if unread_count > 0 %}
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notif-badge" style="font-size: 0.6rem;">
                             {{ unread_count }}
                         </span>
                         {% endif %}
@@ -78,9 +83,12 @@
                         </li>
                         <div id="notificationList">
                             {% for n in current_user.notifications.order_by(Notification.created_at.desc()).limit(10).all() %}
-                            <li class="dropdown-item p-3 border-bottom border-glass {% if not n.is_read %}bg-primary bg-opacity-10{% endif %}" style="white-space: normal;">
-                                <div class="small text-main mb-1">{{ n.message }}</div>
-                                <div class="text-muted" style="font-size: 0.7rem;">{{ n.created_at.strftime('%b %d, %H:%M') }}</div>
+                            <li class="dropdown-item p-3 border-bottom border-glass notification-item {% if not n.is_read %}notification-unread{% endif %}">
+                                <div class="small text-main mb-1 notification-message" title="{{ n.message }}">{{ n.message }}</div>
+                                <div class="text-muted notification-meta">
+                                    <span class="notification-dot {% if not n.is_read %}notification-dot-active{% endif %}"></span>
+                                    <span>{{ n.created_at.strftime('%b %d, %H:%M') }}</span>
+                                </div>
                             </li>
                             {% else %}
                             <li class="p-4 text-center text-muted small">No notifications</li>
@@ -121,9 +129,15 @@
                 {% else %}
                     <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-primary">Login</a>
                 {% endif %}
-                
-                <button id="theme-toggle-btn" class="theme-toggle btn btn-sm border-0" style="background: transparent; color: var(--text-muted);">
-                    <span data-feather="moon"></span>
+
+                <button
+                    id="theme-toggle-btn"
+                    class="theme-toggle btn btn-sm border-0 theme-toggle-btn"
+                    type="button"
+                    aria-label="Toggle theme"
+                    title="Toggle dark mode"
+                >
+                    <span id="theme-toggle-icon" data-feather="moon" class="theme-toggle-icon"></span>
                 </button>
             </div>
             </div>

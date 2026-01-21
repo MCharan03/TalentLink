@@ -7,7 +7,14 @@
     <div class="col-md-8 col-lg-6">
         <div class="card shadow border-0">
             <!-- 1. Navigation Tabs (TOP) -->
-            <div class="card-header p-2 border-0">
+            <div class="card-header border-0 pt-4 pb-0 text-center">
+                <a href="{{ url_for('auth.register_employer') }}" class="btn btn-outline-primary rounded-pill px-4 fw-bold">
+                    Register as Employer/Recruiter
+                </a>
+                <div class="text-muted small mt-2">Hiring? Click above.</div>
+            </div>
+
+            <div class="card-header p-2 border-0 mt-3">
                 <ul class="nav nav-pills nav-justified bg-surface rounded-pill p-1" id="authTab" role="tablist">
                     <li class="nav-item">
                         <a class="nav-link rounded-pill" href="{{ url_for('auth.login') }}">Login</a>
@@ -22,6 +29,7 @@
                 <h3 class="card-title mb-4">Create an Account</h3>
                 <form action="" method="post" novalidate>
                     {{ form.hidden_tag() }}
+                    
                     <div class="mb-3">
                         {{ form.username.label(class="form-label") }}
                         {{ form.username(class="form-control", placeholder="New Username") }}
@@ -93,5 +101,15 @@ function togglePassword(fieldId) {
     const field = document.getElementById(fieldId);
     field.type = field.type === 'password' ? 'text' : 'password';
 }
+
+function syncRole(role) {
+    const field = document.getElementById('actual-role-field');
+    if(field) field.value = role;
+}
+
+// Initial sync
+document.addEventListener('DOMContentLoaded', () => {
+    syncRole('user');
+});
 </script>
 {% endblock %}

@@ -35,6 +35,14 @@ class Config:
     MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS') is not None
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+    
+    # Email Sender Profiles
+    EMAIL_SENDERS = {
+        'default': os.environ.get('MAIL_GENERAL_SENDER') or 'noreply@smartresume.ai',
+        'general': os.environ.get('MAIL_GENERAL_SENDER') or 'noreply@smartresume.ai',
+        'support': os.environ.get('MAIL_SUPPORT_SENDER') or 'support@smartresume.ai'
+    }
+
     POSTS_PER_PAGE = 10
     UPLOAD_FOLDER = os.path.join(os.path.dirname(basedir), 'uploads')
     
@@ -56,6 +64,8 @@ class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     WTF_CSRF_ENABLED = False
+    MAIL_DEFAULT_SENDER = 'noreply@test.com'
+    MAIL_SUPPRESS_SEND = True  # Don't actually send emails in tests
 
 
 class ProductionConfig(Config):

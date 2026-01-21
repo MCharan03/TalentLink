@@ -17,34 +17,42 @@
 {% block content %}
 <section class="min-vh-100 d-flex flex-column justify-content-center align-items-center text-center position-relative overflow-hidden bg-[#050511]">
     
+    <!-- Passive Awareness Indicator -->
+    <div class="position-absolute top-0 end-0 p-4 d-flex align-items-center gap-2 anim-in-right" style="z-index: 20;">
+        <div class="sentient-pulse"></div>
+        <span class="small text-muted fw-bold tracking-widest" style="font-size: 0.7rem; opacity: 0.6;">SYSTEM STATE: AWARE</span>
+    </div>
+
     <!-- Background Gradient -->
-    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: radial-gradient(circle at center, #1a1a40 0%, #000 100%); opacity: 0.5; z-index: 0; pointer-events: none;"></div>
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: radial-gradient(circle at center, #13132d 0%, #050511 55%, #000 100%); opacity: 0.55; z-index: 0; pointer-events: none;"></div>
 
     <!-- Large Background Text (Watermark) -->
     <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center pointer-events-none select-none overflow-hidden" style="z-index: 1;">
-        <h2 class="font-black text-white" style="font-size: 20vw; opacity: 0.03; line-height: 1; white-space: nowrap; font-weight: 900;">
-            TIME MATTERS
+        <h2 class="font-black text-white text-shimmer" style="font-size: 20vw; opacity: 0.03; line-height: 1; white-space: nowrap; font-weight: 900; letter-spacing: -0.08em;">
+            SMART RESUME
         </h2>
     </div>
 
     <!-- Hero Content -->
     <div class="container position-relative" style="z-index: 10;">
         
-        <div class="assemble-in anim-up tracking-tighter" style="line-height: 0.9;">
-            <h1 class="display-1 text-white font-light mb-0" style="font-size: calc(2rem + 6vw); letter-spacing: -0.05em;">
-                Building <span class="fw-bold fst-italic">Digital</span>
+        <div class="assemble-in anim-up tracking-tighter" style="line-height: 0.95;">
+            <div class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 mb-3 rounded-pill shadow-sm">
+                AI Resume Intelligence · Mock Interviews · Job Match
+            </div>
+            <h1 class="display-1 text-white font-light mb-0" style="font-size: calc(2rem + 5.5vw); letter-spacing: -0.05em;">
+                Smart Resume Analyzer
             </h1>
-            <h1 class="display-1 text-white font-light mb-5" style="font-size: calc(2rem + 6vw); letter-spacing: -0.05em;">
-                <span class="fw-bold fst-italic">Solutions</span> That Matter
+            <h1 class="display-4 text-white fw-bold mb-4" style="letter-spacing: -0.04em;">
+                Built for fast hiring & confident candidates
             </h1>
         </div>
         
-        <p class="lead text-light mb-5 mx-auto anim-up delay-200" style="max-width: 600px; opacity: 0.6; font-size: 1.25rem;">
-            Experience the next generation of career intelligence. <br>
-            A tool that turns complex challenges into elegant professional outcomes.
+        <p class="lead text-light mb-4 mx-auto anim-up delay-200" style="max-width: 760px; opacity: 0.68; font-size: 1.15rem;">
+            Analyze resumes against roles, generate ATS-friendly rewrites, and run AI-driven mock interviews. Give recruiters clear signals and candidates instant, actionable feedback.
         </p>
 
-        <div class="d-flex gap-4 justify-content-center anim-up delay-300">
+        <div class="d-flex gap-3 justify-content-center flex-wrap anim-up delay-300">
             {% if current_user.is_authenticated %}
                 {% if current_user.role == 'admin' %}
                     <a href="{{ url_for('admin.dashboard') }}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-lg fw-bold hover-scale">
@@ -57,21 +65,106 @@
                 {% endif %}
             {% else %}
                 <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-lg fw-bold hover-scale">
-                    Get Started
+                    Start Analysis
                 </a>
                 <a href="{{ url_for('auth.register') }}" class="btn btn-outline-light btn-lg px-5 py-3 rounded-pill hover-scale">
-                    Join Now
+                    Create Account
                 </a>
             {% endif %}
+        </div>
+
+        <!-- Feature chips -->
+        <div class="d-flex gap-2 flex-wrap justify-content-center mt-4 anim-up delay-350">
+            <span class="feature-chip">ATS-friendly scoring</span>
+            <span class="feature-chip">AI-generated job descriptions</span>
+            <span class="feature-chip">Mock interviews with follow-ups</span>
+            <span class="feature-chip">Semantic job-resume matching</span>
+            <span class="feature-chip">Admin pipelines & notifications</span>
+        </div>
+
+        <!-- Quick metrics -->
+        <div class="row g-3 mt-5 justify-content-center anim-up delay-400">
+            <div class="col-6 col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">+42%</div>
+                    <div class="metric-label">Faster shortlisting</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">3x</div>
+                    <div class="metric-label">More interview-ready resumes</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">24/7</div>
+                    <div class="metric-label">AI prep & feedback</div>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Bottom Left Footer-like Text -->
     <div class="position-absolute bottom-0 start-0 p-5 d-none d-md-block anim-in-left delay-400" style="z-index: 10; max-width: 400px; text-align: left; border-left: 1px solid rgba(255,255,255,0.1); margin-left: 2rem; margin-bottom: 2rem;">
         <p class="text-muted small mb-0" style="line-height: 1.6;">
-            The 2025 AI-powered platform designed for focus, <br>
-            blending technical precision with creative fluid motion.
+            The 2026 Sentient OS Layer designed for proactive growth, <br>
+            blending technical precision with deep agentic awareness.
         </p>
     </div>
 </section>
+
+<style>
+    .sentient-pulse {
+        width: 8px;
+        height: 8px;
+        background: #6366f1;
+        border-radius: 50%;
+        box-shadow: 0 0 10px #6366f1, 0 0 20px #6366f1;
+        animation: pulse-ring 2s infinite;
+    }
+
+    @keyframes pulse-ring {
+        0% { transform: scale(0.8); opacity: 1; }
+        50% { transform: scale(1.2); opacity: 0.5; }
+        100% { transform: scale(0.8); opacity: 1; }
+    }
+
+    .hover-scale {
+        transition: transform 0.3s var(--ease-spring);
+    }
+    .hover-scale:hover {
+        transform: scale(1.05);
+    }
+
+    .feature-chip {
+        border: 1px solid rgba(255,255,255,0.12);
+        color: #e2e8f0;
+        padding: 0.45rem 0.9rem;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.04);
+        font-size: 0.9rem;
+        backdrop-filter: blur(10px);
+    }
+
+    .metric-card {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 18px;
+        padding: 1rem 1.25rem;
+        color: #e2e8f0;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+    .metric-value {
+        font-size: 1.6rem;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        color: #fff;
+    }
+    .metric-label {
+        font-size: 0.9rem;
+        opacity: 0.7;
+    }
+</style>
 {% endblock %}

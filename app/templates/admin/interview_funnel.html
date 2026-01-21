@@ -100,6 +100,17 @@
     </div>
 </div>
 
+<style>
+    .text-truncate-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>
+{% endblock %}
+
+{% block extra_content %}
 <!-- Create Job Modal -->
 <div class="modal fade" id="createJobModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -174,12 +185,4 @@
         }
     });
 </script>
-<style>
-    .text-truncate-3 {
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-</style>
 {% endblock %}

@@ -6,17 +6,12 @@
 <div class="row justify-content-center mt-5 animate-in">
     <div class="col-md-8 col-lg-6">
         <div class="card shadow border-0">
-            <!-- 1. Role Selection (TOP) -->
+            <!-- 1. Employer Link (TOP) -->
             <div class="card-header border-0 pt-4 pb-2 text-center">
-                <form id="roleToggleForm">
-                    <div class="btn-group w-75" role="group" aria-label="Login Role">
-                        <input type="radio" class="btn-check" name="role_toggle" id="role-user" value="user" checked onclick="syncRole('user')">
-                        <label class="btn btn-outline-primary" for="role-user">Candidate</label>
-
-                        <input type="radio" class="btn-check" name="role_toggle" id="role-admin" value="admin" onclick="syncRole('admin')">
-                        <label class="btn btn-outline-primary" for="role-admin">Administrator</label>
-                    </div>
-                </form>
+                <a href="{{ url_for('auth.register_employer') }}" class="btn btn-outline-primary rounded-pill px-4 fw-bold">
+                    Login / Register as Employer
+                </a>
+                <div class="text-muted small mt-2">Are you a Recruiter? Click above.</div>
             </div>
 
             <!-- 2. Login/Register Tabs (MIDDLE) -->
@@ -36,9 +31,6 @@
                 <form action="" method="post" novalidate id="loginForm">
                     {{ form.hidden_tag() }}
                     
-                    <!-- Hidden actual role field synced by JS -->
-                    {{ form.role(id="actual-role-field", class="d-none") }}
-
                     <div class="mb-3">
                         {{ form.email.label(class="form-label") }}
                         {{ form.email(class="form-control", placeholder="Enter your email") }}

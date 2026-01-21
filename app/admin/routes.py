@@ -7,10 +7,97 @@ from datetime import datetime
 from . import admin
 from .forms import JobPostingForm
 from ..extensions import db
-from ..models import JobPosting, JobApplication, User, UserData, MockTest, MockInterview, Notification, SystemSetting, Quest
+from ..models import JobPosting, JobApplication, User, UserData, MockTest, MockInterview, Notification, SystemSetting, Quest, Company, EmployerProfile
 from ..utils.ai_utils import generate_job_description, analyze_market_trends
 from ..decorators import admin_required
+import threading
 
+
+@admin.route('/employer_approvals')
+@admin_required
+def employer_approvals():
+    pending_employers = EmployerProfile.query.filter_by(is_verified=False).all()
+    return render_template('admin/employer_approvals.html', pending_employers=pending_employers)
+
+@admin.route('/approve_employer/<int:profile_id>', methods=['POST'])
+@admin_required
+def approve_employer(profile_id):
+    profile = EmployerProfile.query.get_or_404(profile_id)
+    user = profile.user
+    
+    # 1. Generate Credentials
+    import secrets
+    import string
+    alphabet = string.ascii_letters + string.digits
+    password = ''.join(secrets.choice(alphabet) for i in range(12))
+    
+    user.set_password(password)
+    profile.is_verified = True
+    db.session.commit()
+    
+    # 2. Send Email
+    try:
+        from ..utils.email_utils import send_email
+        send_email(
+            to=user.email,
+            subject="Your Employer Account is Approved - SRA",
+            template=None,
+            category='partners',
+            body=f"""Hello {user.username},
+
+Your request to join as an Employer for {profile.company.name} has been approved!
+
+Here are your login credentials:
+Email: {user.email}
+Password: {password}
+
+Please login and change your password immediately.
+
+Login here: {url_for('auth.login', _external=True)}
+
+Welcome aboard,
+SRA Admin Team"""
+        )
+        flash(f'Employer {user.username} approved and credentials sent.', 'success')
+    except Exception as e:
+        flash(f'Employer approved but email failed: {e}', 'warning')
+        
+    return redirect(url_for('admin.employer_approvals'))
+
+@admin.route('/reject_employer/<int:profile_id>', methods=['POST'])
+@admin_required
+def reject_employer(profile_id):
+    profile = EmployerProfile.query.get_or_404(profile_id)
+    user = profile.user
+    
+    # Send Rejection Email first
+    try:
+        from ..utils.email_utils import send_email
+        send_email(
+            to=user.email,
+            subject="Update on your Employer Request - SRA",
+            template=None,
+            category='partners',
+            body=f"""Hello {user.username},
+
+Thank you for your interest in joining SRA as an Employer.
+After reviewing your request, we are unable to approve your account at this time.
+
+If you believe this is an error, please contact support.
+
+Regards,
+SRA Admin Team"""
+        )
+    except Exception as e:
+        print(f"Rejection email failed: {e}")
+
+    # Delete Data
+    db.session.delete(profile)
+    db.session.delete(user) # Cascade should handle profile but safe to be explicit or let cascade work
+    db.session.commit()
+    
+    flash(f'Employer request for {user.email} rejected and deleted.', 'info')
+    return redirect(url_for('admin.employer_approvals'))
 
 @admin.route('/controls')
 @admin_required
@@ -303,11 +390,21 @@ def create_job():
         job = JobPosting(title=form.title.data, description=form.description.data, created_by=current_user.id)
         db.session.add(job)
         db.session.commit()
-        # Add to Vector DB
-        from ..utils.vector_utils import add_job_to_vector_db
-        add_job_to_vector_db(job.id, job.title, job.description)
+        # Add to Vector DB (non-blocking to avoid UI "stuck" if Chroma is slow/locked)
+        def _index_job(job_id, title, description):
+            try:
+                from ..utils.vector_utils import add_job_to_vector_db
+                add_job_to_vector_db(job_id, title, description)
+            except Exception as e:
+                print(f"Background indexing failed for job {job_id}: {e}")
+
+        threading.Thread(
+            target=_index_job,
+            args=(job.id, job.title, job.description),
+            daemon=True
+        ).start()
         
-        flash('Job posting created.', 'success')
+        flash('Job posting created. Indexing pipeline in background…', 'success')
     return redirect(url_for('admin.interview_funnel'))
 
 @admin.route('/edit_job/<int:job_id>', methods=['GET', 'POST'])
@@ -321,17 +418,31 @@ def edit_job(job_id):
         job.description = form.description.data
         db.session.commit()
         
-        # Update Vector DB
-        from ..utils.vector_utils import add_job_to_vector_db
-        add_job_to_vector_db(job.id, job.title, job.description)
+        # Update Vector DB (non-blocking)
+        def _index_job(job_id, title, description):
+            try:
+                from ..utils.vector_utils import add_job_to_vector_db
+                add_job_to_vector_db(job_id, title, description)
+            except Exception as e:
+                print(f"Background indexing failed for job {job_id}: {e}")
+
+        threading.Thread(
+            target=_index_job,
+            args=(job.id, job.title, job.description),
+            daemon=True
+        ).start()
         
         flash('Job posting updated.', 'success')
         return redirect(url_for('admin.interview_funnel'))
         
     return render_template('admin/edit_job.html', form=form, job=job)
 
+from ..decorators import admin_required, employer_required
+
+# ... (inside file) ...
+
 @admin.route('/api/generate_job_desc', methods=['POST'])
-@admin_required
+@employer_required
 def generate_job_desc_api():
     data = request.get_json()
     title = data.get('title')
