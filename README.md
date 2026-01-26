@@ -1,126 +1,64 @@
-# Smart Resume Screener & Analyzer
+# TalentLink | The Sentient Career OS
 
-**Smart Resume Screener & Analyzer** is a full-featured web application built with Flask that serves as a comprehensive platform for both job seekers and recruiters. It leverages Google's Gemini AI to provide intelligent features like resume analysis, mock interviews, and more.
+**TalentLink** is not just a job board; it is a **Sentient Career Operating System**. Powered by Google Gemini and a proprietary context-aware neural engine ("Cherry"), TalentLink bridges the gap between human potential and market opportunity with glassmorphic elegance and real-time intelligence.
 
-## Features
+![TalentLink Badge](https://img.shields.io/badge/TalentLink-Active-blue?style=for-the-badge&logo=google-gemini) ![Status](https://img.shields.io/badge/System-Sentient-success?style=for-the-badge)
 
-### For Job Seekers (Users)
-- **AI-Powered Resume Analysis**: Upload your resume (PDF) and get a detailed analysis against an optional job description, including a match score, skill breakdown, and improvement suggestions.
-- **Interactive Mock Interviews**: Practice your interview skills with a real-time, AI-powered mock interviewer that asks relevant follow-up questions.
-- **Dynamic Mock Tests**: Generate multiple-choice tests on any topic to brush up on your skills.
-- **Job Listings**: Browse and apply for jobs posted by recruiters.
-- **Personal Dashboard**: Track your activities and notifications.
-- **Downloadable Reports**: Download your resume analysis reports in both PDF and DOCX formats.
+## 🌌 The Vision
+TalentLink treats your career as a living, breathing entity. It doesn't just "analyze" your resume; it understands your trajectory. 
+- **For Candidates:** It acts as a 24/7 Career Agent, providing real-time interview coaching, resume optimization, and strategic "Bridge" roadmaps to your dream job.
+- **For Employers:** It uses semantic vector search to find candidates who *actually* fit the role, beyond just keyword matching.
 
-### For Recruiters (Admins)
-- **Secure Admin Dashboard**: Manage job postings and view applicants in a dedicated dashboard.
-- **AI-Assisted Job Description Generation**: Create comprehensive and professional job descriptions just by providing a job title.
-- **Applicant Tracking**: View a list of applicants for each job posting and access their submitted resumes and analysis results.
+## 🚀 Key Features
 
-### Core Technologies
-- **Backend**: Flask, SQLAlchemy, Flask-Login, Flask-SocketIO
-- **Database**: MySQL (production), SQLite (development fallback)
-- **AI Integration**: Google Gemini Pro
-- **Frontend**: Bootstrap 5, Jinja2, Vanilla JavaScript, Socket.IO
-- **File Processing**: pdfminer.six, pytesseract (for OCR), pdf2image, fpdf2, python-docx
+### 🧠 Intelligent Core (Cherry Agent)
+- **Omnipresent Assistant:** A context-aware widget that follows you across the platform, offering specific advice based on whether you are viewing a job, editing a profile, or analyzing a resume.
+- **Persistent Memory:** Cherry remembers your skills, goals, and previous conversations.
 
-## System Dependencies
+### 🎯 Strategic Career Tools
+- **Dream Job Reality Bridge:** A visual gap-analysis tool. Tell it you want to be a "Senior Architect at Google," and it builds a step-by-step roadmap to get you there from your current state.
+- **Live Interview Coach:** Real-time speech recognition analyzes your interview answers and provides a detailed "Report Card" on sentiment, confidence, and technical keyword usage.
+- **Smart Resume Analysis:** Deep semantic analysis of your CV against millions of data points to predict your best-fit industry and seniority level.
 
-This application uses Tesseract for Optical Character Recognition (OCR) as a fallback for scanned PDF resumes. You must have Tesseract installed on your system.
+### 🛡️ For The Enterprise
+- **Market Intelligence:** Aggregates real-time job data to show supply/demand trends for specific skills.
+- **Neural Matching:** Matches candidates to jobs using vector embeddings for superior relevance.
+- **Command Center:** A glassmorphic admin dashboard for full system oversight.
 
-- **On Windows**: Download and run the installer from the [Tesseract at UB Mannheim](https://github.com/UB-Mannheim/tesseract/wiki) page. Make sure to add the installation directory to your system's `PATH`.
-- **On macOS**: `brew install tesseract`
-- **On Debian/Ubuntu**: `sudo apt-get install tesseract-ocr`
+## 🛠️ Tech Stack
+- **AI Engine:** Google Gemini 2.5 Flash-Lite (Context-Aware)
+- **Backend:** Flask, SQLAlchemy, Flask-SocketIO (Real-time)
+- **Database:** SQLite / MySQL + **ChromaDB (Vector Search)**
+- **Frontend:** Bootstrap 5, Glassmorphism CSS, Three.js (Visuals), Vanilla Tilt
+- **Audio:** Web Speech API (Recognition & Synthesis)
 
-The application also uses `pdf2image`, which depends on `poppler`.
-- **On Windows**: Download poppler for Windows, extract it, and add the `bin` directory to your system's `PATH`.
-- **On macOS**: `brew install poppler`
-- **On Debian/Ubuntu**: `sudo apt-get install poppler-utils`
+## 📦 Quick Start
 
-## Project Setup
-
-Follow these steps to get the application running locally.
-
-### 1. Clone the Repository
+### 1. Clone & Setup
 ```bash
-git clone <repository-url>
-cd smart-resume-analyzer
-```
-
-### 2. Create and Activate a Virtual Environment
-It is highly recommended to use a virtual environment to manage project dependencies.
-```bash
-# For Windows
+git clone <repo_url>
+cd TalentLink
 python -m venv venv
-venv\Scripts\activate
-
-# For macOS/Linux
-python3 -m venv venv
-source venv/bin/activate
-```
-
-### 3. Install Dependencies
-Install all the required Python packages.
-```bash
+# Activate venv (Windows: venv\Scripts\activate, Mac/Linux: source venv/bin/activate)
 pip install -r requirements.txt
 ```
 
-### 4. Configure Environment Variables
-Create a file named `.env` in the project root directory. Copy the contents of `.env.example` and fill in the required values.
-
+### 2. Configuration
+Create a `.env` file with your keys:
 ```env
-# Flask Configuration
-SECRET_KEY='a-very-secret-key'
-FLASK_CONFIG='development' # or 'production'
-
-# Google Gemini API Key
-GEMINI_API_KEY='your-gemini-api-key'
-
-# Database Configuration (MySQL for Production)
-# Ensure you have a MySQL server running and a database created.
-MYSQL_USER='your-mysql-user'
-MYSQL_PASSWORD='your-mysql-password'
-MYSQL_HOST='localhost'
-MYSQL_DB='smart_resume_db'
-
-# Admin User Credentials (for initial admin login)
-ADMIN_EMAIL='admin@example.com'
-ADMIN_PASSWORD='admin-password'
-
-# Email Configuration (Optional, for notifications)
-MAIL_SERVER='smtp.example.com'
-MAIL_PORT=587
-MAIL_USE_TLS=True
-MAIL_USERNAME='your-email@example.com'
-MAIL_PASSWORD='your-email-password'
+GEMINI_API_KEY=your_gemini_key_here
+SECRET_KEY=super_secret_key
 ```
 
-### 5. Initialize the Database
-This application uses Flask-Migrate to manage database schema migrations.
-
+### 3. Launch
 ```bash
-# Create the migration repository (only needs to be run once)
-flask db init
-
-# Create the initial migration
-flask db migrate -m "Initial migration"
-
-# Apply the migration to the database
+# Initialize Database
 flask db upgrade
+
+# Run System
+python run.py
 ```
-After running these commands, your database schema will be created.
+Access the neural link at `http://127.0.0.1:5000`.
 
-## Running the Application
-
-Once the setup is complete, you can run the application with a single command:
-
-```bash
-flask run
-```
-
-The application will be available at `http://127.0.0.1:5000`.
-
-- The user-facing application is at the root URL.
-- The admin dashboard is at `/admin/dashboard`.
-
-You can log in as an admin using the `ADMIN_EMAIL` and `ADMIN_PASSWORD` you set in your `.env` file.
+---
+*TalentLink © 2026. Empowering Human Potential.*

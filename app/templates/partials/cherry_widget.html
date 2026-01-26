@@ -1,0 +1,167 @@
+<div id="cherry-widget" class="cherry-widget">
+    <!-- Chat Bubble -->
+    <div id="cherry-bubble" class="cherry-bubble shadow-lg" onclick="toggleCherry()">
+        <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" alt="Cherry" style="width: 100%; height: 100%;">
+        <div id="cherry-notification" class="cherry-notification d-none">!</div>
+    </div>
+
+    <!-- Chat Window -->
+    <div id="cherry-window" class="cherry-window shadow-lg d-none">
+        <div class="cherry-header bg-primary text-white p-3 d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" alt="Cherry" style="width: 30px; margin-right: 10px;">
+                <span class="fw-bold">Cherry Assistant</span>
+            </div>
+            <button class="btn btn-sm text-white" onclick="toggleCherry()">&times;</button>
+        </div>
+        <div id="cherry-chat-history" class="cherry-chat-history p-3">
+            <div class="message model">
+                <p id="cherry-greeting">Hi! I'm Cherry. How can I help you on this page?</p>
+            </div>
+        </div>
+        <div class="cherry-footer p-3 border-top">
+            <div class="input-group">
+                <input type="text" id="cherry-input" class="form-control form-control-sm" placeholder="Type a message..." onkeypress="handleCherryKey(event)">
+                <button class="btn btn-primary btn-sm" onclick="sendCherryMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .cherry-widget {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 9999;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .cherry-bubble {
+        width: 60px;
+        height: 60px;
+        background: white;
+        border-radius: 50%;
+        padding: 10px;
+        cursor: pointer;
+        transition: transform 0.3s;
+        border: 2px solid #0d6efd;
+        position: relative;
+    }
+    .cherry-bubble:hover {
+        transform: scale(1.1);
+    }
+    .cherry-notification {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: red;
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+    .cherry-window {
+        position: absolute;
+        bottom: 80px;
+        right: 0;
+        width: 320px;
+        height: 450px;
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        display: flex;
+        flex-column: column;
+        flex-direction: column;
+        border: 1px solid rgba(0,0,0,0.1);
+    }
+    .cherry-chat-history {
+        flex-grow: 1;
+        overflow-y: auto;
+        background: #f8f9fa;
+    }
+    .cherry-chat-history .message {
+        margin-bottom: 10px;
+        padding: 10px;
+        border-radius: 10px;
+        max-width: 85%;
+        font-size: 14px;
+    }
+    .cherry-chat-history .message.model {
+        background: #e9ecef;
+        align-self: flex-start;
+    }
+    .cherry-chat-history .message.user {
+        background: #0d6efd;
+        color: white;
+        align-self: flex-end;
+        margin-left: auto;
+    }
+</style>
+
+<script>
+    function toggleCherry() {
+        const win = document.getElementById('cherry-window');
+        win.classList.toggle('d-none');
+        document.getElementById('cherry-notification').classList.add('d-none');
+        
+        // Auto-greeting if empty
+        if (!win.classList.contains('d-none')) {
+            updateCherryContext();
+        }
+    }
+
+    function updateCherryContext() {
+        const path = window.location.pathname;
+        const greeting = document.getElementById('cherry-greeting');
+        
+        if (path.includes('/jobs')) {
+            greeting.innerText = "I can help you filter jobs or analyze if you're a good fit for one!";
+        } else if (path.includes('/resume_analysis')) {
+            greeting.innerText = "Upload your resume, and I'll give you a deep analysis!";
+        } else if (path.includes('/dashboard')) {
+            greeting.innerText = "Welcome back! Ready to track your applications?";
+        }
+    }
+
+    function handleCherryKey(e) {
+        if (e.key === 'Enter') sendCherryMessage();
+    }
+
+    function sendCherryMessage() {
+        const input = document.getElementById('cherry-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        appendCherryMessage('user', text);
+        input.value = '';
+
+        fetch("{{ url_for('user.api_agent_chat') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': "{{ csrf_token() if csrf_token else '' }}"
+            },
+            body: JSON.stringify({ message: text, history: [] })
+        })
+        .then(res => res.json())
+        .then(data => {
+            appendCherryMessage('model', data.response);
+        });
+    }
+
+    function appendCherryMessage(role, text) {
+        const history = document.getElementById('cherry-chat-history');
+        const div = document.createElement('div');
+        div.className = `message ${role}`;
+        div.innerHTML = `<p class="mb-0">${text}</p>`;
+        history.appendChild(div);
+        history.scrollTop = history.scrollHeight;
+    }
+</script>

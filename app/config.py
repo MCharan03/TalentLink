@@ -38,9 +38,9 @@ class Config:
     
     # Email Sender Profiles
     EMAIL_SENDERS = {
-        'default': os.environ.get('MAIL_GENERAL_SENDER') or 'noreply@smartresume.ai',
-        'general': os.environ.get('MAIL_GENERAL_SENDER') or 'noreply@smartresume.ai',
-        'support': os.environ.get('MAIL_SUPPORT_SENDER') or 'support@smartresume.ai'
+        'default': os.environ.get('MAIL_GENERAL_SENDER') or 'noreply@talentlink.ai',
+        'general': os.environ.get('MAIL_GENERAL_SENDER') or 'noreply@talentlink.ai',
+        'support': os.environ.get('MAIL_SUPPORT_SENDER') or 'support@talentlink.ai'
     }
 
     POSTS_PER_PAGE = 10

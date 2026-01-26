@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-5 text-center">
+        <div class="col-12">
+            <h1 class="display-4 fw-bold text-gradient">Dream Job Reality Bridge</h1>
+            <p class="text-muted">Map your journey from where you are to where you want to be.</p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow border-glass p-4 mb-5">
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="input-group">
+                        <input type="text" name="target_role" class="form-control form-control-lg bg-dark text-white border-glass" 
+                               placeholder="e.g., Senior AI Architect at Google" value="{{ target_role }}" required>
+                        <button class="btn btn-primary px-4" type="submit">Analyze Bridge</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {% if analysis %}
+    <div class="row">
+        <!-- Current Match -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow border-glass p-4 h-100 text-center">
+                <h6 class="text-muted text-uppercase small fw-bold mb-3">Current Match</h6>
+                <div class="display-3 fw-bold text-primary">{{ analysis.match_percentage }}%</div>
+                <p class="small text-muted mt-3">{{ analysis.current_standing }}</p>
+            </div>
+        </div>
+
+        <!-- Missing Skills -->
+        <div class="col-md-8 mb-4">
+            <div class="card border-0 shadow border-glass p-4 h-100">
+                <h6 class="text-muted text-uppercase small fw-bold mb-3">Missing Skill Planks</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for skill in analysis.missing_skills %}
+                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-2">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+                <hr class="my-4" style="opacity: 0.1;">
+                <h6 class="text-muted text-uppercase small fw-bold mb-3">Experience Needed</h6>
+                <p>{{ analysis.required_experience }}</p>
+            </div>
+        </div>
+
+        <!-- Visual Roadmap -->
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow border-glass p-4">
+                <h6 class="text-muted text-uppercase small fw-bold mb-4">Bridge to {{ target_role }}</h6>
+                <div class="row text-center">
+                    {% for step in analysis.roadmap_steps %}
+                    <div class="col-md-4 mb-3">
+                        <div class="p-3 rounded-3 bg-primary bg-opacity-10 border border-primary border-opacity-25 h-100">
+                            <div class="badge bg-primary mb-2">{{ step.timeframe }}</div>
+                            <h6 class="fw-bold">{{ step.step }}</h6>
+                            <p class="small text-muted mb-0">{{ step.description }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="mt-5" style="height: 250px;">
+                    <canvas id="bridgeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if analysis %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('bridgeChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Today', 'Phase 1', 'Phase 2', 'Goal Reached'],
+            datasets: [{
+                label: 'Career Readiness',
+                data: {{ analysis.bridge_visual_data | tojson }},
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13, 110, 253, 0.2)',
+                fill: true,
+                pointRadius: 8,
+                pointHoverRadius: 10,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, max: 100, ticks: { color: '#888' } },
+                x: { ticks: { color: '#888' } }
+            }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

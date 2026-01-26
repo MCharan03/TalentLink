@@ -509,3 +509,56 @@ def analyze_market_trends(job_descriptions_sample, user_skills_summary):
     }}
     """
     return _call_gemini(prompt, response_mime_type='application/json')
+
+
+def generate_interview_report(transcript):
+    """
+    Generates a detailed performance report from an interview transcript.
+    """
+    prompt = f"""
+    You are an expert Interview Coach. Analyze the following interview transcript and provide a detailed report card.
+    
+    Transcript:
+    {transcript}
+    
+    Return a JSON object with:
+    - "overall_score": (Integer 0-100)
+    - "sentiment_analysis": "Brief summary of the candidate's tone/confidence."
+    - "strengths": ["Strength 1", "Strength 2"]
+    - "weaknesses": ["Weakness 1", "Weakness 2"]
+    - "keyword_usage": "Feedback on technical keywords used or missed."
+    - "improvement_tips": ["Tip 1", "Tip 2"]
+    - "confidence_trend": [A list of 5 integers representing confidence levels throughout the interview]
+    
+    Return ONLY the JSON.
+    """
+    return _call_gemini(prompt, response_mime_type='application/json')
+
+
+def analyze_dream_job(resume_text, target_role):
+    """
+    Compares current resume against a target dream role.
+    """
+    prompt = f"""
+    You are a Strategic Career Planner. 
+    Compare the following resume against the target role: "{target_role}".
+    
+    Resume:
+    {resume_text}
+    
+    Task:
+    Perform a Gap Analysis and return a JSON object with:
+    - "match_percentage": (Integer)
+    - "current_standing": "A summary of where they are now."
+    - "missing_skills": ["Skill 1", "Skill 2"]
+    - "required_experience": "What kind of projects/roles they need to bridge the gap."
+    - "roadmap_steps": [
+        {{"step": "Step 1", "description": "Short term goal", "timeframe": "1-3 months"}},
+        {{"step": "Step 2", "description": "Mid term goal", "timeframe": "6-12 months"}},
+        {{"step": "Step 3", "description": "Long term goal", "timeframe": "1-2 years"}}
+    ]
+    - "bridge_visual_data": [50, 65, 80, 100] (A list of 4 integers representing progress levels at each roadmap step)
+    
+    Return ONLY the JSON.
+    """
+    return _call_gemini(prompt, response_mime_type='application/json')

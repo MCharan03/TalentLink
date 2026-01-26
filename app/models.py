@@ -101,6 +101,7 @@ class MockInterview(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     transcript = db.Column(db.Text)
     feedback = db.Column(db.Text)
+    score = db.Column(db.Integer)
     started_at = db.Column(db.DateTime, default=datetime.utcnow)
     user = db.relationship('User', backref=db.backref(
         'mock_interviews', lazy=True, cascade='all, delete-orphan'))

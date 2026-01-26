@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h1 class="display-5 fw-bold text-gradient">Interview Performance Report</h1>
+            <p class="text-muted">Analysis of your technical interview session.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Score -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow border-glass h-100 text-center p-4">
+                <h6 class="text-muted text-uppercase small fw-bold mb-3">Overall Score</h6>
+                <div class="display-1 fw-bold text-primary">{{ report.overall_score }}</div>
+                <p class="mt-2 text-muted">Out of 100</p>
+                <div class="progress mt-3" style="height: 10px;">
+                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ report.overall_score }}%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sentiment & Tone -->
+        <div class="col-md-8 mb-4">
+            <div class="card border-0 shadow border-glass h-100 p-4">
+                <h6 class="text-muted text-uppercase small fw-bold mb-3">Sentiment & Tone</h6>
+                <p class="lead">{{ report.sentiment_analysis }}</p>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-success"><i class="fas fa-check-circle me-2"></i>Strengths</h6>
+                        <ul class="small">
+                            {% for s in report.strengths %}
+                            <li>{{ s }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-danger"><i class="fas fa-exclamation-circle me-2"></i>Areas to Improve</h6>
+                        <ul class="small">
+                            {% for w in report.weaknesses %}
+                            <li>{{ w }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confidence Trend -->
+        <div class="col-md-12 mb-4">
+            <div class="card border-0 shadow border-glass p-4">
+                <h6 class="text-muted text-uppercase small fw-bold mb-3">Confidence Trend</h6>
+                <div style="height: 200px;">
+                    <canvas id="confidenceChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Feedback -->
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow border-glass p-4 h-100">
+                <h6 class="text-muted text-uppercase small fw-bold mb-3">Keyword Analysis</h6>
+                <p>{{ report.keyword_usage }}</p>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow border-glass p-4 h-100">
+                <h6 class="text-muted text-uppercase small fw-bold mb-3">Actionable Tips</h6>
+                <ul class="list-group list-group-flush bg-transparent">
+                    {% for tip in report.improvement_tips %}
+                    <li class="list-group-item bg-transparent text-white border-glass small">{{ tip }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Transcript Toggle -->
+        <div class="col-12">
+             <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#transcriptCollapse">
+                View Full Transcript
+            </button>
+            <div class="collapse mt-3" id="transcriptCollapse">
+                <div class="card card-body bg-dark text-light border-glass">
+                    <pre class="small" style="white-space: pre-wrap;">{{ interview.transcript }}</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('confidenceChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Start', 'Quarter', 'Mid', 'Three-Quarter', 'End'],
+            datasets: [{
+                label: 'Confidence Level',
+                data: {{ report.confidence_trend | tojson }},
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, max: 100, ticks: { color: '#888' } },
+                x: { ticks: { color: '#888' } }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+</script>
+{% endblock %}

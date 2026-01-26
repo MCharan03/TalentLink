@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Smart Resume Analyzer - AI Powered Career Growth{% endblock %}
+{% block title %}TalentLink - The Sentient Career OS{% endblock %}
 
 {% block scripts %}
 <script type="importmap">
@@ -29,7 +29,7 @@
     <!-- Large Background Text (Watermark) -->
     <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center pointer-events-none select-none overflow-hidden" style="z-index: 1;">
         <h2 class="font-black text-white text-shimmer" style="font-size: 20vw; opacity: 0.03; line-height: 1; white-space: nowrap; font-weight: 900; letter-spacing: -0.08em;">
-            SMART RESUME
+            TALENT LINK
         </h2>
     </div>
 
@@ -38,68 +38,68 @@
         
         <div class="assemble-in anim-up tracking-tighter" style="line-height: 0.95;">
             <div class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 mb-3 rounded-pill shadow-sm">
-                AI Resume Intelligence · Mock Interviews · Job Match
+                Context-Aware Career Intelligence
             </div>
             <h1 class="display-1 text-white font-light mb-0" style="font-size: calc(2rem + 5.5vw); letter-spacing: -0.05em;">
-                Smart Resume Analyzer
+                TalentLink <span class="text-primary fw-bold">AI</span>
             </h1>
             <h1 class="display-4 text-white fw-bold mb-4" style="letter-spacing: -0.04em;">
-                Built for fast hiring & confident candidates
+                The Sentient Career Operating System
             </h1>
         </div>
         
         <p class="lead text-light mb-4 mx-auto anim-up delay-200" style="max-width: 760px; opacity: 0.68; font-size: 1.15rem;">
-            Analyze resumes against roles, generate ATS-friendly rewrites, and run AI-driven mock interviews. Give recruiters clear signals and candidates instant, actionable feedback.
+            TalentLink bridges the gap between human potential and market opportunity. 
+            Experience a career agent that sees your skills, hears your interview answers, and maps your path to the future.
         </p>
 
         <div class="d-flex gap-3 justify-content-center flex-wrap anim-up delay-300">
             {% if current_user.is_authenticated %}
                 {% if current_user.role == 'admin' %}
                     <a href="{{ url_for('admin.dashboard') }}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-lg fw-bold hover-scale">
-                        Open Admin Dashboard
+                        Open Command Center
                     </a>
                 {% else %}
                     <a href="{{ url_for('user.dashboard') }}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-lg fw-bold hover-scale">
-                        Open Dashboard
+                        Access Neural Link
                     </a>
                 {% endif %}
             {% else %}
                 <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-lg fw-bold hover-scale">
-                    Start Analysis
+                    Initialize System
                 </a>
                 <a href="{{ url_for('auth.register') }}" class="btn btn-outline-light btn-lg px-5 py-3 rounded-pill hover-scale">
-                    Create Account
+                    Create Profile
                 </a>
             {% endif %}
         </div>
 
         <!-- Feature chips -->
         <div class="d-flex gap-2 flex-wrap justify-content-center mt-4 anim-up delay-350">
-            <span class="feature-chip">ATS-friendly scoring</span>
-            <span class="feature-chip">AI-generated job descriptions</span>
-            <span class="feature-chip">Mock interviews with follow-ups</span>
-            <span class="feature-chip">Semantic job-resume matching</span>
-            <span class="feature-chip">Admin pipelines & notifications</span>
+            <span class="feature-chip">Reality Bridge (Gap Analysis)</span>
+            <span class="feature-chip">Live Interview Coach</span>
+            <span class="feature-chip">Cherry Agent</span>
+            <span class="feature-chip">Neural Matching</span>
         </div>
 
         <!-- Quick metrics -->
         <div class="row g-3 mt-5 justify-content-center anim-up delay-400">
             <div class="col-6 col-md-3">
                 <div class="metric-card">
-                    <div class="metric-value">+42%</div>
-                    <div class="metric-label">Faster shortlisting</div>
+                    <div class="metric-value">98%</div>
+                    <div class="metric-label">Context Accuracy</div>
                 </div>
             </div>
             <div class="col-6 col-md-3">
                 <div class="metric-card">
-                    <div class="metric-value">3x</div>
-                    <div class="metric-label">More interview-ready resumes</div>
+                    <div class="metric-value">Real-time</div>
+                    <div class="metric-label">Voice Analysis</div>
                 </div>
             </div>
             <div class="col-6 col-md-3">
                 <div class="metric-card">
-                    <div class="metric-value">24/7</div>
-                    <div class="metric-label">AI prep & feedback</div>
+                    <div class="metric-value">Adaptive</div>
+                    <div class="metric-label">Learning Path</div>
                 </div>
             </div>
         </div>
@@ -108,8 +108,8 @@
     <!-- Bottom Left Footer-like Text -->
     <div class="position-absolute bottom-0 start-0 p-5 d-none d-md-block anim-in-left delay-400" style="z-index: 10; max-width: 400px; text-align: left; border-left: 1px solid rgba(255,255,255,0.1); margin-left: 2rem; margin-bottom: 2rem;">
         <p class="text-muted small mb-0" style="line-height: 1.6;">
-            The 2026 Sentient OS Layer designed for proactive growth, <br>
-            blending technical precision with deep agentic awareness.
+            TalentLink © 2026<br>
+            Powered by Cherry Core Neural Engine.
         </p>
     </div>
 </section>

@@ -820,44 +820,59 @@ def interview_prep():
 
 
 @user.route('/mock_interview')
+
+
 @login_required
+
+
 def mock_interview():
+
+
     # Using the new Real-Time AI Coach interface
+
+
     return render_template('user/interview_mode.html')
 
 
-@socketio.on('start_interview')
-def handle_start_interview(data):
-    # Fetch user's latest resume analysis for context
-    if current_user.is_authenticated:
-        user_data = UserData.query.filter_by(user_id=current_user.id).order_by(UserData.uploaded_at.desc()).first()
-        if user_data and user_data.analysis_result:
-            context = {
-                'field': user_data.analysis_result.get('predicted_field', 'General'),
-                'level': user_data.analysis_result.get('experience_level', 'N/A'),
-                'skills': user_data.analysis_result.get('actual_skills', []),
-                'summary': user_data.analysis_result.get('ai_summary', '')[:500] # Truncate for token limit
-            }
-            session['interview_context'] = json.dumps(context)
-        else:
-            session['interview_context'] = None
-            
-    question = get_interview_question("Tell me about yourself.", "start")
-    emit('interview_question', {'question': question})
 
 
-@socketio.on('send_answer')
-def handle_send_answer(data):
-    answer = data['answer']
-    # Retrieve context from session
-    context_json = session.get('interview_context')
-    context = json.loads(context_json) if context_json else None
-    
-    question = get_interview_question(answer, "continue", resume_context=context)
-    emit('interview_question', {'question': question})
+
+@user.route('/interview_report/<int:interview_id>')
+
+
+@login_required
+
+
+def interview_report(interview_id):
+
+
+    interview = MockInterview.query.get_or_404(interview_id)
+
+
+    if interview.user_id != current_user.id:
+
+
+        abort(403)
+
+
+        
+
+
+    report_data = json.loads(interview.feedback) if interview.feedback else {}
+
+
+    return render_template('user/interview_report.html', interview=interview, report=report_data)
+
+
+
+
 
 @user.route('/skill_tree')
+
+
 @login_required
+
+
 def skill_tree():
     # Fetch user XP and quest data for the Skill Tree
     xp_profile = UserXP.query.filter_by(user_id=current_user.id).first()
@@ -1031,6 +1046,25 @@ def ats_simulator():
 def co_writer():
     return render_template('user/co_writer.html')
 
+@user.route('/dream_job', methods=['GET', 'POST'])
+@login_required
+def dream_job():
+    analysis = None
+    target_role = ""
+    if request.method == 'POST':
+        target_role = request.form.get('target_role')
+        latest_resume = UserData.query.filter_by(user_id=current_user.id).order_by(UserData.uploaded_at.desc()).first()
+        
+        if not latest_resume:
+            flash('Please upload a resume first.', 'warning')
+            return redirect(url_for('user.resume_analysis'))
+            
+        resume_text = extract_text_from_pdf(os.path.join(current_app.config['UPLOAD_FOLDER'], latest_resume.resume_path))
+        from ..utils.ai_utils import analyze_dream_job
+        analysis = analyze_dream_job(resume_text, target_role)
+        
+    return render_template('user/dream_bridge.html', analysis=analysis, target_role=target_role)
+
 @user.route('/api/co_writer_suggest', methods=['POST'])
 @login_required
 def api_co_writer_suggest():
@@ -1108,9 +1142,9 @@ def agent_chat():
 def api_agent_chat():
     data = request.get_json()
     user_message = data.get('message')
-    # Local agent doesn't strictly need history, but we could pass it if we wanted context.
+    history = data.get('history', [])
     
     agent = CareerAgent(current_user)
-    response_text = agent.chat(user_message)
+    response_text = agent.chat(user_message, history)
     
     return jsonify({'response': response_text})

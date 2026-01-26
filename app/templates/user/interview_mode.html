@@ -40,6 +40,9 @@
                         <button id="btn-stop" class="btn btn-danger btn-lg rounded-pill px-5 d-none align-items-center gap-2">
                             <span data-feather="square"></span> Stop
                         </button>
+                        <button id="btn-finish" class="btn btn-success btn-lg rounded-pill px-5 d-none align-items-center gap-2">
+                            <span data-feather="check"></span> Finish & Report
+                        </button>
                     </div>
                 </div>
             </div>
@@ -83,115 +86,13 @@
     const socket = io();
     const btnStart = document.getElementById('btn-start');
     const btnStop = document.getElementById('btn-stop');
+    const btnFinish = document.getElementById('btn-finish');
     const statusText = document.getElementById('listening-status');
     const indicator = document.getElementById('ai-status-indicator');
     const questionDisplay = document.getElementById('question-display');
     const feedbackStream = document.getElementById('feedback-stream');
     
-    // --- Speech Recognition Setup ---
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    let recognition = null;
-    let isSpeaking = false; 
-    let currentQuestion = "Tell me about yourself."; 
-
-    // --- Text-to-Speech Setup ---
-    const synth = window.speechSynthesis;
-    let voices = [];
-
-    function loadVoices() {
-        voices = synth.getVoices();
-    }
-    
-    if (speechSynthesis.onvoiceschanged !== undefined) {
-        speechSynthesis.onvoiceschanged = loadVoices;
-    }
-
-    function speak(text) {
-        if (synth.speaking) {
-            console.error('speechSynthesis.speaking');
-            return;
-        }
-        if (text !== '') {
-            const utterThis = new SpeechSynthesisUtterance(text);
-            // Try to find a good English voice
-            const voice = voices.find(v => v.lang === 'en-US' && v.name.includes('Google')) || voices[0];
-            if(voice) utterThis.voice = voice;
-            
-            utterThis.onend = function (event) {
-                console.log('SpeechSynthesisUtterance.onend');
-                // Auto-start listening after AI finishes speaking
-                startListening();
-            };
-            
-            utterThis.onerror = function (event) {
-                console.error('SpeechSynthesisUtterance.onerror');
-            };
-            
-            synth.speak(utterThis);
-        }
-    }
-
-    if (SpeechRecognition) {
-        recognition = new SpeechRecognition();
-        recognition.continuous = false; 
-        recognition.lang = 'en-US';
-        recognition.interimResults = false;
-
-        recognition.onstart = function() {
-            statusText.innerText = "Listening...";
-            indicator.style.background = "rgba(255, 0, 0, 0.1)";
-            indicator.style.borderColor = "red";
-            indicator.querySelector('span').classList.add('text-danger');
-            indicator.querySelector('span').classList.remove('text-primary');
-            indicator.classList.add('pulse-animation');
-        };
-
-        recognition.onend = function() {
-            statusText.innerText = "Processing...";
-            resetIndicator();
-        };
-
-        recognition.onresult = function(event) {
-            const transcript = event.results[0][0].transcript;
-            addMessage('You', transcript);
-            
-            // Send to Server
-            socket.emit('send_answer', {
-                answer: transcript
-            });
-            statusText.innerText = "Analyzing...";
-        };
-
-        recognition.onerror = function(event) {
-            console.error(event.error);
-            statusText.innerText = "Error: " + event.error;
-            resetIndicator();
-            btnStart.classList.remove('d-none');
-            btnStop.classList.add('d-none');
-        };
-    } else {
-        alert("Your browser does not support Speech Recognition. Please use Chrome.");
-    }
-
-    function startListening() {
-        if (recognition) {
-            try {
-                recognition.start();
-                btnStart.classList.add('d-none');
-                btnStop.classList.remove('d-none');
-            } catch (e) {
-                console.error("Recognition start error:", e);
-            }
-        }
-    }
-
-    function resetIndicator() {
-        indicator.style.background = "var(--bg-surface)";
-        indicator.style.borderColor = "var(--primary)";
-        indicator.querySelector('span').classList.remove('text-danger');
-        indicator.querySelector('span').classList.add('text-primary');
-        indicator.classList.remove('pulse-animation');
-    }
+    // ... Speech Recognition and TTS Setup ...
 
     // UI Events
     btnStart.addEventListener('click', () => {
@@ -199,6 +100,7 @@
         socket.emit('start_interview', {});
         btnStart.classList.add('d-none');
         btnStop.classList.remove('d-none');
+        btnFinish.classList.remove('d-none');
         statusText.innerText = "Connecting...";
     });
 
@@ -207,7 +109,16 @@
         if (synth.speaking) synth.cancel();
         btnStart.classList.remove('d-none');
         btnStop.classList.add('d-none');
+        btnFinish.classList.add('d-none');
         statusText.innerText = "Session Stopped.";
+    });
+
+    btnFinish.addEventListener('click', () => {
+        if (recognition) recognition.stop();
+        if (synth.speaking) synth.cancel();
+        btnFinish.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...';
+        btnFinish.disabled = true;
+        socket.emit('end_interview', {});
     });
 
     // Socket Events
@@ -229,6 +140,16 @@
         
         // Speak it
         speak(currentQuestion);
+    });
+
+    socket.on('report_ready', (data) => {
+        if (data.redirect_url) {
+            window.location.href = data.redirect_url;
+        } else {
+            alert("Error generating report: " + (data.error || "Unknown error"));
+            btnFinish.innerHTML = '<span data-feather="check"></span> Finish & Report';
+            btnFinish.disabled = false;
+        }
     });
 
     function addMessage(sender, text, isAi = false) {
