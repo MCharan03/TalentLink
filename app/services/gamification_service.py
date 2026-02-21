@@ -10,6 +10,28 @@ class GamificationService:
             db.session.add(xp_profile)
             db.session.commit()
 
+    def award_synergy_bonus(self, user_id):
+        """
+        Awards a 'Sentient Synergy' bonus for interacting with AI nodes.
+        This reinforces the 'Sentient OS' theme and encourages engagement.
+        """
+        xp_profile = UserXP.query.filter_by(user_id=user_id).first()
+        if not xp_profile:
+            self.initialize_user_xp(user_id)
+            xp_profile = UserXP.query.filter_by(user_id=user_id).first()
+
+        # Small 5 XP bonus with a cap per session (simulated here)
+        bonus = 5
+        xp_profile.total_xp += bonus
+        
+        # Leveling check
+        new_level = 1 + (xp_profile.total_xp // 100)
+        if new_level > xp_profile.level:
+            xp_profile.level = new_level
+        
+        db.session.commit()
+        return xp_profile.total_xp, xp_profile.level
+
     def award_xp(self, user_id, amount, reason="action"):
         """Awards XP and handles leveling up."""
         xp_profile = UserXP.query.filter_by(user_id=user_id).first()
@@ -19,6 +41,10 @@ class GamificationService:
 
         xp_profile.total_xp += amount
         
+        # Drain energy on action (e.g., 5% per action)
+        if xp_profile.energy > 0:
+            xp_profile.energy = max(0, xp_profile.energy - 5)
+
         # Simple leveling logic: Level = 1 + (XP / 100)
         new_level = 1 + (xp_profile.total_xp // 100)
         if new_level > xp_profile.level:
@@ -27,6 +53,14 @@ class GamificationService:
         
         db.session.commit()
         return xp_profile.total_xp, xp_profile.level
+
+    def replenish_energy(self, user_id, amount=100):
+        """Replenishes user energy."""
+        xp_profile = UserXP.query.filter_by(user_id=user_id).first()
+        if xp_profile:
+            xp_profile.energy = min(100, xp_profile.energy + amount)
+            db.session.commit()
+        return xp_profile.energy if xp_profile else 100
 
     def check_quests(self, user_id, event_type):
         """

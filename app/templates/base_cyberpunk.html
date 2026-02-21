@@ -8,44 +8,50 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <!-- Custom Aura CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/aura.css') }}">
     <style>
         body {
             font-family: 'Rajdhani', sans-serif;
             background-color: #050510;
             color: #e0e0e0;
+            transition: filter 0.5s ease;
         }
-        h1, h2, h3, .brand {
-            font-family: 'Orbitron', sans-serif;
-        }
-        .neon-text {
-            text-shadow: 0 0 5px #00f3ff, 0 0 10px #00f3ff;
-        }
-        .neon-border {
-            border: 1px solid #00f3ff;
-            box-shadow: 0 0 5px #00f3ff;
-        }
-        .glass-panel {
-            background: rgba(20, 20, 40, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 243, 255, 0.2);
-        }
-        .progress-bar {
-            transition: width 1s ease-in-out;
-        }
+        /* ... existing styles ... */
     </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex flex-col">
+<body class="bg-gray-900 text-white min-h-screen flex flex-col {{ 'system-fatigue' if system_status.health == 'stressed' else '' }} {{ 'system-critical' if system_status.health == 'critical' else '' }}">
+    <div id="scanline" class="{{ 'scanline-heavy' if system_status.health != 'nominal' else '' }}"></div>
+    <div class="noise-overlay"></div>
+    
     <!-- Navbar -->
     <nav class="border-b border-cyan-500 bg-gray-900/90 backdrop-blur fixed w-full z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center">
                     <a href="{{ url_for('user.dashboard') }}" class="brand text-2xl font-bold text-cyan-400 tracking-wider">
-                        SKY<span class="text-white">NET</span> CAREERS
+                        CHERRY<span class="text-white">AI</span>
                     </a>
                 </div>
                 <div class="hidden md:block">
                     <div class="ml-10 flex items-baseline space-x-4">
+                        <!-- System HUD -->
+                        <div class="flex items-center space-x-3 px-3 py-1 rounded-full bg-black/40 border border-cyan-500/30 text-[10px] tracking-widest uppercase">
+                            <div class="flex items-center">
+                                <span class="text-gray-500 mr-2">Core:</span>
+                                <span class="{{ 'text-green-400' if system_status.health == 'nominal' else 'text-yellow-400' if system_status.health == 'stressed' else 'text-red-500 animate-pulse' }}">
+                                    {{ system_status.health }}
+                                </span>
+                            </div>
+                            <div class="w-px h-3 bg-gray-700"></div>
+                            <div class="flex items-center">
+                                <span class="text-gray-500 mr-2">Energy:</span>
+                                <span class="{{ 'text-cyan-400' if user_energy > 50 else 'text-orange-400' if user_energy > 20 else 'text-red-500' }}">
+                                    {{ user_energy }}%
+                                </span>
+                            </div>
+                        </div>
+
                         <a href="{{ url_for('user.dashboard') }}" class="hover:text-cyan-400 px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
                         <a href="{{ url_for('user.future_career') }}" class="text-cyan-400 border border-cyan-500 bg-cyan-900/20 px-3 py-2 rounded-md text-sm font-medium">Time Machine</a>
                         <a href="{{ url_for('employer.dashboard') }}" class="hover:text-purple-400 px-3 py-2 rounded-md text-sm font-medium">Employer Portal</a>
@@ -76,7 +82,7 @@
     <!-- Footer -->
     <footer class="border-t border-gray-800 py-6 mt-8">
         <div class="text-center text-gray-500 text-sm">
-            &copy; 2026 Smart Resume Analyzer | System Online
+            &copy; 2026 CHERRY AI | POWERED BY CHERRY COSTECH SOLUTIONS
         </div>
     </footer>
 </body>

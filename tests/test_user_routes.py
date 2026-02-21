@@ -27,4 +27,4 @@ def test_mock_interview_page(auth, client):
     auth.login()
     response = client.get('/user/mock_interview')
     assert response.status_code == 200
-    assert b'AI Interview Session' in response.data
+    assert b'AI Interview Coach' in response.data

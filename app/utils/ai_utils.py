@@ -1,5 +1,15 @@
-from google import genai
-from google.genai import types
+try:
+    from google import genai
+    from google.genai import types
+except ImportError:
+    genai = None
+    types = None
+
+try:
+    import ollama
+except ImportError:
+    ollama = None
+
 import os
 import json
 import time
@@ -11,13 +21,17 @@ _client = None
 
 def get_client():
     global _client
+    if genai is None:
+        return None
     if _client is None:
         api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
-            # Fallback for development/testing where key might be missing
-            # In a real app, you might want to log a warning
             return None
-        _client = genai.Client(api_key=api_key)
+        try:
+            _client = genai.Client(api_key=api_key)
+        except Exception as e:
+            print(f"Error initializing Gemini client: {e}")
+            return None
     return _client
 
 
@@ -41,16 +55,72 @@ def retry_with_backoff(retries=3, backoff_in_seconds=1):
     return decorator
 
 
+def clean_json_string(s):
+    """
+    Cleans a string to extract valid JSON content, removing markdown blocks and whitespace.
+    """
+    if not s:
+        return "{}"
+    s = s.strip()
+    # Remove markdown blocks if present
+    if s.startswith("```"):
+        # Find the first { and the last }
+        start = s.find("{")
+        end = s.rfind("}")
+        if start != -1 and end != -1:
+            s = s[start:end+1]
+    return s
+
+
+def _call_ollama(prompt, response_mime_type=None):
+    """
+    Helper function to call Ollama (local AI) with optional JSON parsing.
+    """
+    if ollama is None:
+        print("Ollama library not installed. Please run 'pip install ollama'.")
+        return None
+        
+    try:
+        model = os.environ.get("OLLAMA_MODEL", "llama3")
+        print(f"DEBUG: Calling Ollama with model '{model}'...", flush=True)
+        
+        if response_mime_type == 'application/json':
+            response = ollama.generate(model=model, prompt=prompt, format='json')
+            raw_text = response['response']
+            print(f"DEBUG: Ollama response received, parsing JSON...", flush=True)
+            try:
+                return json.loads(clean_json_string(raw_text))
+            except json.JSONDecodeError:
+                print(f"ERROR: Ollama returned invalid JSON: {raw_text[:100]}...")
+                return None
+        else:
+            response = ollama.generate(model=model, prompt=prompt)
+            print("DEBUG: Ollama response received.", flush=True)
+            return response['response']
+    except Exception as e:
+        print(f"Ollama Error: {e}", flush=True)
+        return None
+
+
 @retry_with_backoff()
-def _call_gemini(prompt, response_mime_type=None):
+def _call_ai(prompt, response_mime_type=None):
     """
-    Helper function to call Gemini API with error handling and optional JSON parsing.
+    Generic helper function to call AI API (Gemini or Ollama).
     """
+    provider = os.environ.get("AI_PROVIDER", "ollama")
+    
+    # Track current provider for UI/Status purposes (optional)
+    os.environ["CURRENT_AI_PROVIDER"] = provider
+    
+    if provider == "ollama":
+        return _call_ollama(prompt, response_mime_type)
+        
     try:
         client = get_client()
         if not client:
-            print("Gemini API Client not initialized (Missing API Key).")
-            return None
+            print("Gemini API Client not initialized or missing. Using Ollama fallback.")
+            os.environ["CURRENT_AI_PROVIDER"] = "ollama"
+            return _call_ollama(prompt, response_mime_type)
 
         config = types.GenerateContentConfig(
             response_mime_type=response_mime_type) if response_mime_type else None
@@ -64,13 +134,26 @@ def _call_gemini(prompt, response_mime_type=None):
 
         if response_mime_type == 'application/json':
             print("DEBUG: Gemini response received, parsing JSON...", flush=True)
-            return json.loads(response.text)
+            try:
+                return json.loads(clean_json_string(response.text))
+            except json.JSONDecodeError:
+                 print(f"ERROR: Gemini returned invalid JSON. Attempting Ollama fallback.")
+                 os.environ["CURRENT_AI_PROVIDER"] = "ollama"
+                 return _call_ollama(prompt, response_mime_type)
         
         print("DEBUG: Gemini response received.", flush=True)
         return response.text
     except Exception as e:
-        print(f"Gemini API Error: {e}", flush=True)
-        return None
+        print(f"Gemini API Error: {e}. Attempting Ollama fallback.", flush=True)
+        os.environ["CURRENT_AI_PROVIDER"] = "ollama"
+        return _call_ollama(prompt, response_mime_type)
+
+
+def _call_gemini(prompt, response_mime_type=None):
+    """
+    Legacy alias for _call_ai.
+    """
+    return _call_ai(prompt, response_mime_type)
 
 
 def analyze_resume(resume_text, job_description):

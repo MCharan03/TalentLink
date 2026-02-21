@@ -83,4 +83,49 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     });
 
+    // 5. Sentient OS Logging System
+    class SentientLog {
+        constructor(containerId) {
+            this.container = document.querySelector(containerId);
+            this.messages = [
+                "Analyzing job market trends...",
+                "Scanning for new opportunities...",
+                "Optimizing neural pathways...",
+                "Sentiment analysis: Optimal",
+                "Self-healing protocols: Active",
+                "Monitoring career trajectory...",
+                "Proactive insight: Python skills are trending in your field.",
+                "AI Agent: Ready for your next interview.",
+                "System: All systems functional.",
+                "Data sync: Complete"
+            ];
+            if (this.container) this.init();
+        }
+
+        init() {
+            setInterval(() => {
+                const msg = this.messages[Math.floor(Math.random() * this.messages.length)];
+                this.addLog(msg);
+            }, 8000);
+        }
+
+        addLog(text) {
+            if (!this.container) return;
+            const log = document.createElement('div');
+            log.className = "text-muted mb-1 opacity-0";
+            log.style.transition = "opacity 0.5s ease";
+            log.innerHTML = `● ${text}`;
+            
+            // Limit logs
+            if (this.container.children.length > 5) {
+                this.container.removeChild(this.container.firstElementChild);
+            }
+            
+            this.container.appendChild(log);
+            setTimeout(() => log.classList.remove('opacity-0'), 10);
+        }
+    }
+
+    new SentientLog('.agent-activity-logs');
+
 });

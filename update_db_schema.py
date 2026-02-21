@@ -13,6 +13,7 @@ def add_column_if_not_exists(table, column, type_def):
             with db.engine.connect() as conn:
                 try:
                     conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {type_def}"))
+                    conn.commit()
                     print(f"Added column {column} to {table}")
                 except Exception as e:
                     if "duplicate column name" in str(e):
@@ -32,4 +33,5 @@ if __name__ == "__main__":
         print("Updating existing database schema...")
         add_column_if_not_exists('users', 'google_id', 'VARCHAR(100)')
         add_column_if_not_exists('users', 'linkedin_id', 'VARCHAR(100)')
+        add_column_if_not_exists('mock_interviews', 'score', 'INTEGER')
         print("Done.")

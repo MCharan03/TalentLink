@@ -126,7 +126,17 @@ class UserXP(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique=True)
     total_xp = db.Column(db.Integer, default=0)
     level = db.Column(db.Integer, default=1)
+    energy = db.Column(db.Integer, default=100)  # User's current energy (0-100)
     achievements = db.Column(db.JSON, default=dict)  # e.g., {"resumes_optimized": 5, "mock_interviews": 2}
+
+
+class SystemMetric(db.Model):
+    __tablename__ = 'system_metrics'
+    id = db.Column(db.Integer, primary_key=True)
+    metric_type = db.Column(db.String(50))  # 'error', 'request_time', etc.
+    route = db.Column(db.String(255))
+    value = db.Column(db.Float)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 class Quest(db.Model):

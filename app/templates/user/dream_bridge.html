@@ -50,23 +50,26 @@
             </div>
         </div>
 
-        <!-- Visual Roadmap -->
+        <!-- Visual Roadmap (3D Pathfinder) -->
         <div class="col-12 mb-4">
-            <div class="card border-0 shadow border-glass p-4">
-                <h6 class="text-muted text-uppercase small fw-bold mb-4">Bridge to {{ target_role }}</h6>
-                <div class="row text-center">
-                    {% for step in analysis.roadmap_steps %}
-                    <div class="col-md-4 mb-3">
-                        <div class="p-3 rounded-3 bg-primary bg-opacity-10 border border-primary border-opacity-25 h-100">
-                            <div class="badge bg-primary mb-2">{{ step.timeframe }}</div>
-                            <h6 class="fw-bold">{{ step.step }}</h6>
-                            <p class="small text-muted mb-0">{{ step.description }}</p>
-                        </div>
-                    </div>
-                    {% endfor %}
+            <div class="neural-card p-0 overflow-hidden position-relative">
+                <div class="p-4 border-bottom border-glass d-flex justify-content-between align-items-center">
+                    <h6 class="text-muted text-uppercase small fw-bold mb-0">Pathfinder 3D Roadmap: {{ target_role }}</h6>
+                    <div id="pathfinder-log" class="text-primary small tracking-widest uppercase" style="font-size: 0.6rem;">System: Calculating optimal trajectory...</div>
                 </div>
-                <div class="mt-5" style="height: 250px;">
-                    <canvas id="bridgeChart"></canvas>
+                
+                <div id="pathfinder-container" style="height: 500px; width: 100%; background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);">
+                    <!-- Three.js Canvas will be injected here -->
+                    <div id="roadmap-overlay" class="position-absolute top-0 start-0 p-4 pointer-events-none">
+                        <div class="badge bg-primary bg-opacity-20 text-primary border border-primary border-opacity-30 mb-2">NEURAL PATH ACTIVE</div>
+                    </div>
+                </div>
+
+                <!-- Hover Details Tooltip (Hidden by default) -->
+                <div id="path-tooltip" class="position-absolute glass-panel p-3 d-none" style="z-index: 100; pointer-events: none; width: 250px;">
+                    <h6 id="tooltip-title" class="fw-bold mb-1 text-white"></h6>
+                    <p id="tooltip-desc" class="small text-muted mb-0"></p>
+                    <div id="tooltip-arrival" class="mt-2 text-[10px] text-primary tracking-tighter"></div>
                 </div>
             </div>
         </div>
@@ -75,32 +78,120 @@
 </div>
 
 {% if analysis %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    const ctx = document.getElementById('bridgeChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ['Today', 'Phase 1', 'Phase 2', 'Goal Reached'],
-            datasets: [{
-                label: 'Career Readiness',
-                data: {{ analysis.bridge_visual_data | tojson }},
-                borderColor: '#0d6efd',
-                backgroundColor: 'rgba(13, 110, 253, 0.2)',
-                fill: true,
-                pointRadius: 8,
-                pointHoverRadius: 10,
-                tension: 0.3
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: { beginAtZero: true, max: 100, ticks: { color: '#888' } },
-                x: { ticks: { color: '#888' } }
-            }
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+    }
+  }
+</script>
+<script type="module">
+    import * as THREE from 'three';
+
+    const container = document.getElementById('pathfinder-container');
+    const roadmapData = {{ analysis.roadmap_steps | tojson }};
+    const pathfinderLog = document.getElementById('pathfinder-log');
+
+    // --- Scene Setup ---
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+    camera.position.set(5, 2, 10);
+    camera.lookAt(0, 0, 0);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    container.appendChild(renderer.domElement);
+
+    // --- Path Creation ---
+    const group = new THREE.Group();
+    scene.add(group);
+
+    const milestones = [];
+    const curvePoints = [];
+
+    roadmapData.forEach((step, i) => {
+        const y = 3 - (i * 2.5);
+        const x = Math.sin(i) * 1.5;
+        const z = Math.cos(i) * 0.5;
+        curvePoints.push(new THREE.Vector3(x, y, z));
+
+        // Milestone Sphere
+        const geometry = new THREE.IcosahedronGeometry(0.3, 1);
+        const material = new THREE.MeshBasicMaterial({ 
+            color: i === 0 ? 0x00f3ff : 0x6366f1,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.8
+        });
+        const sphere = new THREE.Mesh(geometry, material);
+        sphere.position.set(x, y, z);
+        sphere.userData = { 
+            title: step.step, 
+            desc: step.description, 
+            arrival: `EST. ARRIVAL: ${step.timeframe}` 
+        };
+        
+        group.add(sphere);
+        milestones.push(sphere);
+    });
+
+    // Connecting Tube
+    const curve = new THREE.CatmullRomCurve3(curvePoints);
+    const tubeGeo = new THREE.TubeGeometry(curve, 64, 0.05, 8, false);
+    const tubeMat = new THREE.MeshBasicMaterial({ color: 0x6366f1, transparent: true, opacity: 0.2 });
+    const tube = new THREE.Mesh(tubeGeo, tubeMat);
+    group.add(tube);
+
+    // --- Interaction ---
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    const tooltip = document.getElementById('path-tooltip');
+    const tTitle = document.getElementById('tooltip-title');
+    const tDesc = document.getElementById('tooltip-desc');
+    const tArrival = document.getElementById('tooltip-arrival');
+
+    container.addEventListener('mousemove', (e) => {
+        const rect = container.getBoundingClientRect();
+        mouse.x = ((e.clientX - rect.left) / container.clientWidth) * 2 - 1;
+        mouse.y = -((e.clientY - rect.top) / container.clientHeight) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects(milestones);
+
+        if (intersects.length > 0) {
+            const obj = intersects[0].object;
+            tooltip.classList.remove('d-none');
+            tooltip.style.left = (e.clientX - rect.left + 20) + 'px';
+            tooltip.style.top = (e.clientY - rect.top + 20) + 'px';
+            
+            tTitle.textContent = obj.userData.title;
+            tDesc.textContent = obj.userData.desc;
+            tArrival.textContent = obj.userData.arrival;
+            
+            pathfinderLog.textContent = `Cherry: ${obj.userData.arrival}... Unlocking potential.`;
+        } else {
+            tooltip.classList.add('d-none');
         }
+    });
+
+    // --- Animation ---
+    function animate() {
+        requestAnimationFrame(animate);
+        group.rotation.y += 0.005;
+        milestones.forEach((m, i) => {
+            m.rotation.x += 0.01;
+            m.rotation.y += 0.01;
+            const s = 1 + Math.sin(Date.now() * 0.002 + i) * 0.1;
+            m.scale.set(s, s, s);
+        });
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
     });
 </script>
 {% endif %}

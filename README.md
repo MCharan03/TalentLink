@@ -1,8 +1,8 @@
-# TalentLink | The Sentient Career OS
+# TalentLink | Smart Career Platform
 
-**TalentLink** is not just a job board; it is a **Sentient Career Operating System**. Powered by Google Gemini and a proprietary context-aware neural engine ("Cherry"), TalentLink bridges the gap between human potential and market opportunity with glassmorphic elegance and real-time intelligence.
+**TalentLink** is a comprehensive **Smart Career Platform**. Powered by Google Gemini and an advanced resume analysis engine, TalentLink bridges the gap between human potential and market opportunity with glassmorphic elegance and real-time intelligence.
 
-![TalentLink Badge](https://img.shields.io/badge/TalentLink-Active-blue?style=for-the-badge&logo=google-gemini) ![Status](https://img.shields.io/badge/System-Sentient-success?style=for-the-badge)
+![TalentLink Badge](https://img.shields.io/badge/TalentLink-Active-blue?style=for-the-badge&logo=google-gemini) ![Status](https://img.shields.io/badge/System-Online-success?style=for-the-badge)
 
 ## 🌌 The Vision
 TalentLink treats your career as a living, breathing entity. It doesn't just "analyze" your resume; it understands your trajectory. 
@@ -11,9 +11,9 @@ TalentLink treats your career as a living, breathing entity. It doesn't just "an
 
 ## 🚀 Key Features
 
-### 🧠 Intelligent Core (Cherry Agent)
-- **Omnipresent Assistant:** A context-aware widget that follows you across the platform, offering specific advice based on whether you are viewing a job, editing a profile, or analyzing a resume.
-- **Persistent Memory:** Cherry remembers your skills, goals, and previous conversations.
+### 🧠 AI Assistant
+- **Context Aware:** The assistant understands your resume context and can help with specific queries.
+- **Persistent Memory:** Remembers your skills, goals, and previous conversations.
 
 ### 🎯 Strategic Career Tools
 - **Dream Job Reality Bridge:** A visual gap-analysis tool. Tell it you want to be a "Senior Architect at Google," and it builds a step-by-step roadmap to get you there from your current state.

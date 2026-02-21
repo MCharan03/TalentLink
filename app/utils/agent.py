@@ -29,27 +29,52 @@ class CareerAgent:
             
         return context
 
+    def _detect_sentiment(self, user_message):
+        """
+        Briefly detects user sentiment to adjust tone. 
+        A true 'sentient' system would use a dedicated LLM call, 
+        but we'll start with keyword-based heuristic for performance.
+        """
+        angry_keywords = ['hate', 'bad', 'stupid', 'fix', 'annoying', 'error', 'broken', 'why']
+        happy_keywords = ['great', 'thanks', 'love', 'amazing', 'wow', 'good', 'help']
+        
+        message_lower = user_message.lower()
+        if any(word in message_lower for word in angry_keywords):
+            return "empathetic_support"
+        elif any(word in message_lower for word in happy_keywords):
+            return "celebratory"
+        return "professional"
+
     def chat(self, user_message, history=None):
         """
-        Generates a response using Gemini, aware of the user's resume context.
+        Generates a response using the active AI node, aware of the user's resume context and sentiment.
         """
         context = self._get_user_context()
+        sentiment = self._detect_sentiment(user_message)
         
+        # Tone Adjustment based on Sentiment
+        tone_instruction = "Maintain a calm, professional, and helpful tone."
+        if sentiment == "empathetic_support":
+            tone_instruction = "The user might be frustrated. Be extra patient, empathetic, and focus on solving their issue or calming them down."
+        elif sentiment == "celebratory":
+            tone_instruction = "The user is in a good mood! Be enthusiastic and celebrate their progress."
+
         # Build History String
         history_str = ""
         if history:
             # Limit history to last 3 turns to save tokens
             recent_history = history[-6:] 
             for msg in recent_history:
-                role = "User" if msg.get('role') == 'user' else "Cherry"
+                role = "User" if msg.get('role') == 'user' else "Assistant"
                 history_str += f"{role}: {msg.get('content')}\n"
 
         # System Prompt construction
         system_prompt = f"""
-        You are 'Cherry', a highly intelligent and empathetic Career Agent. 
+        You are a helpful and intelligent Career Assistant with 'Sentiment Awareness'. 
         You are integrated into a smart resume analysis platform.
         
         Your Goal: Help the user {context['name']} achieve their career goals.
+        Current Persona Instruction: {tone_instruction}
         
         User Context:
         - Field: {context['predicted_field']}
@@ -61,18 +86,22 @@ class CareerAgent:
         {history_str}
         
         Guidelines:
-        1. Be professional yet warm and encouraging.
+        1. Be professional, warm, and encouraging.
         2. Use the provided context to give specific advice (e.g., if they ask about jobs, mention their specific skills).
         3. If they ask about their resume, refer to the 'Resume Summary' context.
         4. Keep responses concise (max 3-4 sentences unless a deep explanation is requested).
         5. If asked to find jobs, you can simulate a search or tell them to check the 'Jobs' tab.
         
         User: {user_message}
-        Cherry:"""
+        Assistant:"""
+
         
         response = _call_gemini(system_prompt)
         
-        if not response:
-            return "I'm having a little trouble connecting to my brain right now. Please try again!"
+        if response:
+            # Award "Sentient Synergy" bonus for engaging with the AI node
+            from app.services.gamification_service import gamification_service
+            gamification_service.award_synergy_bonus(self.user.id)
+            return response
             
-        return response
+        return "I'm having a little trouble connecting to my brain right now. Please try again!"

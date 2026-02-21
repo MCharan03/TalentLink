@@ -2,8 +2,7 @@ from flask_socketio import emit
 from app.extensions import socketio, db
 from flask import request, session, url_for
 from flask_login import current_user
-from app.models import UserData, MockInterview
-from app.utils.ai_utils import get_interview_question, generate_interview_report
+from app.services.interview_service import interview_service
 import json
 
 @socketio.on('connect')
@@ -22,20 +21,15 @@ def handle_start_interview(data):
     # Initialize transcript in session
     session['interview_transcript'] = []
     
+    # Fetch Context via Service
     if current_user.is_authenticated:
-        user_data = UserData.query.filter_by(user_id=current_user.id).order_by(UserData.uploaded_at.desc()).first()
-        if user_data and user_data.analysis_result:
-            context = {
-                'field': user_data.analysis_result.get('predicted_field', 'General'),
-                'level': user_data.analysis_result.get('experience_level', 'N/A'),
-                'skills': user_data.analysis_result.get('actual_skills', []),
-                'summary': user_data.analysis_result.get('ai_summary', '')[:500]
-            }
-            session['interview_context'] = json.dumps(context)
-        else:
-            session['interview_context'] = None
+        context = interview_service.get_user_context(current_user.id)
+        session['interview_context'] = json.dumps(context) if context else None
+    else:
+        session['interview_context'] = None
             
-    question = get_interview_question("Tell me about yourself.", "start")
+    # Generate First Question
+    question = interview_service.get_next_question("Tell me about yourself.", "start")
     
     # Record first question
     session['interview_transcript'].append(f"AI: {question}")
@@ -47,12 +41,27 @@ def handle_start_interview(data):
 def handle_send_answer(data):
     answer = data.get('answer', '')
     transcript = session.get('interview_transcript', [])
+    
+    # Identify the last question asked by AI for context
+    last_ai_question = "Tell me about yourself." # Default
+    if transcript:
+        for entry in reversed(transcript):
+            if entry.startswith("AI: "):
+                last_ai_question = entry.replace("AI: ", "")
+                break
+    
     transcript.append(f"User: {answer}")
+    
+    # 1. Real-time Sentiment Analysis (The "Sentient" Layer)
+    # We do this *before* generating the next question to give immediate feedback
+    analysis = interview_service.analyze_response(last_ai_question, answer)
+    emit('sentiment_feedback', analysis)
     
     context_json = session.get('interview_context')
     context = json.loads(context_json) if context_json else None
     
-    question = get_interview_question(answer, "continue", resume_context=context)
+    # 2. Get Next Question via Service
+    question = interview_service.get_next_question(answer, "continue", context=context)
     
     transcript.append(f"AI: {question}")
     session['interview_transcript'] = transcript
@@ -63,32 +72,19 @@ def handle_send_answer(data):
 @socketio.on('end_interview')
 def handle_end_interview(data):
     """
-    Finalizes the interview, generates the report, and saves to DB.
+    Finalizes the interview using the service.
     """
     transcript_list = session.get('interview_transcript', [])
-    if not transcript_list:
-        emit('report_ready', {'error': 'No transcript found.'})
+    
+    if not current_user.is_authenticated:
+        emit('report_ready', {'error': 'User not logged in.'})
         return
-        
-    full_transcript = "\n".join(transcript_list)
+
+    interview_id, error = interview_service.finalize_interview(current_user, transcript_list)
     
-    # Generate AI Report
-    report = generate_interview_report(full_transcript)
-    
-    if report and current_user.is_authenticated:
-        # Save to database
-        interview_record = MockInterview(
-            user_id=current_user.id,
-            transcript=full_transcript,
-            feedback=json.dumps(report),
-            score=report.get('overall_score', 0)
-        )
-        db.session.add(interview_record)
-        db.session.commit()
-        
-        # Notify frontend
+    if interview_id:
         emit('report_ready', {
-            'redirect_url': url_for('user.interview_report', interview_id=interview_record.id)
+            'redirect_url': url_for('user.interview_report', interview_id=interview_id)
         })
     else:
-        emit('report_ready', {'error': 'Failed to generate report or user not logged in.'})
+        emit('report_ready', {'error': error or 'Failed to generate report.'})

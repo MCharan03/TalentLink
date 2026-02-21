@@ -6,7 +6,7 @@
 <div class="row">
     <!-- Sidebar Navigation (Glass Style) -->
     <div class="col-lg-3 mb-4">
-        <div class="card p-4 border-0 sticky-lg-top">
+        <div class="glass-panel p-4 sticky-lg-top">
             <div class="nav flex-column nav-pills gap-2" id="v-pills-tab" role="tablist">
                 <button class="nav-link active text-start d-flex align-items-center" id="v-pills-overview-tab" data-bs-toggle="pill" data-bs-target="#v-pills-overview" type="button">
                     <span data-feather="grid" class="me-3"></span> Overview
@@ -58,40 +58,49 @@
                 <!-- Sentient Awareness & Gamification Header -->
                 <div class="row g-4 mb-4">
                     <div class="col-lg-8">
-                        <div class="card p-4 h-100 border-0 position-relative overflow-hidden" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="d-flex align-items-center">
-                                    <div class="level-badge me-4 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px; background: var(--primary); border-radius: 15px; transform: rotate(5deg);">
-                                        <h3 class="fw-bold mb-0 text-white" style="transform: rotate(-5deg);">{{ xp_profile.level }}</h3>
-                                    </div>
-                                    <div>
-                                        <h4 class="fw-bold mb-1">Career Level {{ xp_profile.level }}</h4>
-                                        <div class="d-flex align-items-center gap-2" style="width: 300px;">
-                                            <div class="progress flex-grow-1" style="height: 10px; background: rgba(255,255,255,0.1);">
-                                                <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ xp_profile.total_xp % 100 }}%"></div>
+                        <div class="row h-100 g-4">
+                            <!-- Level & XP -->
+                            <div class="col-md-6">
+                                <div class="neural-card p-4 h-100 position-relative overflow-hidden">
+                                    <div class="d-flex align-items-center">
+                                        <div class="level-badge sentient-aura me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background: var(--primary); border-radius: 12px; transform: rotate(5deg);">
+                                            <h4 class="fw-bold mb-0 text-white" style="transform: rotate(-5deg); z-index: 2;">{{ xp_profile.level }}</h4>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold mb-1 text-shimmer">Level {{ xp_profile.level }}</h6>
+                                            <div class="progress border-glass" style="height: 6px; width: 150px; background: rgba(255,255,255,0.05);">
+                                                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ xp_profile.total_xp % 100 }}%"></div>
                                             </div>
-                                            <span class="small text-muted fw-bold">{{ xp_profile.total_xp % 100 }}/100 XP</span>
                                         </div>
                                     </div>
+                                    <div class="mt-4">
+                                        <p class="text-[10px] tracking-widest text-muted text-uppercase mb-1">Neural Capacity</p>
+                                        <h5 class="fw-bold mb-0 text-white">{{ xp_profile.total_xp }} <span class="text-primary" style="font-size: 0.7rem;">TOTAL XP</span></h5>
+                                    </div>
                                 </div>
-                                <div class="text-end">
-                                    <p class="small text-muted text-uppercase mb-0">Total Experience</p>
-                                    <h5 class="fw-bold mb-0 text-primary">{{ xp_profile.total_xp }} XP</h5>
+                            </div>
+                            <!-- Skill Aura Hexagon -->
+                            <div class="col-md-6">
+                                <div class="neural-card p-3 h-100 aura-glow-container overflow-hidden">
+                                    <h6 class="text-[10px] tracking-widest text-muted text-uppercase mb-2 text-center">Professional Aura</h6>
+                                    <div style="height: 180px; position: relative;">
+                                        <canvas id="userAuraChart"></canvas>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-lg-4">
-                        <div class="card p-4 h-100 border-0 bg-dark bg-opacity-50">
+                        <div class="glass-panel p-4 h-100">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="small fw-bold text-uppercase tracking-widest text-muted mb-0">Sentient Awareness</h6>
-                                <div class="sentient-pulse"></div>
+                                <h6 class="small fw-bold text-uppercase tracking-widest text-muted mb-0">System Status</h6>
+                                <div class="status-indicator" style="width: 10px; height: 10px; background-color: var(--success); border-radius: 50%; box-shadow: 0 0 10px var(--success);"></div>
                             </div>
                             <div class="agent-activity-logs" style="font-family: 'Courier New', Courier, monospace; font-size: 0.75rem;">
-                                <div class="text-success mb-1">● OS Layer: Optimal</div>
-                                <div class="text-primary mb-1">● Scanning job market trends...</div>
-                                <div class="text-muted mb-1">● Passive monitoring active</div>
-                                <div class="text-muted">● Analyzing user focus: Resume</div>
+                                <div class="text-success mb-1">● System: Online</div>
+                                <div class="text-primary mb-1">● Job market data: Updated</div>
+                                <div class="text-muted mb-1">● Monitoring active</div>
+                                <div class="text-muted">● Ready to assist</div>
                             </div>
                         </div>
                     </div>
@@ -114,7 +123,7 @@
                     <div class="col-lg-8">
                         <div class="row g-4 mb-5 assemble-grid">
                             <div class="col-md-6">
-                                <div class="card p-4 h-100 d-flex flex-column justify-content-between">
+                                <div class="neural-card p-4 h-100 d-flex flex-column justify-content-between">
                                     <div class="d-flex justify-content-between align-items-start">
                                         <div>
                                             <p class="text-muted text-uppercase small fw-bold mb-1">Total Analyses</p>
@@ -127,7 +136,7 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="card p-4 h-100 d-flex flex-column justify-content-between">
+                                <div class="neural-card p-4 h-100 d-flex flex-column justify-content-between">
                                     <div class="d-flex justify-content-between align-items-start">
                                         <div>
                                             <p class="text-muted text-uppercase small fw-bold mb-1">Jobs Applied</p>
@@ -142,7 +151,7 @@
                         </div>
 
                         <!-- Chart Section -->
-                        <div class="card p-4 mb-4 border-0 position-relative overflow-hidden">
+                        <div class="glass-panel p-4 mb-4 border-0 position-relative overflow-hidden">
                             <div style="position: absolute; top: 0; right: 0; width: 200px; height: 200px; background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%); opacity: 0.2;"></div>
                             <h5 class="fw-bold mb-4">Performance Trend</h5>
                             <div style="height: 300px; position: relative; width: 100%;">
@@ -160,7 +169,7 @@
 
                     <!-- Quests (Right) -->
                     <div class="col-lg-4">
-                        <div class="card h-100 p-4 border-0">
+                        <div class="glass-panel h-100 p-4 border-0">
                             <h5 class="fw-bold mb-4 d-flex align-items-center">
                                 <span data-feather="award" class="me-2 text-warning"></span> Active Quests
                             </h5>
@@ -206,7 +215,7 @@
                 <div class="row g-4">
                     {% for item in analyses %}
                     <div class="col-md-6">
-                        <div class="card h-100 p-4 hover-lift">
+                        <div class="neural-card h-100 p-4 hover-lift">
                             <div class="d-flex justify-content-between align-items-start mb-3">
                                 <div>
                                     <h5 class="fw-bold mb-1 text-white">{{ item.analysis_result.get('name', 'Unknown') }}</h5>
@@ -225,7 +234,7 @@
                             </div>
 
                             <div class="d-grid gap-2 mt-auto">
-                                <a href="{{ url_for('user.resume_analysis_result', user_data_id=item.id) }}" class="btn btn-outline-secondary">View Full Report</a>
+                                <a href="{{ url_for('user.resume_analysis_result', user_data_id=item.id) }}" class="btn btn-outline-secondary btn-glass">View Full Report</a>
                             </div>
                         </div>
                     </div>
@@ -436,73 +445,77 @@
     </div>
 </div>
 
-<!-- Chart Script -->
-{% if resume_scores|length > 1 %}
+<!-- Chart Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        const ctx = document.getElementById('userProgressChart');
-        if (ctx) {
+        // 1. User Progress Chart (Trend)
+        const ctxProgress = document.getElementById('userProgressChart');
+        if (ctxProgress) {
             const data = {{ resume_scores | tojson }};
-            // Get styles from CSS variables
             const style = getComputedStyle(document.body);
-            const primary = style.getPropertyValue('--primary').trim();
-            const textMuted = style.getPropertyValue('--text-muted').trim();
-            const borderGlass = style.getPropertyValue('--border-glass').trim();
-
-            new Chart(ctx.getContext('2d'), {
+            const primary = style.getPropertyValue('--primary').trim() || '#6366f1';
+            
+            new Chart(ctxProgress.getContext('2d'), {
                 type: 'line',
                 data: {
                     labels: data.map(d => d.timestamp),
                     datasets: [{
-                        label: 'Resume Score',
+                        label: 'Score',
                         data: data.map(d => d.score),
                         borderColor: primary,
-                        backgroundColor: (context) => {
-                            const ctx = context.chart.ctx;
-                            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-                            gradient.addColorStop(0, 'rgba(99, 102, 241, 0.4)');
-                            gradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
-                            return gradient;
-                        },
-                        borderWidth: 3,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: primary,
-                        pointHoverBackgroundColor: primary,
-                        pointHoverBorderColor: '#fff',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
                         fill: true,
-                        tension: 0.4 // Smoother curves
+                        tension: 0.4
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    animation: {
-                        duration: 2000,
-                        easing: 'easeOutQuart'
-                    },
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                            ticks: { color: textMuted }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { display: false }
-                        }
-                    }
+                    plugins: { legend: { display: false } },
+                    scales: { y: { display: false }, x: { display: false } }
                 }
             });
+        }
 
+        // 2. Skill Aura Hexagon Chart
+        const ctxAura = document.getElementById('userAuraChart');
+        if (ctxAura) {
+            const userEnergy = {{ user_energy }};
+            // Dynamic color based on energy
+            let auraColor = 'rgba(99, 102, 241, 0.6)'; // Blue
+            if (userEnergy < 30) auraColor = 'rgba(239, 68, 68, 0.6)'; // Red
+            else if (userEnergy < 60) auraColor = 'rgba(245, 158, 11, 0.6)'; // Amber
+
+            new Chart(ctxAura.getContext('2d'), {
+                type: 'radar',
+                data: {
+                    labels: ['Technical', 'Leadership', 'Comm', 'Adaptability', 'Demand', 'Reliability'],
+                    datasets: [{
+                        data: [85, 60, 75, 90, 70, 95], // Mock data for prototype
+                        backgroundColor: auraColor,
+                        borderColor: auraColor.replace('0.6', '1'),
+                        pointBackgroundColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255,255,255,0.1)' },
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            pointLabels: { color: 'rgba(255,255,255,0.5)', font: { size: 8 } },
+                            ticks: { display: false, max: 100, min: 0 }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
         }
     });
 </script>
-{% endif %}
 {% endblock %}
 
 {% block extra_content %}

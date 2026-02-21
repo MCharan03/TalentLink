@@ -88,6 +88,20 @@ def delete_notification(notif_id):
     return jsonify({'status': 'success', 'was_unread': was_unread})
 
 
+from ..decorators import self_healing_gate
+
+@main.route('/stress_test')
+@self_healing_gate
+def stress_test():
+    """Deliberately unstable route to test self-healing."""
+    error_mode = request.args.get('error', 'false') == 'true'
+    if error_mode:
+        # This will trigger the 500 handler, which logs to Homeostasis
+        raise Exception("Neural overload in the stress-test sector!")
+    
+    return "Stress test sector stable. Add ?error=true to overload."
+
+
 @main.route('/uploads/<path:filename>')
 def uploaded_file(filename):
     return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)

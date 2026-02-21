@@ -1,56 +1,35 @@
 {% extends "base.html" %}
 
-{% block title %}TalentLink - The Sentient Career OS{% endblock %}
+{% block title %}Cherry AI - Smart Career Platform{% endblock %}
 
 {% block scripts %}
-<script type="importmap">
-  {
-    "imports": {
-      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-    }
-  }
-</script>
-<script type="module" src="{{ url_for('static', filename='js/sphere_effect.js') }}"></script>
+<!-- Particle effect removed from homepage as per request -->
 {% endblock %}
 
 {% block content %}
 <section class="min-vh-100 d-flex flex-column justify-content-center align-items-center text-center position-relative overflow-hidden bg-[#050511]">
     
-    <!-- Passive Awareness Indicator -->
-    <div class="position-absolute top-0 end-0 p-4 d-flex align-items-center gap-2 anim-in-right" style="z-index: 20;">
-        <div class="sentient-pulse"></div>
-        <span class="small text-muted fw-bold tracking-widest" style="font-size: 0.7rem; opacity: 0.6;">SYSTEM STATE: AWARE</span>
-    </div>
-
     <!-- Background Gradient -->
     <div class="position-absolute top-0 start-0 w-100 h-100" style="background: radial-gradient(circle at center, #13132d 0%, #050511 55%, #000 100%); opacity: 0.55; z-index: 0; pointer-events: none;"></div>
-
-    <!-- Large Background Text (Watermark) -->
-    <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center pointer-events-none select-none overflow-hidden" style="z-index: 1;">
-        <h2 class="font-black text-white text-shimmer" style="font-size: 20vw; opacity: 0.03; line-height: 1; white-space: nowrap; font-weight: 900; letter-spacing: -0.08em;">
-            TALENT LINK
-        </h2>
-    </div>
 
     <!-- Hero Content -->
     <div class="container position-relative" style="z-index: 10;">
         
         <div class="assemble-in anim-up tracking-tighter" style="line-height: 0.95;">
             <div class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 mb-3 rounded-pill shadow-sm">
-                Context-Aware Career Intelligence
+                Powered by Cherry Costech Solutions
             </div>
             <h1 class="display-1 text-white font-light mb-0" style="font-size: calc(2rem + 5.5vw); letter-spacing: -0.05em;">
                 TalentLink <span class="text-primary fw-bold">AI</span>
             </h1>
             <h1 class="display-4 text-white fw-bold mb-4" style="letter-spacing: -0.04em;">
-                The Sentient Career Operating System
+                The Smart Career Platform
             </h1>
         </div>
         
         <p class="lead text-light mb-4 mx-auto anim-up delay-200" style="max-width: 760px; opacity: 0.68; font-size: 1.15rem;">
             TalentLink bridges the gap between human potential and market opportunity. 
-            Experience a career agent that sees your skills, hears your interview answers, and maps your path to the future.
+            Experience a career platform that analyzes your skills, helps with interview prep, and maps your path to the future.
         </p>
 
         <div class="d-flex gap-3 justify-content-center flex-wrap anim-up delay-300">
@@ -61,12 +40,12 @@
                     </a>
                 {% else %}
                     <a href="{{ url_for('user.dashboard') }}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-lg fw-bold hover-scale">
-                        Access Neural Link
+                        Go to Dashboard
                     </a>
                 {% endif %}
             {% else %}
                 <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-lg fw-bold hover-scale">
-                    Initialize System
+                    Get Started
                 </a>
                 <a href="{{ url_for('auth.register') }}" class="btn btn-outline-light btn-lg px-5 py-3 rounded-pill hover-scale">
                     Create Profile
@@ -76,10 +55,10 @@
 
         <!-- Feature chips -->
         <div class="d-flex gap-2 flex-wrap justify-content-center mt-4 anim-up delay-350">
-            <span class="feature-chip">Reality Bridge (Gap Analysis)</span>
-            <span class="feature-chip">Live Interview Coach</span>
-            <span class="feature-chip">Cherry Agent</span>
+            <span class="feature-chip">Sentient Analysis</span>
             <span class="feature-chip">Neural Matching</span>
+            <span class="feature-chip">Emotional Telemetry</span>
+            <span class="feature-chip">Self-Healing Ecosystem</span>
         </div>
 
         <!-- Quick metrics -->
@@ -87,13 +66,13 @@
             <div class="col-6 col-md-3">
                 <div class="metric-card">
                     <div class="metric-value">98%</div>
-                    <div class="metric-label">Context Accuracy</div>
+                    <div class="metric-label">Analysis Accuracy</div>
                 </div>
             </div>
             <div class="col-6 col-md-3">
                 <div class="metric-card">
                     <div class="metric-value">Real-time</div>
-                    <div class="metric-label">Voice Analysis</div>
+                    <div class="metric-label">AI Feedback</div>
                 </div>
             </div>
             <div class="col-6 col-md-3">
@@ -105,31 +84,20 @@
         </div>
     </div>
 
-    <!-- Bottom Left Footer-like Text -->
-    <div class="position-absolute bottom-0 start-0 p-5 d-none d-md-block anim-in-left delay-400" style="z-index: 10; max-width: 400px; text-align: left; border-left: 1px solid rgba(255,255,255,0.1); margin-left: 2rem; margin-bottom: 2rem;">
-        <p class="text-muted small mb-0" style="line-height: 1.6;">
-            TalentLink © 2026<br>
-            Powered by Cherry Core Neural Engine.
-        </p>
+    <!-- Bottom Footer -->
+    <div class="mt-auto w-100 py-4 d-none d-md-block anim-in-left delay-400" style="z-index: 10;">
+        <div class="container text-start">
+            <div class="ps-4" style="border-left: 2px solid var(--brand-primary); opacity: 0.8;">
+                <p class="text-white small mb-0" style="line-height: 1.6; letter-spacing: 0.05em; font-weight: 600;">
+                    TALENTLINK AI © 2026<br>
+                    <span class="text-primary" style="font-size: 0.75rem;">POWERED BY CHERRY COSTECH SOLUTIONS</span>
+                </p>
+            </div>
+        </div>
     </div>
 </section>
 
 <style>
-    .sentient-pulse {
-        width: 8px;
-        height: 8px;
-        background: #6366f1;
-        border-radius: 50%;
-        box-shadow: 0 0 10px #6366f1, 0 0 20px #6366f1;
-        animation: pulse-ring 2s infinite;
-    }
-
-    @keyframes pulse-ring {
-        0% { transform: scale(0.8); opacity: 1; }
-        50% { transform: scale(1.2); opacity: 0.5; }
-        100% { transform: scale(0.8); opacity: 1; }
-    }
-
     .hover-scale {
         transition: transform 0.3s var(--ease-spring);
     }

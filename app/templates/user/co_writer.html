@@ -12,26 +12,51 @@
     </div>
 
     <div class="row">
-        <!-- Editor Area -->
+        <!-- Digital Twin Split View -->
         <div class="col-lg-8">
-            <div class="card shadow-sm h-100 border-0">
-                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
-                    <select id="section-context" class="form-select w-auto border-0 fw-bold text-primary">
-                        <option value="Experience Section">Experience Section</option>
-                        <option value="Professional Summary">Professional Summary</option>
-                        <option value="Projects">Projects</option>
-                        <option value="Skills Highlights">Skills Highlights</option>
-                    </select>
-                    <div class="small text-muted" id="status-text">Ready</div>
+            <div class="row h-100 g-3">
+                <!-- Left: Original Input -->
+                <div class="col-md-6">
+                    <div class="card digital-twin-panel border-glass h-100" style="background: rgba(0,0,0,0.2);">
+                        <div class="card-header border-bottom border-glass d-flex justify-content-between align-items-center">
+                            <span class="text-[10px] tracking-widest uppercase text-muted">Original Neural Input</span>
+                            <span class="badge bg-secondary opacity-50">Sector 01</span>
+                        </div>
+                        <div class="card-body p-0 position-relative">
+                            <textarea id="editor" class="form-control border-0 p-4 h-100" style="min-height: 450px; resize: none; font-size: 1rem; line-height: 1.6; background: transparent; color: #aaa;" placeholder="Draft your content here..."></textarea>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body p-0">
-                    <textarea id="editor" class="form-control border-0 p-4" style="height: 500px; resize: none; font-size: 1.1rem; line-height: 1.6; background: transparent;" placeholder="Start writing your resume bullet point here... (e.g., 'Led a team of developers to...')"></textarea>
+
+                <!-- Right: Optimized Output -->
+                <div class="col-md-6">
+                    <div id="optimized-panel" class="card digital-twin-panel border-glass h-100" style="background: rgba(99, 102, 241, 0.03);">
+                        <div class="card-header border-bottom border-glass d-flex justify-content-between align-items-center">
+                            <span class="text-[10px] tracking-widest uppercase text-primary">Projected Optimization</span>
+                            <span class="badge bg-primary animate-pulse">Neural Path Active</span>
+                        </div>
+                        <div class="card-body p-4 position-relative">
+                            <div id="liquid-sync" class="liquid-overlay" style="height: 0;"></div>
+                            <div id="optimized-content" class="text-white" style="font-size: 1rem; line-height: 1.6; min-height: 400px; opacity: 0.8;">
+                                <div class="text-center py-5 text-muted">
+                                    <i class="fas fa-microchip fa-2x mb-3 opacity-20"></i>
+                                    <p class="small">Awaiting input for projection...</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer border-top border-glass bg-transparent text-end">
+                            <button id="sync-btn" class="btn btn-sm btn-glass text-primary d-none" onclick="syncToOriginal()">
+                                <i class="fas fa-sync-alt me-1"></i> Sync to Original
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-footer bg-white border-top text-end">
-                    <button class="btn btn-outline-primary" onclick="getAISuggestion()">
-                        <i class="fas fa-magic me-1"></i> Get Suggestions
-                    </button>
-                </div>
+            </div>
+            
+            <div class="mt-3 text-end">
+                <button class="btn btn-primary px-4 py-2" onclick="getAISuggestion()">
+                    <i class="fas fa-magic me-2"></i> Run Optimization
+                </button>
             </div>
         </div>
 
@@ -75,7 +100,8 @@
             return;
         }
 
-        statusText.innerText = 'AI is thinking...';
+        statusText.innerText = 'Neural Projection in Progress...';
+        document.getElementById('optimized-panel').classList.add('morph-active');
         
         fetch("{{ url_for('user.api_co_writer_suggest') }}", {
             method: 'POST',
@@ -87,37 +113,62 @@
         })
         .then(res => res.json())
         .then(data => {
-            statusText.innerText = 'Suggestions ready';
+            statusText.innerText = 'Optimization Ready';
+            document.getElementById('optimized-panel').classList.remove('morph-active');
             suggestionContainer.innerHTML = '';
             
             if (data.suggestions && data.suggestions.length > 0) {
+                // Show first suggestion in the Digital Twin optimized panel
+                const bestSuggestion = data.suggestions[0];
+                document.getElementById('optimized-content').innerHTML = `<p class="animate-in">${bestSuggestion}</p>`;
+                document.getElementById('sync-btn').classList.remove('d-none');
+
                 data.suggestions.forEach(s => {
                     const card = document.createElement('div');
                     card.className = 'card mb-3 border-glass hover-lift cursor-pointer p-3 small';
                     card.style.background = 'rgba(99, 102, 241, 0.05)';
-                    card.innerHTML = \
-                        `<div class="d-flex justify-content-between align-items-start mb-2">
+                    card.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-start mb-2">
                             <span class="badge bg-primary">Enhancement</span>
-                            <button class="btn btn-sm btn-link p-0" onclick="applySuggestion('${s.replace(/'/g, "\'")}')"><i class="fas fa-plus"></i> Use</button>
+                            <button class="btn btn-sm btn-link p-0 text-primary" onclick="previewOptimization('${s.replace(/'/g, "\\'")}')"><i class="fas fa-eye"></i> View</button>
                         </div>
-                        <p class="mb-0 text-dark">${s}</p>
+                        <p class="mb-0 text-white opacity-80">${s}</p>
                     `;
                     suggestionContainer.appendChild(card);
                 });
-            } else {
-                suggestionContainer.innerHTML = '<p class="text-muted small text-center">Keep writing to get more suggestions...</p>';
             }
-        })
-        .catch(err => {
-            statusText.innerText = 'Error';
-            console.error(err);
         });
     }
 
-    function applySuggestion(text) {
-        editor.value += " " + text;
-        editor.focus();
-        suggestionContainer.innerHTML = '<p class="text-muted small text-center">Applied! Write more to get new suggestions.</p>';
+    function previewOptimization(text) {
+        const optContent = document.getElementById('optimized-content');
+        optContent.classList.add('opacity-0');
+        setTimeout(() => {
+            optContent.innerHTML = `<p class="animate-in">${text}</p>`;
+            optContent.classList.remove('opacity-0');
+        }, 300);
+    }
+
+    function syncToOriginal() {
+        const optimizedText = document.getElementById('optimized-content').innerText;
+        const liquid = document.getElementById('liquid-sync');
+        
+        // Trigger Liquid Fill Animation
+        liquid.style.height = '100%';
+        
+        setTimeout(() => {
+            editor.value = optimizedText;
+            statusText.innerText = 'Neural State Synchronized';
+            
+            // Fade out liquid
+            setTimeout(() => {
+                liquid.style.opacity = '0';
+                setTimeout(() => {
+                    liquid.style.height = '0';
+                    liquid.style.opacity = '1';
+                }, 500);
+            }, 500);
+        }, 600);
     }
 </script>
 

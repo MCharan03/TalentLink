@@ -92,11 +92,73 @@
     const questionDisplay = document.getElementById('question-display');
     const feedbackStream = document.getElementById('feedback-stream');
     
-    // ... Speech Recognition and TTS Setup ...
+    // Live Analysis Elements
+    const scoreBar = document.getElementById('score-bar');
+    const latestFeedback = document.getElementById('latest-feedback');
+    const latestTip = document.getElementById('latest-tip');
+
+    // Speech Setup
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const synth = window.speechSynthesis;
+    let recognition;
+    let isListening = false;
+    let currentQuestion = "";
+
+    if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.continuous = false; // Capture one answer at a time
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+
+        recognition.onstart = () => {
+            isListening = true;
+            statusText.innerText = "Listening... Speak now.";
+            indicator.classList.add('pulse-animation');
+            indicator.style.borderColor = "var(--success)";
+        };
+
+        recognition.onend = () => {
+            isListening = false;
+            indicator.classList.remove('pulse-animation');
+            // Don't auto-restart immediately; wait for user or next flow
+        };
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            console.log("User said:", transcript);
+            addMessage('You', transcript, false);
+            
+            statusText.innerText = "Analyzing answer...";
+            indicator.style.borderColor = "var(--warning)";
+            
+            // Send to backend
+            socket.emit('send_answer', { answer: transcript });
+        };
+        
+        recognition.onerror = (event) => {
+            console.error("Speech Error:", event.error);
+            statusText.innerText = "Error: " + event.error;
+            indicator.style.borderColor = "var(--danger)";
+        };
+    } else {
+        alert("Your browser does not support Speech Recognition. Please use Chrome or Edge.");
+        btnStart.disabled = true;
+    }
+
+    function speak(text) {
+        if (synth.speaking) synth.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.onend = () => {
+            // Start listening after AI finishes speaking
+            if (!btnStop.classList.contains('d-none')) {
+                try { recognition.start(); } catch(e) {}
+            }
+        };
+        synth.speak(utterance);
+    }
 
     // UI Events
     btnStart.addEventListener('click', () => {
-        // Initial Start
         socket.emit('start_interview', {});
         btnStart.classList.add('d-none');
         btnStop.classList.remove('d-none');
@@ -111,6 +173,7 @@
         btnStop.classList.add('d-none');
         btnFinish.classList.add('d-none');
         statusText.innerText = "Session Stopped.";
+        isListening = false;
     });
 
     btnFinish.addEventListener('click', () => {
@@ -142,6 +205,37 @@
         speak(currentQuestion);
     });
 
+    // --- NEW: Handle Real-Time Sentiment Feedback ---
+    socket.on('sentiment_feedback', (data) => {
+        console.log("Feedback received:", data);
+        
+        // Update Score Bar
+        const score = data.score || 0;
+        scoreBar.style.width = (score * 10) + "%";
+        
+        if (score >= 8) scoreBar.className = "progress-bar bg-success";
+        else if (score >= 5) scoreBar.className = "progress-bar bg-warning";
+        else scoreBar.className = "progress-bar bg-danger";
+        
+        // Update Text
+        latestFeedback.innerText = data.feedback || "No feedback available.";
+        latestTip.innerText = data.improvement_tip || "Keep going!";
+        
+        // Visual cue on the orb based on sentiment
+        if (data.sentiment === 'positive') {
+            indicator.style.backgroundColor = "rgba(16, 185, 129, 0.2)"; // Greenish
+        } else if (data.sentiment === 'negative') {
+            indicator.style.backgroundColor = "rgba(239, 68, 68, 0.2)"; // Reddish
+        } else {
+            indicator.style.backgroundColor = "var(--bg-surface)";
+        }
+        
+        // Brief reset after 2 seconds
+        setTimeout(() => {
+            indicator.style.backgroundColor = "var(--bg-surface)";
+        }, 2000);
+    });
+
     socket.on('report_ready', (data) => {
         if (data.redirect_url) {
             window.location.href = data.redirect_url;
@@ -154,7 +248,7 @@
 
     function addMessage(sender, text, isAi = false) {
         const div = document.createElement('div');
-        div.className = `mb-3 ${isAi ? 'text-start' : 'text-end'}`; // Corrected alignment
+        div.className = `mb-3 ${isAi ? 'text-start' : 'text-end'}`; 
         div.innerHTML = `
             <small class="fw-bold ${isAi ? 'text-primary' : 'text-muted'}">${sender}</small>
             <div class="p-3 rounded-3 mt-1 shadow-sm ${isAi ? 'bg-primary bg-opacity-10 text-main border border-primary border-opacity-25' : 'bg-secondary bg-opacity-10 text-white border border-white border-opacity-10'}" 

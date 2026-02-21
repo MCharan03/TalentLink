@@ -7,11 +7,14 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Only run if authenticated
+    if (!window.isAuthenticated) return;
+
     // --- Configuration ---
     const CONFIG = {
         particleCount: 8000,
         sphereRadius: 300,
-        repulsionRadius: 150,
+        repulsionRadius: 80,
         repulsionStrength: 0.8,
         dampingFactor: 0.92,
         elasticRestoreForce: 0.02,
@@ -110,6 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     const cursorMesh = new THREE.Mesh(cursorGeometry, cursorMaterial);
     cursorMesh.position.z = 10;
+    cursorMesh.visible = false;
     scene.add(cursorMesh);
 
     // --- Interaction ---

@@ -4,14 +4,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const neuralOverlay = document.getElementById('neural-overlay');
     const logContainer = document.getElementById('log-container');
+    const scannerLine = document.getElementById('scanner-line');
+    const nodesContainer = document.getElementById('data-nodes-container');
+    const parsingStatus = document.getElementById('parsing-status');
 
     const agentLogs = [
-        "● Extracting semantic layers from PDF...",
-        "● Identifying key skill vectors...",
-        "● Cross-referencing industry benchmarks...",
-        "● Matching candidate profile with job market data...",
-        "● Synthesizing career advancement recommendations...",
-        "● Finalizing neural report..."
+        "● Neural: Extracting semantic layers from PDF...",
+        "● Neural: Identifying key skill vectors...",
+        "● Logic: Cross-referencing industry benchmarks...",
+        "● Logic: Matching candidate profile with job market data...",
+        "● Agent: Synthesizing career advancement recommendations...",
+        "● System: Finalizing neural report..."
     ];
 
     function addLog(text, index) {
@@ -20,26 +23,60 @@ document.addEventListener('DOMContentLoaded', function() {
             div.className = "text-muted animate-in";
             div.textContent = text;
             logContainer.appendChild(div);
-            // Auto-scroll logs
             logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // Randomly trigger a glitch on some logs
+            if (Math.random() > 0.7) {
+                triggerGlitch();
+            }
         }, index * 1200);
+    }
+
+    function createDataNode() {
+        if (!nodesContainer) return;
+        const node = document.createElement('div');
+        node.className = 'data-node';
+        node.style.left = Math.random() * 100 + '%';
+        node.style.top = '80%';
+        nodesContainer.appendChild(node);
+        setTimeout(() => node.remove(), 2000);
+    }
+
+    function triggerGlitch() {
+        const glitch = document.getElementById('error-glitch');
+        if (!glitch) return;
+        glitch.classList.remove('d-none');
+        glitch.classList.add('glitch-flash');
+        parsingStatus.textContent = "Neural Sync Interference Detected...";
+        setTimeout(() => {
+            glitch.classList.remove('glitch-flash');
+            glitch.classList.add('d-none');
+            parsingStatus.textContent = "Rerouting: Optimization Active";
+        }, 300);
     }
 
     form.addEventListener('submit', function(event) {
         event.preventDefault();
-        console.log("DEBUG: Analysis form submitted.");
-
+        
         const formData = new FormData(form);
-        const spinner = document.getElementById('spinner');
-        const buttonText = document.getElementById('button-text');
         const submitButton = form.querySelector('button[type="submit"]');
         const errorMessage = document.getElementById('error-message');
 
-        // Show neural overlay
+        // Show neural overlay and start animations
         if (neuralOverlay) {
             neuralOverlay.classList.remove('d-none');
             neuralOverlay.classList.add('d-flex');
+            
+            // Start Scanning Line
+            if (scannerLine) scannerLine.classList.add('animate-scan');
+            
+            // Start Node Creation
+            const nodeInterval = setInterval(createDataNode, 200);
+            
             agentLogs.forEach((log, i) => addLog(log, i));
+
+            // Store interval to clear later
+            neuralOverlay.dataset.intervalId = nodeInterval;
         }
 
         // Disable button

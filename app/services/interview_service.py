@@ -1,24 +1,33 @@
-import google.generativeai as genai
-from flask import current_app
+from flask import current_app, url_for
 import json
+from app.models import UserData, MockInterview, db
+from app.utils.ai_utils import get_interview_question, generate_interview_report, _call_ai
 
-class InterviewCoach:
+class InterviewService:
     def __init__(self):
-        self._model = None
+        pass
 
-    @property
-    def model(self):
-        if self._model is None:
-            api_key = current_app.config.get('GEMINI_API_KEY')
-            if not api_key:
-                raise ValueError("GEMINI_API_KEY not found in config")
-            genai.configure(api_key=api_key)
-            self._model = genai.GenerativeModel('gemini-2.0-flash')
-        return self._model
+    def get_user_context(self, user_id):
+        """Fetches relevant context (skills, field) for the user."""
+        user_data = UserData.query.filter_by(user_id=user_id).order_by(UserData.uploaded_at.desc()).first()
+        if user_data and user_data.analysis_result:
+            return {
+                'field': user_data.analysis_result.get('predicted_field', 'General'),
+                'level': user_data.analysis_result.get('experience_level', 'N/A'),
+                'skills': user_data.analysis_result.get('actual_skills', []),
+                'summary': user_data.analysis_result.get('ai_summary', '')[:500]
+            }
+        return None
+
+    def get_next_question(self, last_answer, stage="continue", context=None):
+        """Generates the next interview question."""
+        # Using the existing utility for consistency, but wrapping it here allows for future expansion
+        # (e.g., caching, logging, switching AI providers)
+        return get_interview_question(last_answer, stage, resume_context=context)
 
     def analyze_response(self, question, answer):
         """
-        Analyzes a candidate's answer to a specific question.
+        Analyzes a candidate's answer to a specific question (Real-time feedback).
         """
         prompt = f"""
         You are an expert technical interview coach. 
@@ -34,19 +43,46 @@ class InterviewCoach:
         
         Return ONLY valid JSON.
         """
-        
-        try:
-            response = self.model.generate_content(prompt)
-            # Clean potential markdown code blocks
-            text = response.text.replace('```json', '').replace('```', '').strip()
-            return json.loads(text)
-        except Exception as e:
+        result = _call_ai(prompt, response_mime_type='application/json')
+        if not result:
             return {
                 "score": 0,
                 "sentiment": "error",
                 "feedback": "Could not analyze response.",
-                "improvement_tip": str(e),
+                "improvement_tip": "AI Service unavailable",
                 "keywords_detected": []
             }
+        return result
 
-interview_coach = InterviewCoach()
+    def finalize_interview(self, user, transcript_list):
+        """
+        Generates the final report and saves the interview session to the database.
+        Returns the ID of the saved interview or None on failure.
+        """
+        if not transcript_list:
+            return None, "No transcript provided."
+
+        full_transcript = "\n".join(transcript_list)
+        
+        # Generate AI Report
+        report = generate_interview_report(full_transcript)
+        
+        if report:
+            try:
+                interview_record = MockInterview(
+                    user_id=user.id,
+                    transcript=full_transcript,
+                    feedback=json.dumps(report),
+                    score=report.get('overall_score', 0)
+                )
+                db.session.add(interview_record)
+                db.session.commit()
+                return interview_record.id, None
+            except Exception as e:
+                db.session.rollback()
+                return None, str(e)
+        
+        return None, "Failed to generate report."
+
+# Singleton instance
+interview_service = InterviewService()
