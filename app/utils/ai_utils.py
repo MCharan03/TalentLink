@@ -81,7 +81,7 @@ def _call_ollama(prompt, response_mime_type=None):
         return None
         
     try:
-        model = os.environ.get("OLLAMA_MODEL", "llama3")
+        model = os.environ.get("OLLAMA_MODEL", "llama3.2")
         print(f"DEBUG: Calling Ollama with model '{model}'...", flush=True)
         
         if response_mime_type == 'application/json':
@@ -125,9 +125,10 @@ def _call_ai(prompt, response_mime_type=None):
         config = types.GenerateContentConfig(
             response_mime_type=response_mime_type) if response_mime_type else None
 
-        print(f"DEBUG: Calling Gemini API with model 'gemini-2.5-flash-lite'...", flush=True)
+        gemini_model = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash-lite")
+        print(f"DEBUG: Calling Gemini API with model '{gemini_model}'...", flush=True)
         response = client.models.generate_content(
-            model='gemini-2.5-flash-lite',
+            model=gemini_model,
             contents=prompt,
             config=config
         )

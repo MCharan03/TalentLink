@@ -22,5 +22,5 @@ def make_shell_context():
 
 if __name__ == '__main__':
     from app.extensions import socketio
-    # Reloader enabled to pick up changes
-    socketio.run(app, debug=True, use_reloader=True)
+    # Reloader disabled to prevent [WinError 10038] socket issues on Windows
+    socketio.run(app, debug=True, use_reloader=False)
