@@ -51,7 +51,7 @@ def test_employer_registration_flow(client):
 
     # 4. Admin Approves (Simulated via Route)
     # Create admin user first
-    admin = User(username='admin', email='admin@sra.com', role='admin')
+    admin = User(username='admin', email='admin@sra.com', role='admin', is_verified=True)
     admin.set_password('adminpass')
     db.session.add(admin)
     db.session.commit()

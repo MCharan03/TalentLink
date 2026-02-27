@@ -16,13 +16,23 @@ def dashboard():
     if query:
         candidates = employer_service.search_talent(query)
     
-    # Also fetch recent jobs stats for dashboard widget
+    # Real stats from DB
     active_jobs_count = JobPosting.query.filter_by(created_by=current_user.id).count()
+    
+    # Total applications across all employer's jobs
+    employer_job_ids = [j.id for j in JobPosting.query.filter_by(created_by=current_user.id).all()]
+    total_applications = JobApplication.query.filter(JobApplication.job_id.in_(employer_job_ids)).count() if employer_job_ids else 0
+    shortlisted_count = JobApplication.query.filter(
+        JobApplication.job_id.in_(employer_job_ids),
+        JobApplication.status == 'shortlisted'
+    ).count() if employer_job_ids else 0
     
     return render_template('employer/dashboard.html', 
                            candidates=candidates, 
                            query=query, 
-                           active_jobs_count=active_jobs_count)
+                           active_jobs_count=active_jobs_count,
+                           total_applications=total_applications,
+                           shortlisted_count=shortlisted_count)
 
 # --- Job Management ---
 

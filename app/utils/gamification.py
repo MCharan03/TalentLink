@@ -75,6 +75,7 @@ def init_default_quests():
         {"title": "The First Step", "description": "Upload and analyze your first resume.", "xp": 50, "criteria": {"type": "resume_analysis", "count": 1}},
         {"title": "Code Warrior", "description": "Perform a GitHub Audit.", "xp": 100, "criteria": {"type": "github_audit", "count": 1}},
         {"title": "Interview Ready", "description": "Complete 3 Mock Tests.", "xp": 150, "criteria": {"type": "mock_test", "count": 3}},
+        {"title": "Master Communicator", "description": "Complete a full AI Mock Interview.", "xp": 250, "criteria": {"type": "mock_interview", "count": 1}},
         {"title": "Job Hunter", "description": "Apply for 5 jobs.", "xp": 200, "criteria": {"type": "job_apply", "count": 5}}
     ]
     

@@ -18,7 +18,7 @@ def test_jobs_page_performance(client):
     # Setup
     with client.application.app_context():
         # Create user
-        user = User(username='perf_user', email='perf@test.com', role='user')
+        user = User(username='perf_user', email='perf@test.com', role='user', is_verified=True)
         user.set_password('password')
         db.session.add(user)
         # Create jobs

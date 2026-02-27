@@ -820,47 +820,24 @@ def interview_prep():
 
 
 @user.route('/mock_interview')
-
-
 @login_required
-
-
 def mock_interview():
+    # Using the more advanced Interview Session interface with Webcam and Visualizer
+    return render_template('user/mock_interview_session.html')
 
-
-    # Using the new Real-Time AI Coach interface
-
-
-    return render_template('user/interview_mode.html')
 
 
 
 
 
 @user.route('/interview_report/<int:interview_id>')
-
-
 @login_required
-
-
 def interview_report(interview_id):
-
-
     interview = MockInterview.query.get_or_404(interview_id)
-
-
     if interview.user_id != current_user.id:
-
-
         abort(403)
 
-
-        
-
-
     report_data = json.loads(interview.feedback) if interview.feedback else {}
-
-
     return render_template('user/interview_report.html', interview=interview, report=report_data)
 
 

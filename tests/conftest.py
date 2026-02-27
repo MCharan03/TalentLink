@@ -34,12 +34,12 @@ def app():
     with app.app_context():
         db.create_all()
         # Create a test admin user
-        admin = User(username='admin', email='admin@test.com', role='admin')
+        admin = User(username='admin', email='admin@test.com', role='admin', is_verified=True)
         admin.set_password('password')
         db.session.add(admin)
         
         # Create a test normal user
-        user = User(username='testuser', email='user@test.com', role='user')
+        user = User(username='testuser', email='user@test.com', role='user', is_verified=True)
         user.set_password('password')
         db.session.add(user)
         

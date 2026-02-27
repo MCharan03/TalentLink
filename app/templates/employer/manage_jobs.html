@@ -1,55 +1,58 @@
 {% extends "base.html" %}
 
-{% block title %}Manage Jobs | Employer{% endblock %}
+{% block title %}Manage Jobs | TalentLink{% endblock %}
 
 {% block content %}
 <div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center mb-5 animate-up">
+    <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="display-5 fw-bold text-main">Job Listings</h1>
-            <p class="text-muted">Create and manage your open positions</p>
+            <h2 class="fw-bold mb-1">Job Listings</h2>
+            <p class="text-muted mb-0">Create and manage your open positions</p>
         </div>
-        <div>
-            <a href="{{ url_for('employer.create_job') }}" class="btn btn-primary btn-lg shadow-lg hover-lift">
-                <span data-feather="plus" class="me-2"></span> Post New Job
-            </a>
-        </div>
+        <a href="{{ url_for('employer.create_job') }}" class="btn btn-primary btn-lg">
+            <span data-feather="plus" class="me-2"></span> Post New Job
+        </a>
     </div>
 
     {% if jobs %}
-    <div class="card border-glass animate-up delay-100">
+    <div class="card p-0 overflow-hidden">
         <div class="table-responsive">
-            <table class="table table-hover table-dark mb-0 bg-transparent align-middle">
+            <table class="table table-hover mb-0 align-middle">
                 <thead>
-                    <tr class="text-muted text-uppercase small">
-                        <th class="py-3 ps-4">Position</th>
-                        <th class="py-3">Posted</th>
-                        <th class="py-3">Applicants</th>
-                        <th class="py-3 text-end pe-4">Actions</th>
+                    <tr class="text-muted text-uppercase small"
+                        style="border-bottom: 2px solid var(--border-light, #e2e8f0);">
+                        <th class="py-3 ps-4 fw-bold">Position</th>
+                        <th class="py-3 fw-bold">Posted</th>
+                        <th class="py-3 fw-bold">Applicants</th>
+                        <th class="py-3 text-end pe-4 fw-bold">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for job in jobs %}
-                    <tr class="hover-lift-sm">
+                    <tr>
                         <td class="ps-4 py-3">
-                            <h6 class="fw-bold text-main mb-0">{{ job.title }}</h6>
-                            <small class="text-muted text-truncate d-block" style="max-width: 300px;">{{ job.description }}</small>
+                            <h6 class="fw-bold mb-1">{{ job.title }}</h6>
+                            <small class="text-muted text-truncate d-block" style="max-width: 300px;">{{
+                                job.description[:100] }}...</small>
                         </td>
-                        <td class="text-muted small">{{ job.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td class="text-muted small">{{ job.created_at.strftime('%b %d, %Y') }}</td>
                         <td>
-                            <a href="{{ url_for('employer.job_applicants', job_id=job.id) }}" class="btn btn-sm btn-outline-info rounded-pill px-3">
+                            <a href="{{ url_for('employer.job_applicants', job_id=job.id) }}"
+                                class="btn btn-sm btn-outline-primary rounded-pill px-3">
                                 <span data-feather="users" class="me-1" style="width: 14px;"></span>
                                 {{ job.applications|length }} Candidates
                             </a>
                         </td>
                         <td class="text-end pe-4">
                             <div class="btn-group">
-                                <a href="{{ url_for('employer.edit_job', job_id=job.id) }}" class="btn btn-sm btn-outline-secondary">
+                                <a href="{{ url_for('employer.edit_job', job_id=job.id) }}"
+                                    class="btn btn-sm btn-outline-secondary" title="Edit">
                                     <span data-feather="edit-2" style="width: 14px;"></span>
                                 </a>
-                                <form action="{{ url_for('employer.delete_job', job_id=job.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this job?');">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <form action="{{ url_for('employer.delete_job', job_id=job.id) }}" method="POST"
+                                    class="d-inline" onsubmit="return confirm('Delete this job posting?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
                                         <span data-feather="trash-2" style="width: 14px;"></span>
                                     </button>
                                 </form>
@@ -62,13 +65,18 @@
         </div>
     </div>
     {% else %}
-    <div class="text-center py-5 animate-up">
-        <div class="mb-3 text-muted opacity-50">
-            <span data-feather="briefcase" style="width: 64px; height: 64px;"></span>
+    <div class="card p-5 text-center">
+        <div class="mb-3">
+            <span data-feather="briefcase" class="text-muted" style="width: 64px; height: 64px; opacity: 0.4;"></span>
         </div>
-        <h3 class="text-muted">No Active Jobs</h3>
-        <p class="text-muted mb-4">You haven't posted any jobs yet.</p>
-        <a href="{{ url_for('employer.create_job') }}" class="btn btn-outline-primary">Create Your First Job</a>
+        <h4 class="fw-bold mb-2">No Active Jobs</h4>
+        <p class="text-muted mb-4">You haven't posted any jobs yet. Create your first listing to start finding talent.
+        </p>
+        <div>
+            <a href="{{ url_for('employer.create_job') }}" class="btn btn-primary btn-lg">
+                <span data-feather="plus" class="me-1"></span> Create Your First Job
+            </a>
+        </div>
     </div>
     {% endif %}
 </div>

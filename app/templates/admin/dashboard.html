@@ -2,6 +2,8 @@
 
 {% block title %}Admin Command Center | SRA{% endblock %}
 
+{% block main_container_class %}container-fluid{% endblock %}
+
 {% block content %}
 <div class="admin-container pb-5">
     <!-- Header with Breadcrumbs and Signal Status -->
@@ -23,6 +25,8 @@
             <p class="text-muted small mb-0">Uptime: 99.9% | Gemini 2.5 Pro Connected</p>
         </div>
     </div>
+
+    <div class="admin-main mx-auto">
 
     <!-- Quick Stats Hub -->
     <div class="row g-4 mb-5 assemble-grid">
@@ -378,6 +382,7 @@
             </div>
         </div>
     </div>
+    </div> <!-- /.admin-main -->
 </div>
 
 <script>

@@ -18,8 +18,15 @@ def handle_disconnect():
 def handle_start_interview(data):
     print(f"DEBUG: Starting interview for SID: {request.sid}")
     
-    # Initialize transcript in session
+    # Get interview config from client
+    interview_type = data.get('interview_type', 'mixed')
+    difficulty = data.get('difficulty', 'medium')
+    
+    # Initialize session state
     session['interview_transcript'] = []
+    session['interview_round'] = 1
+    session['interview_type'] = interview_type
+    session['interview_difficulty'] = difficulty
     
     # Fetch Context via Service
     if current_user.is_authenticated:
@@ -29,21 +36,34 @@ def handle_start_interview(data):
         session['interview_context'] = None
             
     # Generate First Question
-    question = interview_service.get_next_question("Tell me about yourself.", "start")
+    question = interview_service.get_next_question(
+        "Tell me about yourself.", "start",
+        interview_type=interview_type,
+        difficulty=difficulty,
+        round_number=1
+    )
     
     # Record first question
     session['interview_transcript'].append(f"AI: {question}")
     session.modified = True
     
-    emit('interview_question', {'question': question})
+    emit('interview_question', {
+        'question': question,
+        'round': 1,
+        'interview_type': interview_type,
+        'difficulty': difficulty
+    })
 
 @socketio.on('send_answer')
 def handle_send_answer(data):
     answer = data.get('answer', '')
     transcript = session.get('interview_transcript', [])
+    round_number = session.get('interview_round', 1)
+    interview_type = session.get('interview_type', 'mixed')
+    difficulty = session.get('interview_difficulty', 'medium')
     
     # Identify the last question asked by AI for context
-    last_ai_question = "Tell me about yourself." # Default
+    last_ai_question = "Tell me about yourself."  # Default
     if transcript:
         for entry in reversed(transcript):
             if entry.startswith("AI: "):
@@ -52,22 +72,40 @@ def handle_send_answer(data):
     
     transcript.append(f"User: {answer}")
     
-    # 1. Real-time Sentiment Analysis (The "Sentient" Layer)
-    # We do this *before* generating the next question to give immediate feedback
-    analysis = interview_service.analyze_response(last_ai_question, answer)
+    # 1. Real-time Sentiment & STAR Analysis
+    analysis = interview_service.analyze_response(
+        last_ai_question, answer, interview_type=interview_type
+    )
+    analysis['round'] = round_number
     emit('sentiment_feedback', analysis)
     
     context_json = session.get('interview_context')
     context = json.loads(context_json) if context_json else None
     
-    # 2. Get Next Question via Service
-    question = interview_service.get_next_question(answer, "continue", context=context)
+    # Increment round
+    round_number += 1
+    session['interview_round'] = round_number
+    
+    # 2. Get Next Question via Service with full context
+    question = interview_service.get_next_question(
+        answer, "continue",
+        context=context,
+        interview_type=interview_type,
+        difficulty=difficulty,
+        round_number=round_number,
+        conversation_history=transcript[-6:]  # Last 3 Q&A pairs
+    )
     
     transcript.append(f"AI: {question}")
     session['interview_transcript'] = transcript
     session.modified = True
     
-    emit('interview_question', {'question': question})
+    emit('interview_question', {
+        'question': question,
+        'round': round_number,
+        'interview_type': interview_type,
+        'difficulty': difficulty
+    })
 
 @socketio.on('end_interview')
 def handle_end_interview(data):
@@ -75,12 +113,18 @@ def handle_end_interview(data):
     Finalizes the interview using the service.
     """
     transcript_list = session.get('interview_transcript', [])
+    interview_type = session.get('interview_type', 'mixed')
+    difficulty = session.get('interview_difficulty', 'medium')
     
     if not current_user.is_authenticated:
         emit('report_ready', {'error': 'User not logged in.'})
         return
 
-    interview_id, error = interview_service.finalize_interview(current_user, transcript_list)
+    interview_id, error = interview_service.finalize_interview(
+        current_user, transcript_list,
+        interview_type=interview_type,
+        difficulty=difficulty
+    )
     
     if interview_id:
         emit('report_ready', {

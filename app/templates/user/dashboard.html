@@ -8,28 +8,35 @@
     <div class="col-lg-3 mb-4">
         <div class="glass-panel p-4 sticky-lg-top">
             <div class="nav flex-column nav-pills gap-2" id="v-pills-tab" role="tablist">
-                <button class="nav-link active text-start d-flex align-items-center" id="v-pills-overview-tab" data-bs-toggle="pill" data-bs-target="#v-pills-overview" type="button">
+                <button class="nav-link active text-start d-flex align-items-center" id="v-pills-overview-tab"
+                    data-bs-toggle="pill" data-bs-target="#v-pills-overview" type="button">
                     <span data-feather="grid" class="me-3"></span> Overview
                 </button>
-                <button class="nav-link text-start d-flex align-items-center" id="v-pills-analyses-tab" data-bs-toggle="pill" data-bs-target="#v-pills-analyses" type="button">
+                <button class="nav-link text-start d-flex align-items-center" id="v-pills-analyses-tab"
+                    data-bs-toggle="pill" data-bs-target="#v-pills-analyses" type="button">
                     <span data-feather="file-text" class="me-3"></span> Analyses
                 </button>
                 <a href="{{ url_for('user.jobs') }}" class="nav-link text-start d-flex align-items-center">
                     <span data-feather="search" class="me-3"></span> Find Jobs
                 </a>
-                <button class="nav-link text-start d-flex align-items-center" id="v-pills-jobs-tab" data-bs-toggle="pill" data-bs-target="#v-pills-jobs" type="button">
+                <button class="nav-link text-start d-flex align-items-center" id="v-pills-jobs-tab"
+                    data-bs-toggle="pill" data-bs-target="#v-pills-jobs" type="button">
                     <span data-feather="briefcase" class="me-3"></span> My Applications
                 </button>
-                <button class="nav-link text-start d-flex align-items-center" id="v-pills-tracker-tab" data-bs-toggle="pill" data-bs-target="#v-pills-tracker" type="button">
+                <button class="nav-link text-start d-flex align-items-center" id="v-pills-tracker-tab"
+                    data-bs-toggle="pill" data-bs-target="#v-pills-tracker" type="button">
                     <span data-feather="trello" class="me-3"></span> Application Tracker
                 </button>
-                <button class="nav-link text-start d-flex align-items-center" id="v-pills-networking-tab" data-bs-toggle="pill" data-bs-target="#v-pills-networking" type="button">
+                <button class="nav-link text-start d-flex align-items-center" id="v-pills-networking-tab"
+                    data-bs-toggle="pill" data-bs-target="#v-pills-networking" type="button">
                     <span data-feather="users" class="me-3"></span> Networking
                 </button>
-                <button class="nav-link text-start d-flex align-items-center" id="v-pills-interviews-tab" data-bs-toggle="pill" data-bs-target="#v-pills-interviews" type="button">
+                <button class="nav-link text-start d-flex align-items-center" id="v-pills-interviews-tab"
+                    data-bs-toggle="pill" data-bs-target="#v-pills-interviews" type="button">
                     <span data-feather="video" class="me-3"></span> Interviews
                 </button>
-                <button class="nav-link text-start d-flex align-items-center" id="v-pills-resume-tab" data-bs-toggle="pill" data-bs-target="#v-pills-resume" type="button">
+                <button class="nav-link text-start d-flex align-items-center" id="v-pills-resume-tab"
+                    data-bs-toggle="pill" data-bs-target="#v-pills-resume" type="button">
                     <span data-feather="pen-tool" class="me-3"></span> Resume Builder
                 </button>
                 <a href="{{ url_for('user.co_writer') }}" class="nav-link text-start d-flex align-items-center">
@@ -41,7 +48,8 @@
                 <a href="{{ url_for('user.github_audit') }}" class="nav-link text-start d-flex align-items-center">
                     <span data-feather="github" class="me-3"></span> GitHub Audit
                 </a>
-                <a href="{{ url_for('user.linkedin_optimizer') }}" class="nav-link text-start d-flex align-items-center">
+                <a href="{{ url_for('user.linkedin_optimizer') }}"
+                    class="nav-link text-start d-flex align-items-center">
                     <span data-feather="linkedin" class="me-3"></span> LinkedIn Optimizer
                 </a>
             </div>
@@ -51,10 +59,10 @@
     <!-- Main Content Area -->
     <div class="col-lg-9">
         <div class="tab-content" id="v-pills-tabContent">
-            
+
             <!-- 1. Overview Tab -->
             <div class="tab-pane fade show active assemble-in anim-up" id="v-pills-overview" role="tabpanel">
-                
+
                 <!-- Sentient Awareness & Gamification Header -->
                 <div class="row g-4 mb-4">
                     <div class="col-lg-8">
@@ -63,26 +71,34 @@
                             <div class="col-md-6">
                                 <div class="neural-card p-4 h-100 position-relative overflow-hidden">
                                     <div class="d-flex align-items-center">
-                                        <div class="level-badge sentient-aura me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background: var(--primary); border-radius: 12px; transform: rotate(5deg);">
-                                            <h4 class="fw-bold mb-0 text-white" style="transform: rotate(-5deg); z-index: 2;">{{ xp_profile.level }}</h4>
+                                        <div class="level-badge sentient-aura me-3 d-flex align-items-center justify-content-center"
+                                            style="width: 50px; height: 50px; background: var(--primary); border-radius: 12px; transform: rotate(5deg);">
+                                            <h4 class="fw-bold mb-0 text-white"
+                                                style="transform: rotate(-5deg); z-index: 2;">{{ xp_profile.level }}
+                                            </h4>
                                         </div>
                                         <div>
                                             <h6 class="fw-bold mb-1 text-shimmer">Level {{ xp_profile.level }}</h6>
-                                            <div class="progress border-glass" style="height: 6px; width: 150px; background: rgba(255,255,255,0.05);">
-                                                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ xp_profile.total_xp % 100 }}%"></div>
+                                            <div class="progress border-glass"
+                                                style="height: 6px; width: 150px; background: rgba(255,255,255,0.05);">
+                                                <div class="progress-bar bg-primary" role="progressbar"
+                                                    style="width: {{ xp_profile.total_xp % 100 }}%"></div>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="mt-4">
-                                        <p class="text-[10px] tracking-widest text-muted text-uppercase mb-1">Neural Capacity</p>
-                                        <h5 class="fw-bold mb-0 text-white">{{ xp_profile.total_xp }} <span class="text-primary" style="font-size: 0.7rem;">TOTAL XP</span></h5>
+                                        <p class="text-[10px] tracking-widest text-muted text-uppercase mb-1">Neural
+                                            Capacity</p>
+                                        <h5 class="fw-bold mb-0 text-white">{{ xp_profile.total_xp }} <span
+                                                class="text-primary" style="font-size: 0.7rem;">TOTAL XP</span></h5>
                                     </div>
                                 </div>
                             </div>
                             <!-- Skill Aura Hexagon -->
                             <div class="col-md-6">
                                 <div class="neural-card p-3 h-100 aura-glow-container overflow-hidden">
-                                    <h6 class="text-[10px] tracking-widest text-muted text-uppercase mb-2 text-center">Professional Aura</h6>
+                                    <h6 class="text-[10px] tracking-widest text-muted text-uppercase mb-2 text-center">
+                                        Professional Aura</h6>
                                     <div style="height: 180px; position: relative;">
                                         <canvas id="userAuraChart"></canvas>
                                     </div>
@@ -93,10 +109,14 @@
                     <div class="col-lg-4">
                         <div class="glass-panel p-4 h-100">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="small fw-bold text-uppercase tracking-widest text-muted mb-0">System Status</h6>
-                                <div class="status-indicator" style="width: 10px; height: 10px; background-color: var(--success); border-radius: 50%; box-shadow: 0 0 10px var(--success);"></div>
+                                <h6 class="small fw-bold text-uppercase tracking-widest text-muted mb-0">System Status
+                                </h6>
+                                <div class="status-indicator"
+                                    style="width: 10px; height: 10px; background-color: var(--success); border-radius: 50%; box-shadow: 0 0 10px var(--success);">
+                                </div>
                             </div>
-                            <div class="agent-activity-logs" style="font-family: 'Courier New', Courier, monospace; font-size: 0.75rem;">
+                            <div class="agent-activity-logs"
+                                style="font-family: 'Courier New', Courier, monospace; font-size: 0.75rem;">
                                 <div class="text-success mb-1">● System: Online</div>
                                 <div class="text-primary mb-1">● Job market data: Updated</div>
                                 <div class="text-muted mb-1">● Monitoring active</div>
@@ -112,12 +132,12 @@
                         <p class="text-muted">Here's what's happening with your career application.</p>
                     </div>
                     <div class="d-flex gap-2">
-                         <a href="{{ url_for('user.resume_analysis') }}" class="btn btn-primary">
+                        <a href="{{ url_for('user.resume_analysis') }}" class="btn btn-primary">
                             <span data-feather="plus" class="me-1"></span> New Analysis
                         </a>
                     </div>
                 </div>
-                
+
                 <div class="row">
                     <!-- Stats (Left) -->
                     <div class="col-lg-8">
@@ -152,16 +172,20 @@
 
                         <!-- Chart Section -->
                         <div class="glass-panel p-4 mb-4 border-0 position-relative overflow-hidden">
-                            <div style="position: absolute; top: 0; right: 0; width: 200px; height: 200px; background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%); opacity: 0.2;"></div>
+                            <div
+                                style="position: absolute; top: 0; right: 0; width: 200px; height: 200px; background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%); opacity: 0.2;">
+                            </div>
                             <h5 class="fw-bold mb-4">Performance Trend</h5>
                             <div style="height: 300px; position: relative; width: 100%;">
                                 {% if resume_scores|length > 1 %}
-                                    <canvas id="userProgressChart"></canvas>
+                                <canvas id="userProgressChart"></canvas>
                                 {% else %}
-                                    <div class="d-flex flex-column justify-content-center align-items-center h-100 text-muted">
-                                        <span data-feather="bar-chart-2" style="width: 48px; height: 48px; opacity: 0.3;"></span>
-                                        <p class="mt-3">Not enough data to visualize trends.</p>
-                                    </div>
+                                <div
+                                    class="d-flex flex-column justify-content-center align-items-center h-100 text-muted">
+                                    <span data-feather="bar-chart-2"
+                                        style="width: 48px; height: 48px; opacity: 0.3;"></span>
+                                    <p class="mt-3">Not enough data to visualize trends.</p>
+                                </div>
                                 {% endif %}
                             </div>
                         </div>
@@ -174,33 +198,36 @@
                                 <span data-feather="award" class="me-2 text-warning"></span> Active Quests
                             </h5>
                             {% for uq in active_quests %}
-                                {% set quest = uq.quest %}
-                                <div class="mb-4 pb-3 border-bottom">
-                                    <h6 class="fw-bold mb-1">{{ quest.title }}</h6>
-                                    <p class="small text-muted mb-2">{{ quest.description }}</p>
-                                    <div class="d-flex justify-content-between mb-1 small">
-                                        <span>Progress</span>
-                                        <span>{{ uq.progress.get('count', 0) }}/{{ quest.criteria.get('count', 1) }}</span>
-                                    </div>
-                                    <div class="progress" style="height: 6px;">
-                                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ (uq.progress.get('count', 0) / quest.criteria.get('count', 1)) * 100 }}%"></div>
-                                    </div>
-                                    <div class="mt-2 small text-primary fw-bold">+{{ quest.xp_reward }} XP Reward</div>
+                            {% set quest = uq.quest %}
+                            <div class="mb-4 pb-3 border-bottom">
+                                <h6 class="fw-bold mb-1">{{ quest.title }}</h6>
+                                <p class="small text-muted mb-2">{{ quest.description }}</p>
+                                <div class="d-flex justify-content-between mb-1 small">
+                                    <span>Progress</span>
+                                    <span>{{ uq.progress.get('count', 0) }}/{{ quest.criteria.get('count', 1) }}</span>
                                 </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-success" role="progressbar"
+                                        style="width: {{ (uq.progress.get('count', 0) / quest.criteria.get('count', 1)) * 100 }}%">
+                                    </div>
+                                </div>
+                                <div class="mt-2 small text-primary fw-bold">+{{ quest.xp_reward }} XP Reward</div>
+                            </div>
                             {% else %}
-                                <div class="text-center py-5">
-                                    <p class="text-muted small">All quests completed! Check back later.</p>
-                                </div>
+                            <div class="text-center py-5">
+                                <p class="text-muted small">All quests completed! Check back later.</p>
+                            </div>
                             {% endfor %}
 
                             {% if completed_quests %}
                             <div class="mt-4">
                                 <h6 class="text-muted text-uppercase small fw-bold mb-3">Recently Completed</h6>
                                 {% for uq in completed_quests[:2] %}
-                                    <div class="d-flex align-items-center gap-2 mb-2">
-                                        <span data-feather="check-circle" class="text-success" style="width: 14px; height: 14px;"></span>
-                                        <span class="small">{{ uq.quest.title }}</span>
-                                    </div>
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span data-feather="check-circle" class="text-success"
+                                        style="width: 14px; height: 14px;"></span>
+                                    <span class="small">{{ uq.quest.title }}</span>
+                                </div>
                                 {% endfor %}
                             </div>
                             {% endif %}
@@ -218,30 +245,36 @@
                         <div class="neural-card h-100 p-4 hover-lift">
                             <div class="d-flex justify-content-between align-items-start mb-3">
                                 <div>
-                                    <h5 class="fw-bold mb-1 text-white">{{ item.analysis_result.get('name', 'Unknown') }}</h5>
+                                    <h5 class="fw-bold mb-1 text-white">{{ item.analysis_result.get('name', 'Unknown')
+                                        }}</h5>
                                     <p class="text-muted small mb-0">{{ item.uploaded_at.strftime('%b %d, %Y') }}</p>
                                 </div>
                                 {% set score = item.analysis_result.get('resume_score', 0) %}
                                 <div class="text-center">
-                                    <span class="display-6 fw-bold" style="color: {{ 'var(--accent)' if score >= 70 else 'var(--primary)' if score >= 40 else 'var(--danger)' }};">{{ score }}</span>
-                                    <div class="small text-muted text-uppercase" style="font-size: 0.6rem; letter-spacing: 1px;">Score</div>
+                                    <span class="display-6 fw-bold"
+                                        style="color: {{ 'var(--accent)' if score >= 70 else 'var(--primary)' if score >= 40 else 'var(--danger)' }};">{{
+                                        score }}</span>
+                                    <div class="small text-muted text-uppercase"
+                                        style="font-size: 0.6rem; letter-spacing: 1px;">Score</div>
                                 </div>
                             </div>
-                            
+
                             <div class="mb-4">
-                                <span class="tag-badge">{{ item.analysis_result.get('predicted_field', 'General') }}</span>
+                                <span class="tag-badge">{{ item.analysis_result.get('predicted_field', 'General')
+                                    }}</span>
                                 <span class="tag-badge">{{ item.analysis_result.get('experience_level', 'N/A') }}</span>
                             </div>
 
                             <div class="d-grid gap-2 mt-auto">
-                                <a href="{{ url_for('user.resume_analysis_result', user_data_id=item.id) }}" class="btn btn-outline-secondary btn-glass">View Full Report</a>
+                                <a href="{{ url_for('user.resume_analysis_result', user_data_id=item.id) }}"
+                                    class="btn btn-outline-secondary btn-glass">View Full Report</a>
                             </div>
                         </div>
                     </div>
                     {% else %}
-                        <div class="col-12 text-center py-5">
-                            <p class="text-muted">No analyses found.</p>
-                        </div>
+                    <div class="col-12 text-center py-5">
+                        <p class="text-muted">No analyses found.</p>
+                    </div>
                     {% endfor %}
                 </div>
 
@@ -250,80 +283,86 @@
                 <nav aria-label="Analysis page navigation" class="mt-4">
                     <ul class="pagination justify-content-center">
                         <li class="page-item {% if not analyses_pagination.has_prev %}disabled{% endif %}">
-                            <a class="page-link" href="{{ url_for('user.dashboard', page=analyses_pagination.prev_num) if analyses_pagination.has_prev else '#' }}">Previous</a>
+                            <a class="page-link"
+                                href="{{ url_for('user.dashboard', page=analyses_pagination.prev_num) if analyses_pagination.has_prev else '#' }}">Previous</a>
                         </li>
-                        {% for page_num in analyses_pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
-                            {% if page_num %}
-                                <li class="page-item {% if page_num == analyses_pagination.page %}active{% endif %}">
-                                    <a class="page-link" href="{{ url_for('user.dashboard', page=page_num) }}">{{ page_num }}</a>
-                                </li>
-                            {% else %}
-                                <li class="page-item disabled"><span class="page-link">...</span></li>
-                            {% endif %}
+                        {% for page_num in analyses_pagination.iter_pages(left_edge=1, right_edge=1, left_current=1,
+                        right_current=2) %}
+                        {% if page_num %}
+                        <li class="page-item {% if page_num == analyses_pagination.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('user.dashboard', page=page_num) }}">{{ page_num
+                                }}</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
                         {% endfor %}
                         <li class="page-item {% if not analyses_pagination.has_next %}disabled{% endif %}">
-                            <a class="page-link" href="{{ url_for('user.dashboard', page=analyses_pagination.next_num) if analyses_pagination.has_next else '#' }}">Next</a>
+                            <a class="page-link"
+                                href="{{ url_for('user.dashboard', page=analyses_pagination.next_num) if analyses_pagination.has_next else '#' }}">Next</a>
                         </li>
                     </ul>
                 </nav>
                 {% endif %}
             </div>
-            
+
             <!-- Other Tabs (Simplified for brevity, but structure maintained) -->
             <div class="tab-pane fade" id="v-pills-jobs" role="tabpanel">
                 <h3 class="fw-bold mb-4">Job Applications</h3>
                 {% if applications %}
-                    <div class="card p-0 overflow-hidden">
-                        <table class="table table-hover table-dark mb-0 bg-transparent">
-                            <thead>
-                                <tr class="text-muted text-uppercase small">
-                                    <th class="p-3 ps-4">Date</th>
-                                    <th class="p-3">Position</th>
-                                    <th class="p-3">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for app in applications %}
-                                <tr>
-                                    <td class="p-3 ps-4">{{ app.applied_at.strftime('%b %d') }}</td>
-                                    <td class="p-3 fw-bold text-white">{{ app.job.title }}</td>
-                                    <td class="p-3"><span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25">{{ app.status }}</span></td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="card p-0 overflow-hidden">
+                    <table class="table table-hover table-dark mb-0 bg-transparent">
+                        <thead>
+                            <tr class="text-muted text-uppercase small">
+                                <th class="p-3 ps-4">Date</th>
+                                <th class="p-3">Position</th>
+                                <th class="p-3">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in applications %}
+                            <tr>
+                                <td class="p-3 ps-4">{{ app.applied_at.strftime('%b %d') }}</td>
+                                <td class="p-3 fw-bold text-white">{{ app.job.title }}</td>
+                                <td class="p-3"><span
+                                        class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25">{{
+                                        app.status }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
                 {% else %}
-                    <div class="card p-5 text-center text-muted border-dashed">No applications yet.</div>
+                <div class="card p-5 text-center text-muted border-dashed">No applications yet.</div>
                 {% endif %}
             </div>
 
             <!-- Interviews -->
-             <div class="tab-pane fade" id="v-pills-interviews" role="tabpanel">
+            <div class="tab-pane fade" id="v-pills-interviews" role="tabpanel">
                 <h3 class="fw-bold mb-4">Interview Sessions</h3>
-                 {% if interviews %}
-                    <div class="card p-0 overflow-hidden">
-                         <table class="table table-hover table-dark mb-0 bg-transparent">
-                            <thead>
-                                <tr class="text-muted text-uppercase small">
-                                    <th class="p-3 ps-4">Date</th>
-                                    <th class="p-3">Type</th>
-                                    <th class="p-3">Result</th>
-                                </tr>
-                            </thead>
-                             <tbody>
-                                {% for interview in interviews %}
-                                <tr>
-                                    <td class="p-3 ps-4">{{ interview.started_at.strftime('%b %d, %H:%M') }}</td>
-                                    <td class="p-3">Mock Interview (AI)</td>
-                                    <td class="p-3"><span class="badge bg-success">Completed</span></td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                {% if interviews %}
+                <div class="card p-0 overflow-hidden">
+                    <table class="table table-hover table-dark mb-0 bg-transparent">
+                        <thead>
+                            <tr class="text-muted text-uppercase small">
+                                <th class="p-3 ps-4">Date</th>
+                                <th class="p-3">Type</th>
+                                <th class="p-3">Result</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for interview in interviews %}
+                            <tr>
+                                <td class="p-3 ps-4">{{ interview.started_at.strftime('%b %d, %H:%M') }}</td>
+                                <td class="p-3">Mock Interview (AI)</td>
+                                <td class="p-3"><span class="badge bg-success">Completed</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
                 {% else %}
-                    <div class="card p-5 text-center text-muted border-dashed">No interviews recorded.</div>
+                <div class="card p-5 text-center text-muted border-dashed">No interviews recorded.</div>
                 {% endif %}
             </div>
 
@@ -331,7 +370,8 @@
             <div class="tab-pane fade animate-in" id="v-pills-tracker" role="tabpanel">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h3 class="fw-bold mb-0">External Application Tracker</h3>
-                    <button class="btn btn-primary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addAppModal">
+                    <button class="btn btn-primary btn-sm rounded-pill px-3" data-bs-toggle="modal"
+                        data-bs-target="#addAppModal">
                         <span data-feather="plus" class="me-1"></span> Add Job
                     </button>
                 </div>
@@ -341,22 +381,26 @@
                     {% set statuses = ['Wishlist', 'Applied', 'Interviewing', 'Offer', 'Rejected'] %}
                     {% for status in statuses %}
                     <div class="col-lg-2-5 col-md-4">
-                        <div class="kanban-column p-3 rounded bg-white bg-opacity-5 h-100" style="min-height: 500px; border: 1px dashed rgba(255,255,255,0.1);">
+                        <div class="kanban-column p-3 rounded bg-white bg-opacity-5 h-100"
+                            style="min-height: 500px; border: 1px dashed rgba(255,255,255,0.1);">
                             <h6 class="text-uppercase small fw-bold mb-3 text-muted d-flex justify-content-between">
                                 {{ status }}
-                                <span class="badge bg-secondary bg-opacity-25 text-muted">{{ external_apps|selectattr('status', 'equalto', status)|list|length }}</span>
+                                <span class="badge bg-secondary bg-opacity-25 text-muted">{{
+                                    external_apps|selectattr('status', 'equalto', status)|list|length }}</span>
                             </h6>
-                            
+
                             <div class="kanban-cards d-flex flex-column gap-3">
                                 {% for app in external_apps if app.status == status %}
-                                <div class="card p-3 border-0 shadow-sm hover-lift" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05) !important;">
+                                <div class="card p-3 border-0 shadow-sm hover-lift"
+                                    style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05) !important;">
                                     <h6 class="fw-bold mb-1 text-white">{{ app.job_title }}</h6>
                                     <p class="small text-muted mb-2">{{ app.company_name }}</p>
-                                    
+
                                     {% if app.match_score %}
                                     <div class="d-flex align-items-center gap-2 mb-3">
                                         <div class="progress flex-grow-1" style="height: 4px;">
-                                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ app.match_score }}%"></div>
+                                            <div class="progress-bar bg-success" role="progressbar"
+                                                style="width: {{ app.match_score }}%"></div>
                                         </div>
                                         <span class="small fw-bold text-success">{{ app.match_score }}%</span>
                                     </div>
@@ -364,20 +408,31 @@
 
                                     <div class="d-flex justify-content-between align-items-center mt-2">
                                         <div class="dropdown">
-                                            <button class="btn btn-dark btn-sm p-1 rounded-circle" data-bs-toggle="dropdown">
-                                                <span data-feather="more-horizontal" style="width: 14px; height: 14px;"></span>
+                                            <button class="btn btn-dark btn-sm p-1 rounded-circle"
+                                                data-bs-toggle="dropdown">
+                                                <span data-feather="more-horizontal"
+                                                    style="width: 14px; height: 14px;"></span>
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-dark">
-                                                <li><h6 class="dropdown-header">Move to</h6></li>
+                                                <li>
+                                                    <h6 class="dropdown-header">Move to</h6>
+                                                </li>
                                                 {% for s in statuses if s != status %}
-                                                <li><a class="dropdown-item small" href="javascript:void(0)" onclick="updateAppStatus({{ app.id }}, '{{ s }}')">{{ s }}</a></li>
+                                                <li><a class="dropdown-item small" href="javascript:void(0)"
+                                                        onclick="updateAppStatus({{ app.id }}, '{{ s }}')">{{ s }}</a>
+                                                </li>
                                                 {% endfor %}
-                                                <li><hr class="dropdown-divider"></li>
-                                                <li><a class="dropdown-item small text-danger" href="javascript:void(0)" onclick="deleteApp({{ app.id }})">Delete</a></li>
+                                                <li>
+                                                    <hr class="dropdown-divider">
+                                                </li>
+                                                <li><a class="dropdown-item small text-danger" href="javascript:void(0)"
+                                                        onclick="deleteApp({{ app.id }})">Delete</a></li>
                                             </ul>
                                         </div>
                                         {% if app.job_url %}
-                                        <a href="{{ app.job_url }}" target="_blank" class="btn btn-outline-primary btn-sm py-0 px-2" style="font-size: 0.7rem;">Link</a>
+                                        <a href="{{ app.job_url }}" target="_blank"
+                                            class="btn btn-outline-primary btn-sm py-0 px-2"
+                                            style="font-size: 0.7rem;">Link</a>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -397,12 +452,16 @@
                         <div class="col-md-6">
                             <form id="reachoutForm">
                                 <div class="mb-3">
-                                    <label class="form-label small text-muted text-uppercase fw-bold">Target Company</label>
-                                    <input type="text" class="form-control" id="targetCompany" placeholder="e.g. Google" required>
+                                    <label class="form-label small text-muted text-uppercase fw-bold">Target
+                                        Company</label>
+                                    <input type="text" class="form-control" id="targetCompany" placeholder="e.g. Google"
+                                        required>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label small text-muted text-uppercase fw-bold">Target Role</label>
-                                    <input type="text" class="form-control" id="targetRole" placeholder="e.g. Software Engineer" required>
+                                    <label class="form-label small text-muted text-uppercase fw-bold">Target
+                                        Role</label>
+                                    <input type="text" class="form-control" id="targetRole"
+                                        placeholder="e.g. Software Engineer" required>
                                 </div>
                                 <div class="mb-4">
                                     <label class="form-label small text-muted text-uppercase fw-bold">Platform</label>
@@ -420,10 +479,13 @@
                         <div class="col-md-6 border-start border-white border-opacity-10">
                             <div class="p-3">
                                 <label class="form-label small text-muted text-uppercase fw-bold">Result</label>
-                                <div id="reachoutResult" class="p-4 rounded bg-dark border border-white border-opacity-10 text-light" style="min-height: 200px; font-size: 0.95rem; line-height: 1.6;">
+                                <div id="reachoutResult"
+                                    class="p-4 rounded bg-dark border border-white border-opacity-10 text-light"
+                                    style="min-height: 200px; font-size: 0.95rem; line-height: 1.6;">
                                     <p class="text-muted italic">Fill out the form to generate a message...</p>
                                 </div>
-                                <button class="btn btn-outline-secondary btn-sm mt-3 w-100" id="copyReachoutBtn" style="display: none;">
+                                <button class="btn btn-outline-secondary btn-sm mt-3 w-100" id="copyReachoutBtn"
+                                    style="display: none;">
                                     Copy to Clipboard
                                 </button>
                             </div>
@@ -435,8 +497,8 @@
             <div class="tab-pane fade" id="v-pills-resume" role="tabpanel">
                 <div class="card p-4">
                     <h3 class="fw-bold mb-3">Resume Builder</h3>
-                     {% with form=resume_form %}
-                        {% include "user/resume_builder_partial.html" %}
+                    {% with form=resume_form %}
+                    {% include "user/resume_builder_partial.html" %}
                     {% endwith %}
                 </div>
             </div>
@@ -448,73 +510,68 @@
 <!-- Chart Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        // 1. User Progress Chart (Trend)
-        const ctxProgress = document.getElementById('userProgressChart');
+    document.addEventListener("DOMContentLoaded", function () {
+        var ctxProgress = document.getElementById('userProgressChart');
         if (ctxProgress) {
-            const data = {{ resume_scores | tojson }};
-            const style = getComputedStyle(document.body);
-            const primary = style.getPropertyValue('--primary').trim() || '#6366f1';
-            
-            new Chart(ctxProgress.getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: data.map(d => d.timestamp),
-                    datasets: [{
-                        label: 'Score',
-                        data: data.map(d => d.score),
-                        borderColor: primary,
-                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { display: false }, x: { display: false } }
-                }
-            });
-        }
-
-        // 2. Skill Aura Hexagon Chart
-        const ctxAura = document.getElementById('userAuraChart');
-        if (ctxAura) {
-            const userEnergy = {{ user_energy }};
-            // Dynamic color based on energy
-            let auraColor = 'rgba(99, 102, 241, 0.6)'; // Blue
-            if (userEnergy < 30) auraColor = 'rgba(239, 68, 68, 0.6)'; // Red
-            else if (userEnergy < 60) auraColor = 'rgba(245, 158, 11, 0.6)'; // Amber
-
-            new Chart(ctxAura.getContext('2d'), {
-                type: 'radar',
-                data: {
-                    labels: ['Technical', 'Leadership', 'Comm', 'Adaptability', 'Demand', 'Reliability'],
-                    datasets: [{
-                        data: [85, 60, 75, 90, 70, 95], // Mock data for prototype
-                        backgroundColor: auraColor,
-                        borderColor: auraColor.replace('0.6', '1'),
-                        pointBackgroundColor: '#fff',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        r: {
-                            angleLines: { color: 'rgba(255,255,255,0.1)' },
-                            grid: { color: 'rgba(255,255,255,0.1)' },
-                            pointLabels: { color: 'rgba(255,255,255,0.5)', font: { size: 8 } },
-                            ticks: { display: false, max: 100, min: 0 }
-                        }
-                    },
-                    plugins: { legend: { display: false } }
-                }
-            });
+            var progressData = {{ resume_scores | tojson }};
+    var bodyStyle = getComputedStyle(document.body);
+    var primaryColor = bodyStyle.getPropertyValue('--primary').trim() || '#6366f1';
+    new Chart(ctxProgress.getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: progressData.map(function (d) { return d.timestamp; }),
+            datasets: [{
+                label: 'Score',
+                data: progressData.map(function (d) { return d.score; }),
+                borderColor: primaryColor,
+                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { display: false }, x: { display: false } }
         }
     });
+    }
+    var ctxAura = document.getElementById('userAuraChart');
+    if (ctxAura) {
+        var userEnergy = {{ user_energy }};
+    var auraColor = 'rgba(99, 102, 241, 0.6)';
+    if (userEnergy < 30) auraColor = 'rgba(239, 68, 68, 0.6)';
+    else if (userEnergy < 60) auraColor = 'rgba(245, 158, 11, 0.6)';
+    var isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    new Chart(ctxAura.getContext('2d'), {
+        type: 'radar',
+        data: {
+            labels: ['Technical', 'Leadership', 'Comm', 'Adaptability', 'Demand', 'Reliability'],
+            datasets: [{
+                data: [85, 60, 75, 90, 70, 95],
+                backgroundColor: auraColor,
+                borderColor: auraColor.replace('0.6', '1'),
+                pointBackgroundColor: '#fff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    angleLines: { color: isLight ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.1)' },
+                    grid: { color: isLight ? 'rgba(99,102,241,0.1)' : 'rgba(255,255,255,0.1)' },
+                    pointLabels: { color: isLight ? '#1e1b4b' : 'rgba(255,255,255,0.5)', font: { size: 8 } },
+                    ticks: { display: false, max: 100, min: 0 }
+                }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+    }
+});
 </script>
 {% endblock %}
 
@@ -542,8 +599,10 @@
                         <input type="url" class="form-control" id="appUrl" placeholder="https://linkedin.com/jobs/...">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small text-muted text-uppercase fw-bold">Job Description (Optional)</label>
-                        <textarea class="form-control" id="appJD" rows="4" placeholder="Paste JD for AI Match Score..."></textarea>
+                        <label class="form-label small text-muted text-uppercase fw-bold">Job Description
+                            (Optional)</label>
+                        <textarea class="form-control" id="appJD" rows="4"
+                            placeholder="Paste JD for AI Match Score..."></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary w-100 py-3 fw-bold mt-3">Save & Analyze Match</button>
                 </form>
@@ -571,7 +630,7 @@
         }
     }
 
-    document.getElementById('addAppForm')?.addEventListener('submit', function(e) {
+    document.getElementById('addAppForm')?.addEventListener('submit', function (e) {
         e.preventDefault();
         const btn = this.querySelector('button');
         btn.disabled = true;
@@ -595,7 +654,7 @@
         });
     });
 
-    document.getElementById('reachoutForm')?.addEventListener('submit', function(e) {
+    document.getElementById('reachoutForm')?.addEventListener('submit', function (e) {
         e.preventDefault();
         const btn = this.querySelector('button');
         const resultDiv = document.getElementById('reachoutResult');
@@ -627,7 +686,7 @@
         });
     });
 
-    document.getElementById('copyReachoutBtn')?.addEventListener('click', function() {
+    document.getElementById('copyReachoutBtn')?.addEventListener('click', function () {
         const text = document.getElementById('reachoutResult').innerText;
         navigator.clipboard.writeText(text).then(() => {
             this.innerText = 'Copied!';
@@ -642,30 +701,37 @@
         overflow-x: auto;
         padding-bottom: 1rem;
     }
+
     .col-lg-2-5 {
         flex: 0 0 auto;
         width: 20%;
         min-width: 250px;
     }
+
     .kanban-column {
         transition: background 0.3s ease;
     }
+
     .kanban-column:hover {
-        background: rgba(255,255,255,0.08) !important;
+        background: rgba(255, 255, 255, 0.08) !important;
     }
+
     .hover-lift {
         transition: transform 0.2s, box-shadow 0.2s;
     }
+
     .hover-lift:hover {
         transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.3) !important;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3) !important;
     }
+
     .btn-dark {
-        background: rgba(255,255,255,0.1);
+        background: rgba(255, 255, 255, 0.1);
         border: none;
     }
+
     .btn-dark:hover {
-        background: rgba(255,255,255,0.2);
+        background: rgba(255, 255, 255, 0.2);
     }
 </style>
 {% endblock %}

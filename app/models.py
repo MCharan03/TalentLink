@@ -13,6 +13,8 @@ class User(UserMixin, db.Model):
     google_id = db.Column(db.String(100), unique=True, nullable=True)
     linkedin_id = db.Column(db.String(100), unique=True, nullable=True)
     role = db.Column(db.String(10), default='user')  # 'user' or 'admin'
+    is_verified = db.Column(db.Boolean, default=False)
+    verified_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -99,6 +101,8 @@ class MockInterview(db.Model):
     __tablename__ = 'mock_interviews'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    interview_type = db.Column(db.String(20), default='mixed')  # behavioral, technical, mixed
+    difficulty = db.Column(db.String(20), default='medium')  # easy, medium, hard
     transcript = db.Column(db.Text)
     feedback = db.Column(db.Text)
     score = db.Column(db.Integer)

@@ -1,4 +1,4 @@
-from ..models import UserData, JobPosting
+from ..models import UserData, JobPosting, MockInterview
 from .ai_utils import _call_gemini
 import json
 
@@ -29,11 +29,39 @@ class CareerAgent:
             
         return context
 
+    def _get_interview_history(self):
+        """
+        Fetches recent MockInterview summaries to provide interview-aware context.
+        """
+        interviews = MockInterview.query.filter_by(
+            user_id=self.user.id
+        ).order_by(MockInterview.started_at.desc()).limit(3).all()
+        
+        if not interviews:
+            return "No mock interviews completed yet."
+        
+        summaries = []
+        for i, interview in enumerate(interviews, 1):
+            report = {}
+            if interview.feedback:
+                try:
+                    report = json.loads(interview.feedback)
+                except (json.JSONDecodeError, TypeError):
+                    pass
+            
+            summaries.append(
+                f"Interview {i}: Score {interview.score or 'N/A'}/100, "
+                f"Type: {interview.interview_type or 'mixed'}, "
+                f"Difficulty: {interview.difficulty or 'medium'}, "
+                f"Strengths: {', '.join(report.get('strengths', ['N/A'])[:2])}, "
+                f"Areas to Improve: {', '.join(report.get('weaknesses', ['N/A'])[:2])}"
+            )
+        
+        return "\n".join(summaries)
+
     def _detect_sentiment(self, user_message):
         """
         Briefly detects user sentiment to adjust tone. 
-        A true 'sentient' system would use a dedicated LLM call, 
-        but we'll start with keyword-based heuristic for performance.
         """
         angry_keywords = ['hate', 'bad', 'stupid', 'fix', 'annoying', 'error', 'broken', 'why']
         happy_keywords = ['great', 'thanks', 'love', 'amazing', 'wow', 'good', 'help']
@@ -47,10 +75,12 @@ class CareerAgent:
 
     def chat(self, user_message, history=None):
         """
-        Generates a response using the active AI node, aware of the user's resume context and sentiment.
+        Generates a response using the active AI node, aware of the user's resume context,
+        sentiment, and interview history.
         """
         context = self._get_user_context()
         sentiment = self._detect_sentiment(user_message)
+        interview_history = self._get_interview_history()
         
         # Tone Adjustment based on Sentiment
         tone_instruction = "Maintain a calm, professional, and helpful tone."
@@ -59,11 +89,10 @@ class CareerAgent:
         elif sentiment == "celebratory":
             tone_instruction = "The user is in a good mood! Be enthusiastic and celebrate their progress."
 
-        # Build History String
+        # Build History String — expanded to last 5 turns
         history_str = ""
         if history:
-            # Limit history to last 3 turns to save tokens
-            recent_history = history[-6:] 
+            recent_history = history[-10:]  # Last 5 turns
             for msg in recent_history:
                 role = "User" if msg.get('role') == 'user' else "Assistant"
                 history_str += f"{role}: {msg.get('content')}\n"
@@ -82,6 +111,9 @@ class CareerAgent:
         - Key Skills: {', '.join(context['top_skills'])}
         - Resume Summary: {context['resume_summary'][:500]}...
         
+        Interview Performance History:
+        {interview_history}
+        
         Conversation History:
         {history_str}
         
@@ -89,8 +121,9 @@ class CareerAgent:
         1. Be professional, warm, and encouraging.
         2. Use the provided context to give specific advice (e.g., if they ask about jobs, mention their specific skills).
         3. If they ask about their resume, refer to the 'Resume Summary' context.
-        4. Keep responses concise (max 3-4 sentences unless a deep explanation is requested).
-        5. If asked to find jobs, you can simulate a search or tell them to check the 'Jobs' tab.
+        4. If they ask about interviews, reference their interview history — mention scores, strengths, and areas to improve.
+        5. Keep responses concise (max 3-4 sentences unless a deep explanation is requested).
+        6. If asked to find jobs, you can simulate a search or tell them to check the 'Jobs' tab.
         
         User: {user_message}
         Assistant:"""

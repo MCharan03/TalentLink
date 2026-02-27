@@ -107,7 +107,7 @@ def _call_ai(prompt, response_mime_type=None):
     """
     Generic helper function to call AI API (Gemini or Ollama).
     """
-    provider = os.environ.get("AI_PROVIDER", "ollama")
+    provider = os.environ.get("AI_PROVIDER", "gemini")
     
     # Track current provider for UI/Status purposes (optional)
     os.environ["CURRENT_AI_PROVIDER"] = provider
@@ -252,9 +252,13 @@ def generate_job_description(job_title):
     return _call_gemini(prompt) or "Error generating job description."
 
 
-def get_interview_question(answer, stage="continue", resume_context=None):
+def get_interview_question(answer, stage="continue", resume_context=None,
+                            interview_type="mixed", difficulty="medium",
+                            round_number=1, conversation_history=None):
     """
     Gets the next interview question from the Gemini API.
+    Supports adaptive difficulty, interview types (behavioral/technical/mixed),
+    round-based progression, and conversation history for coherent follow-ups.
     """
     if stage == "start":
         prompt = "You are an interviewer. Your first question is: 'Tell me about yourself.'"
@@ -263,17 +267,60 @@ def get_interview_question(answer, stage="continue", resume_context=None):
         if resume_context:
             context_str = f"Candidate Profile Context: {resume_context}\n"
         
+        # Build conversation history for context
+        history_str = ""
+        if conversation_history:
+            recent = conversation_history[-6:]  # Last 3 Q&A pairs
+            for entry in recent:
+                history_str += f"{entry}\n"
+
+        # Difficulty mapping
+        difficulty_instructions = {
+            "easy": "Ask straightforward, fundamental questions. Be encouraging and supportive.",
+            "medium": "Ask moderately challenging questions that test practical knowledge and application.",
+            "hard": "Ask advanced, scenario-based questions that require deep expertise and critical thinking."
+        }
+        diff_instruction = difficulty_instructions.get(difficulty, difficulty_instructions["medium"])
+
+        # Interview type mapping
+        type_instructions = {
+            "behavioral": "Focus on behavioral questions using the STAR method (Situation, Task, Action, Result). Ask about past experiences, teamwork, leadership, and conflict resolution.",
+            "technical": "Focus on technical questions related to the candidate's field. Ask about algorithms, system design, debugging, and domain-specific knowledge.",
+            "mixed": "Alternate between behavioral and technical questions. Use behavioral questions in odd rounds and technical questions in even rounds."
+        }
+        type_instruction = type_instructions.get(interview_type, type_instructions["mixed"])
+
+        # Progressive difficulty based on round
+        progression = "Opening ice-breaker phase."
+        if round_number <= 2:
+            progression = "Opening phase: Ask warm-up questions to put the candidate at ease."
+        elif round_number <= 5:
+            progression = "Core phase: Ask substantive questions that test competency and depth."
+        else:
+            progression = "Deep-dive phase: Ask challenging follow-up questions that probe advanced understanding."
+
         prompt = f"""
-        You are a strict but fair technical interviewer.
+        You are an expert {interview_type} interviewer conducting a structured mock interview.
+        
         {context_str}
-        The candidate's previous answer was:
+        
+        Interview Configuration:
+        - Type: {interview_type.upper()} | {type_instruction}
+        - Difficulty: {difficulty.upper()} | {diff_instruction}
+        - Round: {round_number} | {progression}
+        
+        Conversation History:
+        {history_str}
+        
+        The candidate's latest answer was:
         '{answer}'
         
         Task:
-        1. FIRST, briefly evaluate their answer (1-2 sentences). Did they answer correctly? Was it detailed enough? If wrong, gently correct them.
-        2. SECOND, ask the next relevant follow-up question to probe deeper or move to a new topic.
+        1. EVALUATE: Briefly assess their answer (2-3 sentences). Was it complete? Technical accuracy? If it's a behavioral answer, evaluate STAR method adherence. If wrong, gently correct them.
+        2. TRANSITION: Provide a smooth transition sentence.
+        3. NEXT QUESTION: Ask the next question appropriate for the current round, difficulty, and interview type.
         
-        Keep your response conversational but professional. Do not be repetitive.
+        Keep your response conversational but professional. Never repeat a question from the history.
         """
     return _call_gemini(prompt) or "I'm sorry, I had an issue generating the next question. Let's try again."
 
@@ -597,21 +644,31 @@ def analyze_market_trends(job_descriptions_sample, user_skills_summary):
 def generate_interview_report(transcript):
     """
     Generates a detailed performance report from an interview transcript.
+    Includes per-category scoring, STAR method adherence, and per-question breakdown.
     """
     prompt = f"""
-    You are an expert Interview Coach. Analyze the following interview transcript and provide a detailed report card.
+    You are an expert Interview Coach and Assessment Specialist. Analyze the following interview transcript and provide a comprehensive report card.
     
     Transcript:
     {transcript}
     
     Return a JSON object with:
     - "overall_score": (Integer 0-100)
-    - "sentiment_analysis": "Brief summary of the candidate's tone/confidence."
-    - "strengths": ["Strength 1", "Strength 2"]
+    - "communication_score": (Integer 0-100) Score for clarity, articulation, and professional language.
+    - "technical_score": (Integer 0-100) Score for technical accuracy and depth of knowledge.
+    - "behavioral_score": (Integer 0-100) Score for demonstrating leadership, teamwork, and problem-solving through examples.
+    - "problem_solving_score": (Integer 0-100) Score for analytical thinking and structured approach.
+    - "star_method_adherence": (Integer 0-100) How well the candidate structured behavioral answers using Situation-Task-Action-Result.
+    - "sentiment_analysis": "Brief summary of the candidate's tone/confidence throughout."
+    - "strengths": ["Strength 1", "Strength 2", "Strength 3"]
     - "weaknesses": ["Weakness 1", "Weakness 2"]
     - "keyword_usage": "Feedback on technical keywords used or missed."
-    - "improvement_tips": ["Tip 1", "Tip 2"]
+    - "improvement_tips": ["Tip 1", "Tip 2", "Tip 3"]
     - "confidence_trend": [A list of 5 integers representing confidence levels throughout the interview]
+    - "question_breakdown": [
+        {{"question": "Q text", "answer_score": 85, "feedback": "Brief feedback"}},
+        ...for each Q&A pair in the transcript
+      ]
     
     Return ONLY the JSON.
     """
