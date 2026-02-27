@@ -22,4 +22,5 @@ def make_shell_context():
 
 if __name__ == '__main__':
     from app.extensions import socketio
-    socketio.run(app, debug=True)
+    # Reloader enabled to pick up changes
+    socketio.run(app, debug=True, use_reloader=True)

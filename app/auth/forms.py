@@ -54,11 +54,11 @@ class RegistrationForm(FlaskForm):
             raise ValidationError('Username already in use.')
 
 
-class EmployerRegistrationForm(FlaskForm):
+class RecruiterRegistrationForm(FlaskForm):
     email = StringField('Work Email', validators=[
                         DataRequired(), Length(1, 64), Email()])
     username = StringField('Full Name', validators=[DataRequired(), Length(1, 64)])
-    company_name = StringField('Company Name', validators=[DataRequired(), Length(1, 100)])
+    organization_name = StringField('Organization Name', validators=[DataRequired(), Length(1, 100)])
     submit = SubmitField('Submit Request')
 
     def validate_email(self, field):

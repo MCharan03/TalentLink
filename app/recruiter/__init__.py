@@ -1,5 +1,5 @@
 from flask import Blueprint
 
-employer = Blueprint('employer', __name__)
+recruiter = Blueprint('recruiter', __name__)
 
 from . import routes

@@ -3,7 +3,7 @@ from app.utils.vector_utils import search_resumes_by_job_description
 from app.utils.ai_utils import _call_gemini
 import json
 
-class EmployerService:
+class RecruiterService:
     def search_talent(self, job_description_query):
         """
         Finds candidates matching the description.

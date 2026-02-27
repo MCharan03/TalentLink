@@ -1,30 +1,35 @@
 <div id="ai-bot-widget" class="ai-bot-widget">
     <!-- Chat Bubble -->
     <div id="ai-bot-bubble" class="ai-bot-bubble shadow-lg" onclick="toggleAIBot()">
-        <!-- Generic Robot Icon -->
-        <i class="fas fa-robot fa-2x text-primary"></i>
+        <!-- Feather Icon -->
+        <i data-feather="cpu" class="text-primary" style="width: 28px; height: 28px;"></i>
         <div id="ai-bot-notification" class="ai-bot-notification d-none">!</div>
+        
+        <!-- Sentient Pulse -->
+        <div class="sentient-pulse position-absolute" style="width: 10px; height: 10px; top: 5px; right: 5px;"></div>
     </div>
 
     <!-- Chat Window -->
     <div id="ai-bot-window" class="ai-bot-window shadow-lg d-none">
         <div class="ai-bot-header bg-primary text-white p-3 d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center">
-                <i class="fas fa-robot me-2"></i>
-                <span class="fw-bold">AI Assistant</span>
+                <i data-feather="cpu" class="me-2" style="width: 18px; height: 18px;"></i>
+                <span class="fw-bold">Sentient Assistant</span>
             </div>
-            <button class="btn btn-sm text-white" onclick="toggleAIBot()">&times;</button>
+            <button class="btn btn-sm text-white" onclick="toggleAIBot()">
+                <i data-feather="x" style="width: 16px; height: 16px;"></i>
+            </button>
         </div>
         <div id="ai-bot-chat-history" class="ai-bot-chat-history p-3">
             <div class="message model">
-                <p id="ai-bot-greeting">Hi! I'm your AI Assistant. How can I help you on this page?</p>
+                <p id="ai-bot-greeting" class="mb-0">Hi! I'm your Sentient Assistant. How can I help you today?</p>
             </div>
         </div>
-        <div class="ai-bot-footer p-3 border-top">
+        <div class="ai-bot-footer p-3 border-top border-glass">
             <div class="input-group">
-                <input type="text" id="ai-bot-input" class="form-control form-control-sm" placeholder="Type a message..." onkeypress="handleAIBotKey(event)">
+                <input type="text" id="ai-bot-input" class="form-control form-control-sm bg-surface text-main" placeholder="Ask anything..." onkeypress="handleAIBotKey(event)">
                 <button class="btn btn-primary btn-sm" onclick="sendAIBotMessage()">
-                    <i class="fas fa-paper-plane"></i>
+                    <i data-feather="send" style="width: 14px; height: 14px;"></i>
                 </button>
             </div>
         </div>
@@ -34,41 +39,45 @@
 <style>
     .ai-bot-widget {
         position: fixed;
-        bottom: 30px;
-        right: 30px;
+        bottom: 25px;
+        right: 25px;
         z-index: 9999;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     .ai-bot-bubble {
         width: 60px;
         height: 60px;
-        background: white;
+        background: var(--bg-card);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid var(--glass-border);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: transform 0.3s;
-        border: 2px solid #0d6efd;
+        transition: all 0.4s var(--ease-spring);
         position: relative;
     }
     .ai-bot-bubble:hover {
-        transform: scale(1.1);
+        transform: scale(1.1) translateY(-5px);
+        border-color: var(--brand-primary);
+        box-shadow: 0 10px 25px var(--glow-primary);
     }
     .ai-bot-notification {
         position: absolute;
-        top: -5px;
-        right: -5px;
-        background: red;
+        top: -2px;
+        right: -2px;
+        background: var(--brand-danger);
         color: white;
         border-radius: 50%;
-        width: 20px;
-        height: 20px;
-        font-size: 12px;
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: bold;
+        z-index: 2;
     }
     .ai-bot-window {
         position: absolute;
@@ -76,35 +85,44 @@
         right: 0;
         width: 320px;
         height: 450px;
-        background: white;
-        border-radius: 15px;
+        background: var(--bg-surface);
+        backdrop-filter: blur(30px);
+        -webkit-backdrop-filter: blur(30px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
         overflow: hidden;
         display: flex;
-        flex-column: column;
         flex-direction: column;
-        border: 1px solid rgba(0,0,0,0.1);
+        box-shadow: var(--shadow-md);
     }
     .ai-bot-chat-history {
         flex-grow: 1;
         overflow-y: auto;
-        background: #f8f9fa;
+        background: rgba(0,0,0,0.02);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
     }
     .ai-bot-chat-history .message {
-        margin-bottom: 10px;
-        padding: 10px;
-        border-radius: 10px;
+        padding: 10px 14px;
+        border-radius: 16px;
         max-width: 85%;
-        font-size: 14px;
+        font-size: 0.9rem;
+        line-height: 1.4;
     }
     .ai-bot-chat-history .message.model {
-        background: #e9ecef;
+        background: var(--bg-card);
+        border: 1px solid var(--glass-border);
+        color: var(--text-primary);
         align-self: flex-start;
+        border-bottom-left-radius: 4px;
     }
     .ai-bot-chat-history .message.user {
-        background: #0d6efd;
+        background: var(--brand-primary);
         color: white;
         align-self: flex-end;
-        margin-left: auto;
+        border-bottom-right-radius: 4px;
+        box-shadow: 0 4px 10px var(--glow-primary);
     }
 </style>
 
@@ -166,5 +184,10 @@
         div.innerHTML = `<p class="mb-0">${text}</p>`;
         history.appendChild(div);
         history.scrollTop = history.scrollHeight;
+    }
+
+    // Initialize Feather icons in the widget
+    if (typeof feather !== 'undefined') {
+        feather.replace();
     }
 </script>

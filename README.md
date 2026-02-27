@@ -7,7 +7,7 @@
 ## 🌌 The Vision
 TalentLink treats your career as a living, breathing entity. It doesn't just "analyze" your resume; it understands your trajectory. 
 - **For Candidates:** It acts as a 24/7 Career Agent, providing real-time interview coaching, resume optimization, and strategic "Bridge" roadmaps to your dream job.
-- **For Employers:** It uses semantic vector search to find candidates who *actually* fit the role, beyond just keyword matching.
+- **For Recruiters:** It uses semantic vector search to find candidates who *actually* fit the role, beyond just keyword matching.
 
 ## 🚀 Key Features
 

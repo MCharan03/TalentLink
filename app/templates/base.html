@@ -19,7 +19,6 @@
     </script>
     <style>
         /* Base overrides to ensure consistency */
-        body { overflow-x: hidden; }
         main { position: relative; z-index: 10; }
         .alert { box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
     </style>
@@ -49,8 +48,8 @@
                             <!-- User navigation moved to bottom dock -->
                         {% elif current_user.role == 'admin' %}
                             <!-- Admin navigation moved to bottom dock -->
-                        {% elif current_user.role == 'employer' %}
-                            <!-- Employer navigation moved to bottom dock -->
+                        {% elif current_user.role == 'recruiter' %}
+                            <!-- Recruiter navigation moved to bottom dock -->
                         {% endif %}
                     {% endif %}
                 </div>
@@ -138,7 +137,16 @@
         </div>
     </nav>
 
-    <main class="{% block main_container_class %}container{% endblock %} assemble-in anim-up delay-100" style="padding-top: 2rem;">
+    <main class="{% block main_container_class %}container{% endblock %} assemble-in delay-100" style="padding-top: 1rem;">
+        <style>
+            @media (min-width: 992px) {
+                main { 
+                    padding-top: 1.5rem !important; 
+                    max-width: 1320px !important;
+                    margin: 0 auto !important;
+                }
+            }
+        </style>
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -188,7 +196,7 @@
                     <span data-feather="grid" style="width: 20px; height: 20px; margin-bottom: 3px;"></span>
                     <span style="font-size: 0.7rem; font-weight: 600;">Dash</span>
                 </a>
-                <a href="{{ url_for('admin.employer_approvals') }}" class="dock-link d-flex flex-column align-items-center justify-content-center {% if request.endpoint == 'admin.employer_approvals' %}active{% endif %}" style="text-decoration: none; color: var(--text-secondary); width: 68px; height: 56px; border-radius: 18px; transition: all 0.3s ease;">
+                <a href="{{ url_for('admin.recruiter_approvals') }}" class="dock-link d-flex flex-column align-items-center justify-content-center {% if request.endpoint == 'admin.recruiter_approvals' %}active{% endif %}" style="text-decoration: none; color: var(--text-secondary); width: 68px; height: 56px; border-radius: 18px; transition: all 0.3s ease;">
                     <span data-feather="check-square" style="width: 20px; height: 20px; margin-bottom: 3px;"></span>
                     <span style="font-size: 0.7rem; font-weight: 600;">Approve</span>
                 </a>
@@ -205,12 +213,12 @@
                     <span style="font-size: 0.7rem; font-weight: 600;">Users</span>
                 </a>
 
-            {% elif current_user.role == 'employer' %}
-                <a href="{{ url_for('employer.dashboard') }}" class="dock-link d-flex flex-column align-items-center justify-content-center {% if request.endpoint == 'employer.dashboard' %}active{% endif %}" style="text-decoration: none; color: var(--text-secondary); width: 68px; height: 56px; border-radius: 18px; transition: all 0.3s ease;">
+            {% elif current_user.role == 'recruiter' %}
+                <a href="{{ url_for('recruiter.dashboard') }}" class="dock-link d-flex flex-column align-items-center justify-content-center {% if request.endpoint == 'recruiter.dashboard' %}active{% endif %}" style="text-decoration: none; color: var(--text-secondary); width: 68px; height: 56px; border-radius: 18px; transition: all 0.3s ease;">
                     <span data-feather="search" style="width: 20px; height: 20px; margin-bottom: 3px;"></span>
                     <span style="font-size: 0.7rem; font-weight: 600;">Search</span>
                 </a>
-                <a href="{{ url_for('employer.manage_jobs') }}" class="dock-link d-flex flex-column align-items-center justify-content-center {% if request.endpoint == 'employer.manage_jobs' %}active{% endif %}" style="text-decoration: none; color: var(--text-secondary); width: 68px; height: 56px; border-radius: 18px; transition: all 0.3s ease;">
+                <a href="{{ url_for('recruiter.manage_jobs') }}" class="dock-link d-flex flex-column align-items-center justify-content-center {% if request.endpoint == 'recruiter.manage_jobs' %}active{% endif %}" style="text-decoration: none; color: var(--text-secondary); width: 68px; height: 56px; border-radius: 18px; transition: all 0.3s ease;">
                     <span data-feather="briefcase" style="width: 20px; height: 20px; margin-bottom: 3px;"></span>
                     <span style="font-size: 0.7rem; font-weight: 600;">Jobs</span>
                 </a>
@@ -300,8 +308,6 @@
     {% block extra_content %}{% endblock %}
     
     <!-- AI Assistant Widget -->
-    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1000">
-        {% include 'partials/ai_bot_widget.html' %}
-    </div>
+    {% include 'partials/ai_bot_widget.html' %}
 </body>
 </html>

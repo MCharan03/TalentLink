@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Applicants: {{ job.title }}{% block extra_content %}
+{% for item in applicant_data %}
+{% if item.application.ai_interview_feedback %}
+{% set ai_feedback = item.application.ai_interview_feedback|from_json %}
+<div class="modal fade" id="aiResultModal{{ item.application.id }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-surface border-glass shadow-2xl">
+            <div class="modal-header border-bottom border-glass">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-primary bg-opacity-10 p-2 rounded text-primary">
+                        <i data-feather="cpu"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold text-main">AI Autonomous Interview Report</h5>
+                        <p class="small text-muted mb-0">{{ item.user.username }} | {{ job.title }}</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-toggle="modal" data-bs-target="#aiResultModal{{ item.application.id }}"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-4">
+                    <div class="col-md-4 border-end border-glass">
+                        <div class="text-center mb-4">
+                            <h2 class="display-4 fw-bold text-primary mb-0">{{ item.application.ai_interview_score }}</h2>
+                            <p class="small text-muted text-uppercase tracking-widest">Aggregate Score</p>
+                        </div>
+                        <div class="space-y-3">
+                             <div class="d-flex justify-content-between small mb-2">
+                                <span class="text-muted">Technical Competence</span>
+                                <span class="fw-bold">{{ ai_feedback.get('technical_competence', 'N/A') }}/10</span>
+                             </div>
+                             <div class="d-flex justify-content-between small mb-2">
+                                <span class="text-muted">Communication Skills</span>
+                                <span class="fw-bold">{{ ai_feedback.get('communication_skills', 'N/A') }}/10</span>
+                             </div>
+                             <div class="d-flex justify-content-between small mb-2">
+                                <span class="text-muted">Confidence Level</span>
+                                <span class="fw-bold">{{ ai_feedback.get('confidence_level', 'N/A') }}/10</span>
+                             </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <h6 class="fw-bold text-main mb-2">AI SCOUT'S SUMMARY</h6>
+                        <p class="text-muted" style="line-height: 1.6; font-size: 0.95rem;">
+                            {{ ai_feedback.get('overall_summary', 'AI analysis complete. Candidate displayed strong interest in the role.') }}
+                        </p>
+                        
+                        <h6 class="fw-bold text-main mt-4 mb-2">STRENGTHS</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for strength in ai_feedback.get('strengths', []) %}
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">{{ strength }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <h6 class="fw-bold text-main mt-4 mb-2">KEY AREAS FOR PROBING</h6>
+                        <ul class="text-muted small ps-3">
+                            {% for point in ai_feedback.get('improvement_points', []) %}
+                            <li>{{ point }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top border-glass">
+                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close Report</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <div class="d-flex justify-content-between align-items-center mb-5 animate-up">
+        <div>
+            <h6 class="text-primary text-uppercase mb-1">Candidate Pool</h6>
+            <h1 class="display-5 fw-bold text-main">{{ job.title }}</h1>
+        </div>
+        <a href="{{ url_for('recruiter.manage_jobs') }}" class="btn btn-outline-secondary">Back to Jobs</a>
+    </div>
+
+    {% if applicant_data %}
+    <div class="row g-4">
+        {% for item in applicant_data %}
+        <div class="col-md-6 col-xl-4 animate-up" style="animation-delay: {{ loop.index * 100 }}ms;">
+            <div class="card border-glass h-100 hover-lift">
+                <div class="card-header bg-transparent border-glass d-flex justify-content-between align-items-center">
+                    <span class="badge bg-secondary bg-opacity-25 text-main">{{ item.application.applied_at.strftime('%b
+                        %d') }}</span>
+                    {% set status_colors = {'submitted': 'primary', 'shortlisted': 'info', 'interviewing': 'warning',
+                    'rejected': 'danger', 'hired': 'success'} %}
+                    <span class="badge bg-{{ status_colors.get(item.application.status, 'secondary') }}">{{
+                        item.application.status.title() }}</span>
+                </div>
+
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center me-3"
+                            style="width: 48px; height: 48px;">
+                            <span class="fw-bold text-primary">{{ item.user.username[:2].upper() }}</span>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0 fw-bold">{{ item.user.username }}</h5>
+                            <small class="text-muted">{{ item.user.email }}</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="small text-muted fw-bold text-uppercase">Match Score</label>
+                        <div class="progress mt-1" style="height: 6px;">
+                            <div class="progress-bar bg-{{ 'success' if item.score >= 70 else 'warning' if item.score >= 40 else 'danger' }}"
+                                role="progressbar" style="width: {{ item.score if item.score != 'N/A' else 0 }}%"></div>
+                        </div>
+                        <div class="d-flex justify-content-end mt-1">
+                            <span class="small fw-bold text-main">{{ item.score }}%</span>
+                        </div>
+                    </div>
+
+                    {% if item.application.ai_interview_score is not none %}
+                    <div class="mb-4 p-2 bg-primary bg-opacity-5 rounded border border-primary border-opacity-10">
+                        <label class="small text-primary fw-bold text-uppercase d-flex justify-content-between">
+                            AI Round Score
+                            <span class="badge bg-primary">{{ item.application.ai_interview_score }}/100</span>
+                        </label>
+                        <div class="mt-2 small text-muted text-truncate" style="font-size: 0.75rem;">
+                             {% set ai_feedback = item.application.ai_interview_feedback|from_json if item.application.ai_interview_feedback else {} %}
+                             {{ ai_feedback.get('overall_summary', 'AI analysis complete.') }}
+                        </div>
+                        <div class="mt-2">
+                             <a href="javascript:void(0)" class="text-primary small fw-bold" style="text-decoration: none;" data-bs-toggle="modal" data-bs-target="#aiResultModal{{ item.application.id }}">
+                                 <span data-feather="terminal" style="width: 12px; height: 12px;"></span> View AI Report
+                             </a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('recruiter.candidate_profile', user_id=item.user.id) }}"
+                            class="btn btn-outline-primary">
+                            <span data-feather="user" class="me-2"></span> View Profile
+                        </a>
+                        {% if item.application.resume_path %}
+                        <a href="{{ url_for('user.uploaded_file', filename=item.application.resume_path) }}"
+                            class="btn btn-outline-secondary" target="_blank">
+                            <span data-feather="file-text" class="me-2"></span> View Resume
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card-footer bg-transparent border-glass">
+                    <div class="dropdown w-100">
+                        <button class="btn btn-sm btn-secondary w-100 dropdown-toggle" type="button"
+                            data-bs-toggle="dropdown">
+                            Change Status
+                        </button>
+                        <ul class="dropdown-menu w-100">
+                            <li><a class="dropdown-item"
+                                    href="{{ url_for('recruiter.update_application_status', app_id=item.application.id, status='shortlisted') }}">Shortlist</a>
+                            </li>
+                            <li><a class="dropdown-item"
+                                    href="{{ url_for('recruiter.update_application_status', app_id=item.application.id, status='ai_interview') }}">AI Interview (1st Round)</a>
+                            </li>
+                            <li><a class="dropdown-item"
+                                    href="{{ url_for('recruiter.update_application_status', app_id=item.application.id, status='interviewing') }}">Interview (2nd Round)</a>
+                            </li>
+                            <li><a class="dropdown-item text-success"
+                                    href="{{ url_for('recruiter.update_application_status', app_id=item.application.id, status='hired') }}">Hire</a>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider border-glass">
+                            </li>
+                            <li><a class="dropdown-item text-danger"
+                                    href="{{ url_for('recruiter.update_application_status', app_id=item.application.id, status='rejected') }}">Reject</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5 animate-up">
+        <div class="mb-3 text-muted opacity-50">
+            <span data-feather="users" style="width: 64px; height: 64px;"></span>
+        </div>
+        <h3 class="text-muted">No Applicants Yet</h3>
+        <p class="text-muted">Share your job posting to attract talent.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

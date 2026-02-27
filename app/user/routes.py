@@ -358,7 +358,7 @@ def resume_analysis():
             db.session.add(user_data)
             db.session.commit()
 
-            # Index for Employer Search
+            # Index for Recruiter Search
             try:
                 skills = analysis_result.get('actual_skills', [])
                 add_resume_to_vector_db(current_user.id, resume_text, skills)
@@ -710,13 +710,28 @@ def load_recommended_jobs():
                            applied_job_ids=applied_job_ids,
                            has_resume=True)
 
-@user.route('/application_details/<int:app_id>')
+@user.route('/take_ai_interview/<int:app_id>')
 @login_required
-def application_details(app_id):
+def take_ai_interview(app_id):
     application = JobApplication.query.get_or_404(app_id)
     if application.user_id != current_user.id:
         abort(403)
-    return render_template('user/application_details.html', application=application)
+        
+    if application.status != 'ai_interview':
+        flash('This application is not currently in the AI Interview stage.', 'warning')
+        return redirect(url_for('user.dashboard'))
+        
+    job = application.job
+    # AI Interview Round Settings
+    agent_name = job.ai_interviewer_name or "Aura AI"
+    
+    # Track which application this interview is for in session
+    session['ai_interview_app_id'] = app_id
+    
+    return render_template('user/mock_interview_session.html', 
+                           is_real_interview=True,
+                           job=job,
+                           agent_name=agent_name)
 
 @user.route('/api/calculate_match', methods=['POST'])
 @login_required
@@ -948,17 +963,17 @@ def uploaded_file(filename):
     is_owner = (current_user.id == file_owner_id)
     is_admin = (current_user.role == 'admin')
     
-    is_authorized_employer = False
-    if current_user.role == 'employer':
-        # Check if the file owner has applied to any job created by this employer
+    is_authorized_recruiter = False
+    if current_user.role == 'recruiter':
+        # Check if the file owner has applied to any job created by this recruiter
         has_application = JobApplication.query.join(JobPosting).filter(
             JobApplication.user_id == file_owner_id,
             JobPosting.created_by == current_user.id
         ).first()
         if has_application:
-            is_authorized_employer = True
+            is_authorized_recruiter = True
 
-    if not (is_owner or is_admin or is_authorized_employer):
+    if not (is_owner or is_admin or is_authorized_recruiter):
         abort(403)
 
     upload_folder = current_app.config['UPLOAD_FOLDER']

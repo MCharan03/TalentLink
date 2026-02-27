@@ -460,7 +460,6 @@ body {
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     min-height: 100vh;
-    overflow-x: hidden;
     position: relative;
     /* For background blobs */
 }
@@ -624,47 +623,56 @@ a:hover {
    ========================================= */
 
 .navbar {
-    background: var(--bg-glass);
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    background: var(--bg-card);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
-    /* Curved edges */
-    margin: 1rem;
-    /* Floating margin on all sides */
+    margin: 0.25rem auto;
+    max-width: 95%;
     position: sticky;
-    top: 1rem;
+    top: 0.25rem;
     z-index: 1000;
-    padding: 0.6rem 1rem;
+    padding: 0.25rem 1rem;
     box-shadow: var(--shadow-md);
     transition: all 0.4s var(--ease-fluid);
 }
 
-.nav-brand {
+@media (min-width: 1200px) {
+    .navbar {
+        max-width: 1320px;
+        margin-top: 0.5rem;
+        top: 0.5rem;
+        padding: 0.35rem 1.5rem;
+    }
+}
+
+.nav-logo {
     font-weight: 800;
-    font-size: 1.25rem;
-    letter-spacing: -0.03em;
+    font-size: 1.1rem;
+    letter-spacing: -0.02em;
     color: var(--text-primary);
+    text-decoration: none;
 }
 
 .nav-link {
     color: var(--text-secondary) !important;
     font-weight: 600;
-    font-size: 0.95rem;
-    padding: 0.5rem 1.25rem !important;
+    font-size: 0.9rem;
+    padding: 0.4rem 1rem !important;
     border-radius: var(--radius-pill);
     transition: all 0.3s var(--ease-fluid);
 }
 
 .nav-link:hover {
-    background: var(--bg-card);
+    background: rgba(255, 255, 255, 0.05);
     color: var(--text-primary) !important;
 }
 
 .nav-link.active {
     background: var(--brand-primary) !important;
     color: #fff !important;
-    box-shadow: 0 4px 15px var(--glow-primary);
+    box-shadow: 0 4px 12px var(--glow-primary);
 }
 
 /* =========================================
@@ -953,49 +961,6 @@ a:hover {
 .nav-pills .nav-link.active {
     background: var(--brand-primary) !important;
     color: #fff !important;
-}
-
-/* =========================================
-   🧭 NAVIGATION
-   ========================================= */
-
-.navbar {
-    background: var(--bg-glass);
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
-    border-bottom: 1px solid var(--border-light);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    padding: 0.8rem 0;
-}
-
-.nav-brand {
-    font-weight: 800;
-    font-size: 1.25rem;
-    letter-spacing: -0.02em;
-    color: var(--text-primary);
-}
-
-.nav-link {
-    color: var(--text-secondary) !important;
-    font-weight: 600;
-    font-size: 0.95rem;
-    padding: 0.6rem 1.2rem !important;
-    border-radius: var(--radius-pill);
-    /* Pill shape for nav items */
-    transition: all 0.3s var(--ease-smooth);
-}
-
-.nav-link:hover {
-    color: var(--text-primary) !important;
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.nav-link.active {
-    color: #fff !important;
-    background: var(--brand-primary) !important;
-    box-shadow: 0 4px 12px var(--glow-primary);
 }
 
 /* Sidebar Nav Pills */
@@ -1365,7 +1330,7 @@ a:hover {
 
 .admin-container {
     width: 100%;
-    max-width: 1600px;
+    max-width: 1320px;
     margin-left: auto;
     margin-right: auto;
     padding-left: 1.5rem;
@@ -1381,7 +1346,6 @@ a:hover {
 
 .admin-main {
     width: 100%;
-    max-width: 1320px;
 }
 
 .notification-unread {

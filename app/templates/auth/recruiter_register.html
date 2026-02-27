@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}Employer Registration{% endblock %}
+{% block title %}Recruiter Registration{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center mt-5 animate-in">
     <div class="col-md-8 col-lg-6">
         <div class="card shadow border-0">
             <div class="card-header bg-primary text-white p-4 rounded-top">
-                <h3 class="mb-0 fw-bold">Employer Partner Program</h3>
+                <h3 class="mb-0 fw-bold">Recruiter Partner Program</h3>
                 <p class="mb-0 opacity-75">Join our network to find top talent.</p>
             </div>
 
@@ -32,9 +32,9 @@
                         {% endfor %}
                     </div>
                     <div class="mb-3">
-                        {{ form.company_name.label(class="form-label") }}
-                        {{ form.company_name(class="form-control", placeholder="e.g. TechCorp Inc.") }}
-                        {% for error in form.company_name.errors %}
+                        {{ form.organization_name.label(class="form-label") }}
+                        {{ form.organization_name(class="form-control", placeholder="e.g. TechCorp Inc.") }}
+                        {% for error in form.organization_name.errors %}
                         <span class="text-danger">[{{ error }}]</span>
                         {% endfor %}
                     </div>

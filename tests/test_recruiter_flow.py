@@ -1,6 +1,6 @@
 import pytest
 from app import create_app, db
-from app.models import User, EmployerProfile, Company
+from app.models import User, RecruiterProfile, Organization
 
 @pytest.fixture
 def client():
@@ -15,12 +15,12 @@ def client():
             db.session.remove()
             db.drop_all()
 
-def test_employer_registration_flow(client):
-    # 1. Submit Employer Request
-    response = client.post('/auth/register/employer', data={
+def test_recruiter_registration_flow(client):
+    # 1. Submit Recruiter Request
+    response = client.post('/auth/register/recruiter', data={
         'email': 'recruiter@tech.com',
         'username': 'Recruiter Bob',
-        'company_name': 'Tech Giants'
+        'organization_name': 'Tech Giants'
     }, follow_redirects=True)
     
     assert response.status_code == 200
@@ -29,16 +29,12 @@ def test_employer_registration_flow(client):
     # 2. Verify DB State
     user = User.query.filter_by(email='recruiter@tech.com').first()
     assert user is not None
-    assert user.role == 'employer'
-    assert user.employer_profile is not None
-    assert user.employer_profile.is_verified == False
-    assert user.employer_profile.company.name == 'Tech Giants'
+    assert user.role == 'recruiter'
+    assert user.recruiter_profile is not None
+    assert user.recruiter_profile.is_verified == False
+    assert user.recruiter_profile.organization.name == 'Tech Giants'
 
     # 3. Try to Login (Should fail/warn)
-    # We can't easily guess the random password, but even if we could, logic prevents login?
-    # Actually, the logic in login route checks 'employer' role and 'is_verified'.
-    # We can try to login if we mock the password check, but the user has a random password.
-    # We can manually set the password to test the check.
     user.set_password('knownpassword')
     db.session.commit()
 
@@ -60,21 +56,14 @@ def test_employer_registration_flow(client):
     client.post('/auth/login', data={'email': 'admin@sra.com', 'password': 'adminpass'})
     
     # Approve
-    profile = user.employer_profile
-    response = client.post(f'/admin/approve_employer/{profile.id}', follow_redirects=True)
+    profile = user.recruiter_profile
+    response = client.post(f'/admin/approve_recruiter/{profile.id}', follow_redirects=True)
     assert response.status_code == 200
-    assert b'Employer Recruiter Bob approved' in response.data
+    assert b'Recruiter Recruiter Bob approved' in response.data
 
-    # 5. Login Success (Employer)
-    # We need to know the password generated. In real app it's emailed.
-    # In test, we can't easily intercept the email content unless we mock mail.send completely and inspect args.
-    # But since we generated a random password in the route, we don't know it here.
-    # So for this test, we will cheat and manually set password AGAIN after approval, 
-    # just to verify the 'is_verified' check passes.
-    # The key is that approval route sets is_verified=True.
-    
+    # 5. Login Success (Recruiter)
     user = User.query.filter_by(email='recruiter@tech.com').first()
-    assert user.employer_profile.is_verified == True
+    assert user.recruiter_profile.is_verified == True
     
     user.set_password('newknownpassword')
     db.session.commit()
@@ -84,5 +73,5 @@ def test_employer_registration_flow(client):
         'password': 'newknownpassword'
     }, follow_redirects=True)
     
-    # Should redirect to employer dashboard
-    assert b'Talent Search' in response.data or response.request.path == '/employer/dashboard'
+    # Should redirect to recruiter dashboard
+    assert b'Talent Search' in response.data or response.request.path == '/recruiter/dashboard'

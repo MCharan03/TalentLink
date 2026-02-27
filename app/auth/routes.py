@@ -1,8 +1,8 @@
 from flask import render_template, redirect, request, url_for, flash, current_app, session
 from flask_login import login_user, logout_user, login_required, current_user
 from . import auth
-from ..models import User, Notification, Company, EmployerProfile
-from .forms import LoginForm, RegistrationForm, EmployerRegistrationForm, ForgotPasswordForm, ResetPasswordForm
+from ..models import User, Notification, Organization, RecruiterProfile
+from .forms import LoginForm, RegistrationForm, RecruiterRegistrationForm, ForgotPasswordForm, ResetPasswordForm
 from ..extensions import db, oauth
 from ..utils.email_utils import send_email
 from ..utils.auth_utils import (
@@ -19,37 +19,15 @@ def get_google_client():
         name='google',
         client_id=os.getenv('GOOGLE_CLIENT_ID'),
         client_secret=os.getenv('GOOGLE_CLIENT_SECRET'),
-        access_token_url='https://accounts.google.com/o/oauth2/token',
-        access_token_params=None,
-        authorize_url='https://accounts.google.com/o/oauth2/auth',
-        authorize_params=None,
-        api_base_url='https://www.googleapis.com/oauth2/v1/',
+        server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
         client_kwargs={'scope': 'openid email profile'},
     )
-
-def get_linkedin_client():
-    return oauth.register(
-        name='linkedin',
-        client_id=os.getenv('LINKEDIN_CLIENT_ID'),
-        client_secret=os.getenv('LINKEDIN_CLIENT_SECRET'),
-        access_token_url='https://www.linkedin.com/oauth/v2/accessToken',
-        access_token_params=None,
-        authorize_url='https://www.linkedin.com/oauth/v2/authorization',
-        authorize_params=None,
-        api_base_url='https://api.linkedin.com/v2/',
-        client_kwargs={'scope': 'openid profile email'},
-    )
-
 
 @auth.route('/oauth/<provider>')
 def oauth_login(provider):
     if provider == 'google':
         client = get_google_client()
         redirect_uri = url_for('auth.oauth_authorize', provider='google', _external=True)
-        return client.authorize_redirect(redirect_uri)
-    elif provider == 'linkedin':
-        client = get_linkedin_client()
-        redirect_uri = url_for('auth.oauth_authorize', provider='linkedin', _external=True)
         return client.authorize_redirect(redirect_uri)
     else:
         flash('Unsupported login provider.', 'danger')
@@ -67,15 +45,6 @@ def oauth_authorize(provider):
         name = user_info.get('name')
         social_id = user_info.get('id')
         
-    elif provider == 'linkedin':
-        client = get_linkedin_client()
-        token = client.authorize_access_token()
-        user_info = client.get('userinfo').json()
-        
-        email = user_info.get('email')
-        name = user_info.get('name')
-        social_id = user_info.get('sub')  # LinkedIn OpenID uses 'sub'
-        
     else:
         flash('Unknown provider', 'danger')
         return redirect(url_for('auth.login'))
@@ -91,9 +60,6 @@ def oauth_authorize(provider):
         # User exists, link account if not linked
         if provider == 'google' and not user.google_id:
             user.google_id = social_id
-            db.session.commit()
-        elif provider == 'linkedin' and not user.linkedin_id:
-            user.linkedin_id = social_id
             db.session.commit()
         
         # OAuth users are auto-verified
@@ -119,8 +85,6 @@ def oauth_authorize(provider):
                         is_verified=True, verified_at=datetime.utcnow())
         if provider == 'google':
             new_user.google_id = social_id
-        elif provider == 'linkedin':
-            new_user.linkedin_id = social_id
             
         db.session.add(new_user)
         db.session.commit()
@@ -153,14 +117,14 @@ def login():
 
         user = User.query.filter_by(email=email).first()
         if user is not None and user.check_password(form.password.data):
-            # Check email verification (skip for admin, employer, and OAuth users)
-            if not user.is_verified and user.role not in ('admin', 'employer') and not user.google_id and not user.linkedin_id:
+            # Check email verification (skip for admin, recruiter, and OAuth users)
+            if not user.is_verified and user.role not in ('admin', 'recruiter') and not user.google_id and not user.linkedin_id:
                 flash('Please verify your email before logging in. Check your inbox for the verification link.', 'warning')
                 return render_template('auth/login.html', form=form)
 
-            # Check for employer approval
-            if user.role == 'employer':
-                if not user.employer_profile or not user.employer_profile.is_verified:
+            # Check for recruiter approval
+            if user.role == 'recruiter':
+                if not user.recruiter_profile or not user.recruiter_profile.is_verified:
                     flash('Your account is pending approval. Please check your email for status updates.', 'warning')
                     return render_template('auth/login.html', form=form)
 
@@ -170,8 +134,8 @@ def login():
             if next_page is None or not next_page.startswith('/'):
                 if user.role == 'admin':
                     next_page = url_for('admin.dashboard')
-                elif user.role == 'employer':
-                    next_page = url_for('employer.dashboard')
+                elif user.role == 'recruiter':
+                    next_page = url_for('recruiter.dashboard')
                 else:
                     next_page = url_for('user.dashboard')
             return redirect(next_page)
@@ -330,37 +294,37 @@ def reset_password(token):
     return render_template('auth/reset_password.html', form=form, token=token)
 
 
-@auth.route('/register/employer', methods=['GET', 'POST'])
-def register_employer():
-    form = EmployerRegistrationForm()
+@auth.route('/register/recruiter', methods=['GET', 'POST'])
+def register_recruiter():
+    form = RecruiterRegistrationForm()
     if form.validate_on_submit():
         import secrets
         temp_pass = secrets.token_urlsafe(16)
         
         user = User(email=form.email.data,
                     username=form.username.data,
-                    role='employer')
+                    role='recruiter')
         user.set_password(temp_pass)
         db.session.add(user)
         db.session.flush()
 
-        company = Company.query.filter_by(name=form.company_name.data).first()
-        if not company:
-            company = Company(name=form.company_name.data)
-            db.session.add(company)
+        organization = Organization.query.filter_by(name=form.organization_name.data).first()
+        if not organization:
+            organization = Organization(name=form.organization_name.data)
+            db.session.add(organization)
             db.session.flush()
             
-        profile = EmployerProfile(user_id=user.id, company_id=company.id, is_verified=False)
+        profile = RecruiterProfile(user_id=user.id, organization_id=organization.id, is_verified=False)
         db.session.add(profile)
         db.session.commit()
 
         try:
             send_email(
                 to=user.email,
-                subject="Employer Request Received - SRA",
+                subject="Recruiter Request Received - SRA",
                 template=None,
                 category='general',
-                body=f"Hello {user.username},\n\nWe have received your request to join as an Employer/Recruiter for {company.name}.\n\nOur admin team will review your application. Upon approval, you will receive your login credentials via email.\n\nThank you,\nSRA Team"
+                body=f"Hello {user.username},\n\nWe have received your request to join as a Recruiter for {organization.name}.\n\nOur admin team will review your application. Upon approval, you will receive your login credentials via email.\n\nThank you,\nSRA Team"
             )
         except Exception as e:
             print(f"Error sending email: {e}")
@@ -368,4 +332,4 @@ def register_employer():
         flash('Request submitted successfully! We will notify you via email upon approval.', 'success')
         return redirect(url_for('auth.login'))
         
-    return render_template('auth/employer_register.html', form=form)
+    return render_template('auth/recruiter_register.html', form=form)

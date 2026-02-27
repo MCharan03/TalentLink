@@ -20,6 +20,9 @@ class User(UserMixin, db.Model):
     # Relationships
     xp_profile = db.relationship('UserXP', backref='user', uselist=False, cascade='all, delete-orphan')
     github_profile = db.relationship('GitHubProfile', backref='user', uselist=False, cascade='all, delete-orphan')
+    user_quests = db.relationship('UserQuest', backref='user', cascade='all, delete-orphan')
+    job_postings = db.relationship('JobPosting', backref='creator', cascade='all, delete-orphan')
+    recruiter_profile = db.relationship('RecruiterProfile', backref='user', uselist=False, cascade='all, delete-orphan')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -47,11 +50,14 @@ class JobPosting(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120))
     description = db.Column(db.Text)
-    company_id = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=True)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'), nullable=True)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    creator = db.relationship(
-        'User', backref=db.backref('job_postings', lazy=True))
+
+    # AI Interview Round Settings
+    is_ai_round_enabled = db.Column(db.Boolean, default=False)
+    ai_interviewer_name = db.Column(db.String(50), default="Aura AI")
+    ai_interview_tone = db.Column(db.String(20), default="professional") # professional, friendly, clinical, aggressive
 
 
 class JobApplication(db.Model):
@@ -60,8 +66,13 @@ class JobApplication(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     job_id = db.Column(db.Integer, db.ForeignKey('job_postings.id'))
     resume_path = db.Column(db.String(255))
-    # e.g., submitted, under review, rejected, accepted
+    # e.g., submitted, shortlisted, ai_interview, interviewing, rejected, hired
     status = db.Column(db.String(20), default='submitted')
+    current_round = db.Column(db.Integer, default=1)
+    current_round_type = db.Column(db.String(20), default='screening') # screening, ai_interview, behavioral, technical
+    round_status = db.Column(db.String(20), default='pending') # pending, in_progress, completed, failed
+    ai_interview_score = db.Column(db.Integer, nullable=True)
+    ai_interview_feedback = db.Column(db.Text, nullable=True)
     applied_at = db.Column(db.DateTime, default=datetime.utcnow)
     notes = db.Column(db.Text)
     user = db.relationship('User', backref=db.backref(
@@ -162,7 +173,7 @@ class UserQuest(db.Model):
     assigned_at = db.Column(db.DateTime, default=datetime.utcnow)
     completed_at = db.Column(db.DateTime, nullable=True)
 
-    quest = db.relationship('Quest', backref=db.backref('user_quests', lazy=True))
+    quest = db.relationship('Quest', backref=db.backref('user_quests_assoc', lazy=True))
 
 
 class GitHubProfile(db.Model):
@@ -176,28 +187,37 @@ class GitHubProfile(db.Model):
 
 # --- Ecosystem & Future Career Features ---
 
-class Company(db.Model):
-    __tablename__ = 'companies'
+class Society(db.Model):
+    __tablename__ = 'societies'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True)
+    description = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    organizations = db.relationship('Organization', backref='society', lazy=True)
+
+
+class Organization(db.Model):
+    __tablename__ = 'organizations'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), unique=True)
     website = db.Column(db.String(200))
     description = db.Column(db.Text)
+    society_id = db.Column(db.Integer, db.ForeignKey('societies.id'), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships
-    employers = db.relationship('EmployerProfile', backref='company', lazy=True)
-    jobs = db.relationship('JobPosting', backref='company', lazy=True)
+    recruiters = db.relationship('RecruiterProfile', backref='organization', lazy=True)
+    jobs = db.relationship('JobPosting', backref='organization', lazy=True)
 
 
-class EmployerProfile(db.Model):
-    __tablename__ = 'employer_profiles'
+class RecruiterProfile(db.Model):
+    __tablename__ = 'recruiter_profiles'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique=True)
-    company_id = db.Column(db.Integer, db.ForeignKey('companies.id'))
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'))
     department = db.Column(db.String(100))
     is_verified = db.Column(db.Boolean, default=False)
-    
-    user = db.relationship('User', backref=db.backref('employer_profile', uselist=False))
 
 
 class CareerForecast(db.Model):
@@ -235,3 +255,14 @@ class SystemSetting(db.Model):
     def get_setting(key, default=None):
         setting = SystemSetting.query.filter_by(key=key).first()
         return setting.value if setting else default
+
+
+class AIAgent(db.Model):
+    __tablename__ = 'ai_agents'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True)
+    description = db.Column(db.Text)
+    personality_prompt = db.Column(db.Text)
+    # e.g. screening, technical, behavioral
+    round_specialty = db.Column(db.String(20))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)

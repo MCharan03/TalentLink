@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}Employer Portal | TalentLink{% endblock %}
+{% block title %}Recruiter Portal | TalentLink{% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold">Talent Search</h2>
+        <h2 class="fw-bold text-main">Talent Search</h2>
         <div class="d-flex align-items-center gap-2">
-            <a href="{{ url_for('employer.manage_jobs') }}" class="btn btn-outline-primary">
+            <a href="{{ url_for('recruiter.manage_jobs') }}" class="btn btn-outline-primary">
                 <span data-feather="briefcase" class="me-1"></span> Manage Jobs
                 <span class="badge bg-primary ms-1">{{ active_jobs_count }}</span>
             </a>
-            <a href="{{ url_for('employer.create_job') }}" class="btn btn-primary">
+            <a href="{{ url_for('recruiter.create_job') }}" class="btn btn-primary">
                 <span data-feather="plus" class="me-1"></span> Post Job
             </a>
         </div>
@@ -55,7 +55,7 @@
                         </div>
                     </div>
 
-                    <a href="{{ url_for('employer.candidate_profile', user_id=candidate.id, job_context=query) }}"
+                    <a href="{{ url_for('recruiter.candidate_profile', user_id=candidate.id, job_context=query) }}"
                         class="btn btn-outline-primary w-100">
                         <span data-feather="eye" class="me-1"></span> View Scout's Note
                     </a>
@@ -119,10 +119,10 @@
                     <span data-feather="zap" class="me-2 text-primary"></span> Quick Actions
                 </h5>
                 <div class="d-grid gap-2">
-                    <a href="{{ url_for('employer.create_job') }}" class="btn btn-outline-primary text-start py-3">
+                    <a href="{{ url_for('recruiter.create_job') }}" class="btn btn-outline-primary text-start py-3">
                         <span data-feather="plus-circle" class="me-2"></span> Post a New Job
                     </a>
-                    <a href="{{ url_for('employer.manage_jobs') }}" class="btn btn-outline-primary text-start py-3">
+                    <a href="{{ url_for('recruiter.manage_jobs') }}" class="btn btn-outline-primary text-start py-3">
                         <span data-feather="list" class="me-2"></span> View All Job Listings
                     </a>
                 </div>

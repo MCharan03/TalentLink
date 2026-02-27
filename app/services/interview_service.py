@@ -97,9 +97,25 @@ class InterviewService:
                 )
                 db.session.add(interview_record)
                 
+                # Check if this was a "Real" application interview
+                from flask import session
+                from app.models import JobApplication
+                app_id = session.get('ai_interview_app_id')
+                if app_id:
+                    application = JobApplication.query.get(app_id)
+                    if application:
+                        application.ai_interview_score = report.get('overall_score', 0)
+                        application.ai_interview_feedback = json.dumps(report)
+                        application.round_status = 'completed'
+                        application.status = 'shortlisted' # Automatically move to next if complete? Or wait for recruiter.
+                        # Let's say we move to shortlisted for recruiter to review
+                        
+                        # Cleanup session
+                        session.pop('ai_interview_app_id', None)
+                
                 # Gamification: Award XP and check quests
                 from .gamification_service import gamification_service
-                gamification_service.award_xp(user.id, 200, "completing a Mock Interview")
+                gamification_service.award_xp(user.id, 200, "completing an AI Recruiter Interview")
                 gamification_service.check_quests(user.id, "mock_interview")
                 
                 db.session.commit()

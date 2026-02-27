@@ -27,8 +27,8 @@ def create_app(config_name='default'):
     from .admin import admin as admin_blueprint
     app.register_blueprint(admin_blueprint, url_prefix='/admin')
 
-    from .employer import employer as employer_blueprint
-    app.register_blueprint(employer_blueprint, url_prefix='/employer')
+    from .recruiter import recruiter as recruiter_blueprint
+    app.register_blueprint(recruiter_blueprint, url_prefix='/recruiter')
 
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)
@@ -83,6 +83,19 @@ def create_app(config_name='default'):
     @app.context_processor
     def inject_notifications():
         return dict(Notification=Notification, desc=desc)
+
+    # Register Jinja filters
+    import json
+    @app.template_filter('from_json')
+    def from_json_filter(value):
+        try:
+            return json.loads(value)
+        except (ValueError, TypeError):
+            return {}
+
+    @app.template_filter('to_json')
+    def to_json_filter(value):
+        return json.dumps(value)
 
     # Register SocketIO events
     with app.app_context():

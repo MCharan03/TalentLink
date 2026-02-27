@@ -18,9 +18,16 @@ def self_healing_gate(f):
         # 2. Check if this specific route is "sick"
         route = request.endpoint or request.path
         if Homeostasis.is_route_sick(route):
+            # ALLOW ADMINS TO BYPASS ROUTE-SPECIFIC BLOCKS
+            if current_user.is_authenticated and current_user.role == 'admin':
+                print(f"DEBUG: Route {route} is sick but ADMIN is bypassing.", flush=True)
+                return f(*args, **kwargs)
+            
+            print(f"DEBUG: Route {route} is blocked (sick) for non-admin.", flush=True)
             return render_template('errors/500.html', 
                                  message=f"Neural path '{route}' is unstable. Rerouting to safe sub-routines."), 503
 
+        print(f"DEBUG: Route {route} is healthy or admin-bypass.", flush=True)
         return f(*args, **kwargs)
     return decorated_function
 
@@ -35,15 +42,15 @@ def admin_required(f):
     return decorated_function
 
 
-def employer_required(f):
+def recruiter_required(f):
     @wraps(f)
     @self_healing_gate
     def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or current_user.role not in ['employer', 'admin']:
+        if not current_user.is_authenticated or current_user.role not in ['recruiter', 'admin']:
             abort(403)
-        # Additional check: If employer, must be verified
-        if current_user.role == 'employer':
-            if not current_user.employer_profile or not current_user.employer_profile.is_verified:
+        # Additional check: If recruiter, must be verified
+        if current_user.role == 'recruiter':
+            if not current_user.recruiter_profile or not current_user.recruiter_profile.is_verified:
                 abort(403)
         return f(*args, **kwargs)
     return decorated_function

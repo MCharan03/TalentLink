@@ -7,22 +7,22 @@ from datetime import datetime
 from . import admin
 from .forms import JobPostingForm
 from ..extensions import db
-from ..models import JobPosting, JobApplication, User, UserData, MockTest, MockInterview, Notification, SystemSetting, Quest, Company, EmployerProfile
+from ..models import JobPosting, JobApplication, User, UserData, MockTest, MockInterview, Notification, SystemSetting, Quest, Organization, RecruiterProfile
 from ..utils.ai_utils import generate_job_description, analyze_market_trends
 from ..decorators import admin_required
 import threading
 
 
-@admin.route('/employer_approvals')
+@admin.route('/recruiter_approvals')
 @admin_required
-def employer_approvals():
-    pending_employers = EmployerProfile.query.filter_by(is_verified=False).all()
-    return render_template('admin/employer_approvals.html', pending_employers=pending_employers)
+def recruiter_approvals():
+    pending_recruiters = RecruiterProfile.query.filter_by(is_verified=False).all()
+    return render_template('admin/recruiter_approvals.html', pending_recruiters=pending_recruiters)
 
-@admin.route('/approve_employer/<int:profile_id>', methods=['POST'])
+@admin.route('/approve_recruiter/<int:profile_id>', methods=['POST'])
 @admin_required
-def approve_employer(profile_id):
-    profile = EmployerProfile.query.get_or_404(profile_id)
+def approve_recruiter(profile_id):
+    profile = RecruiterProfile.query.get_or_404(profile_id)
     user = profile.user
     
     # 1. Generate Credentials
@@ -32,6 +32,7 @@ def approve_employer(profile_id):
     password = ''.join(secrets.choice(alphabet) for i in range(12))
     
     user.set_password(password)
+    user.role = 'recruiter' # Ensure role is set
     profile.is_verified = True
     db.session.commit()
     
@@ -40,12 +41,12 @@ def approve_employer(profile_id):
         from ..utils.email_utils import send_email
         send_email(
             to=user.email,
-            subject="Your Employer Account is Approved - SRA",
+            subject="Your Recruiter Account is Approved - SRA",
             template=None,
             category='partners',
             body=f"""Hello {user.username},
 
-Your request to join as an Employer for {profile.company.name} has been approved!
+Your request to join as a Recruiter for {profile.organization.name} has been approved!
 
 Here are your login credentials:
 Email: {user.email}
@@ -58,16 +59,16 @@ Login here: {url_for('auth.login', _external=True)}
 Welcome aboard,
 SRA Admin Team"""
         )
-        flash(f'Employer {user.username} approved and credentials sent.', 'success')
+        flash(f'Recruiter {user.username} approved and credentials sent.', 'success')
     except Exception as e:
-        flash(f'Employer approved but email failed: {e}', 'warning')
+        flash(f'Recruiter approved but email failed: {e}', 'warning')
         
-    return redirect(url_for('admin.employer_approvals'))
+    return redirect(url_for('admin.recruiter_approvals'))
 
-@admin.route('/reject_employer/<int:profile_id>', methods=['POST'])
+@admin.route('/reject_recruiter/<int:profile_id>', methods=['POST'])
 @admin_required
-def reject_employer(profile_id):
-    profile = EmployerProfile.query.get_or_404(profile_id)
+def reject_recruiter(profile_id):
+    profile = RecruiterProfile.query.get_or_404(profile_id)
     user = profile.user
     
     # Send Rejection Email first
@@ -75,12 +76,12 @@ def reject_employer(profile_id):
         from ..utils.email_utils import send_email
         send_email(
             to=user.email,
-            subject="Update on your Employer Request - SRA",
+            subject="Update on your Recruiter Request - SRA",
             template=None,
             category='partners',
             body=f"""Hello {user.username},
 
-Thank you for your interest in joining SRA as an Employer.
+Thank you for your interest in joining SRA as a Recruiter.
 After reviewing your request, we are unable to approve your account at this time.
 
 If you believe this is an error, please contact support.
@@ -93,11 +94,11 @@ SRA Admin Team"""
 
     # Delete Data
     db.session.delete(profile)
-    db.session.delete(user) # Cascade should handle profile but safe to be explicit or let cascade work
+    db.session.delete(user) 
     db.session.commit()
     
-    flash(f'Employer request for {user.email} rejected and deleted.', 'info')
-    return redirect(url_for('admin.employer_approvals'))
+    flash(f'Recruiter request for {user.email} rejected and deleted.', 'info')
+    return redirect(url_for('admin.recruiter_approvals'))
 
 @admin.route('/controls')
 @admin_required
@@ -301,7 +302,7 @@ def update_user_role(user_id):
         flash('You cannot change your own role.', 'danger')
         return redirect(url_for('admin.user_management'))
         
-    if new_role in ['user', 'employer', 'admin']:
+    if new_role in ['user', 'recruiter', 'admin']:
         user.role = new_role
         db.session.commit()
         flash(f'User {user.username} role updated to {new_role}.', 'success')
@@ -313,19 +314,43 @@ def update_user_role(user_id):
 @admin.route('/delete_user/<int:user_id>', methods=['POST'])
 @admin_required
 def delete_user(user_id):
+    import time
+    timestamp = time.strftime('%H:%M:%S')
+    print(f"[{timestamp}] DEBUG: START Attempting to delete user_id: {user_id}", flush=True)
+    
     user = User.query.get_or_404(user_id)
     
     if user.id == current_user.id:
+        print(f"[{timestamp}] DEBUG: User {user_id} tried to delete themselves. ABORTING.", flush=True)
         flash('You cannot delete yourself.', 'danger')
         return redirect(url_for('admin.user_management'))
         
     try:
-        # Delete related data via cascade usually works, but safe to be manual if needed
-        # Assuming cascade is set up in models or we rely on DB
+        print(f"[{timestamp}] DEBUG: Manual cleanup of related data for {user.username}...", flush=True)
+        # Manually delete dependencies if they are blocking
+        # These will handle cases where cascade might be stuck or missing
+        Notification.query.filter_by(user_id=user.id).delete()
+        JobApplication.query.filter_by(user_id=user.id).delete()
+        UserData.query.filter_by(user_id=user.id).delete()
+        MockTest.query.filter_by(user_id=user.id).delete()
+        MockInterview.query.filter_by(user_id=user.id).delete()
+        
+        from ..models import UserQuest, UserXP, CareerForecast
+        UserQuest.query.filter_by(user_id=user.id).delete()
+        UserXP.query.filter_by(user_id=user.id).delete()
+        CareerForecast.query.filter_by(user_id=user.id).delete()
+        
+        # Recruiter Profile
+        if user.recruiter_profile:
+            db.session.delete(user.recruiter_profile)
+        
+        print(f"[{timestamp}] DEBUG: Deleting main user record...", flush=True)
         db.session.delete(user)
         db.session.commit()
+        print(f"[{timestamp}] DEBUG: SUCCESS. User {user_id} deleted.", flush=True)
         flash(f'User {user.username} deleted.', 'success')
     except Exception as e:
+        print(f"[{timestamp}] DEBUG: ERROR during delete: {e}", flush=True)
         db.session.rollback()
         flash(f'Error deleting user: {e}', 'danger')
         
@@ -437,12 +462,8 @@ def edit_job(job_id):
         
     return render_template('admin/edit_job.html', form=form, job=job)
 
-from ..decorators import admin_required, employer_required
-
-# ... (inside file) ...
-
-@admin.route('/api/generate_job_desc', methods=['POST'])
-@employer_required
+from ..decorators import admin_required, recruiter_required
+@recruiter_required
 def generate_job_desc_api():
     data = request.get_json()
     title = data.get('title')

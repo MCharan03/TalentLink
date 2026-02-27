@@ -6,15 +6,22 @@ from threading import Thread
 
 def send_async_email(app, msg):
     with app.app_context():
-        mail.send(msg)
+        try:
+            print(f"Sending async email to {msg.recipients}...")
+            mail.send(msg)
+            print("Async email sent successfully.")
+        except Exception as e:
+            print(f"Failed to send async email: {e}")
 
 
 def send_email(to, subject, template, category='default', **kwargs):
     app = current_app._get_current_object()
+    print(f"Preparing to send email to {to} [category={category}]")
     
     # Select sender based on category
     senders = app.config.get('EMAIL_SENDERS', {})
-    sender = senders.get(category, senders.get('default', app.config.get('ADMIN_EMAIL')))
+    # Priority: Category-specific -> Default Sender -> Mail Username (Authenticated User)
+    sender = senders.get(category) or app.config.get('MAIL_DEFAULT_SENDER') or app.config.get('MAIL_USERNAME')
     
     msg = Message(subject, sender=sender, recipients=[to])
     # msg.body = render_template(template + '.txt', **kwargs)
@@ -24,6 +31,11 @@ def send_email(to, subject, template, category='default', **kwargs):
     if 'html' in kwargs:
         msg.html = kwargs['html']
 
-    thr = Thread(target=send_async_email, args=[app, msg])
-    thr.start()
-    return thr
+    try:
+        thr = Thread(target=send_async_email, args=[app, msg])
+        thr.start()
+        print(f"Thread started for email to {to}")
+        return thr
+    except Exception as e:
+        print(f"Error starting email thread: {e}")
+        return None
