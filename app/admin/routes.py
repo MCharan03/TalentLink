@@ -463,6 +463,8 @@ def edit_job(job_id):
     return render_template('admin/edit_job.html', form=form, job=job)
 
 from ..decorators import admin_required, recruiter_required
+
+@admin.route('/api/generate_job_desc', methods=['POST'])
 @recruiter_required
 def generate_job_desc_api():
     data = request.get_json()
