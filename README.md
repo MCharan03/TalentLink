@@ -1,64 +1,119 @@
-# TalentLink | Smart Career Platform
+# TalentLink | AI-Driven Smart Career Ecosystem
 
-**TalentLink** is a comprehensive **Smart Career Platform**. Powered by Google Gemini and an advanced resume analysis engine, TalentLink bridges the gap between human potential and market opportunity with glassmorphic elegance and real-time intelligence.
+**TalentLink** is an advanced, cyberpunk-aesthetic career platform that leverages Large Language Models (Google Gemini) and Vector Embeddings to revolutionize the recruitment lifecycle. From autonomous AI interviews to strategic career roadmaps, TalentLink bridges the gap between human potential and organizational needs.
 
-![TalentLink Badge](https://img.shields.io/badge/TalentLink-Active-blue?style=for-the-badge&logo=google-gemini) ![Status](https://img.shields.io/badge/System-Online-success?style=for-the-badge)
+![TalentLink Badge](https://img.shields.io/badge/TalentLink-Neural_Active-blue?style=for-the-badge&logo=google-gemini) ![Status](https://img.shields.io/badge/System-Online-success?style=for-the-badge)
 
-## 🌌 The Vision
-TalentLink treats your career as a living, breathing entity. It doesn't just "analyze" your resume; it understands your trajectory. 
-- **For Candidates:** It acts as a 24/7 Career Agent, providing real-time interview coaching, resume optimization, and strategic "Bridge" roadmaps to your dream job.
-- **For Recruiters:** It uses semantic vector search to find candidates who *actually* fit the role, beyond just keyword matching.
+---
 
-## 🚀 Key Features
+## 🌌 Core Philosophy
+TalentLink treats careers as dynamic trajectories rather than static documents. It operates on a hierarchical ecosystem:
+- **Societies:** High-level networks of industry collectives.
+- **Organizations:** Specific entities (Companies, Institutes) within a Society.
+- **Recruiters:** Verified employees who manage talent acquisition for their Organizations.
+- **Users:** Candidates navigating their career path through AI-guided insights.
 
-### 🧠 AI Assistant
-- **Context Aware:** The assistant understands your resume context and can help with specific queries.
-- **Persistent Memory:** Remembers your skills, goals, and previous conversations.
+---
 
-### 🎯 Strategic Career Tools
-- **Dream Job Reality Bridge:** A visual gap-analysis tool. Tell it you want to be a "Senior Architect at Google," and it builds a step-by-step roadmap to get you there from your current state.
-- **Live Interview Coach:** Real-time speech recognition analyzes your interview answers and provides a detailed "Report Card" on sentiment, confidence, and technical keyword usage.
-- **Smart Resume Analysis:** Deep semantic analysis of your CV against millions of data points to predict your best-fit industry and seniority level.
+## 🚀 Key Modules
 
-### 🛡️ For The Enterprise
-- **Market Intelligence:** Aggregates real-time job data to show supply/demand trends for specific skills.
-- **Neural Matching:** Matches candidates to jobs using vector embeddings for superior relevance.
-- **Command Center:** A glassmorphic admin dashboard for full system oversight.
+### 🤖 AI Autonomous Recruitment (The Recruiter Portal)
+*Formerly "Employer Portal", now fully refactored for modern scale.*
+- **AI Round Assignment:** Recruiters can assign specific AI Agents (Aura AI, Neuro-Scribe, The Oracle) to conduct 1st-round interviews automatically.
+- **Tone Customization:** Set the interviewer's personality—from "Encouraging" to "High-Pressure/Clinical".
+- **AI Scout Reports:** Detailed feedback reports generated post-interview, including aggregate scores, strengths, and probing questions for the 2nd round.
+- **Semantic Talent Search:** Find candidates using natural language queries powered by ChromaDB vector search.
+
+### 🧠 Candidate Growth Engine
+- **Dream Job Reality Bridge:** Visual gap analysis that builds a step-by-step roadmap from your current resume to your target role.
+- **Live Interview Coach:** Real-time speech-to-text analysis during mock sessions with sentiment and technical keyword tracking.
+- **Smart Resume Analysis:** Predicts your best-fit industry, seniority level, and "Market Value" based on semantic depth.
+
+### 🛡️ System Intelligence (Admin Command Center)
+- **Homeostasis & Self-Healing:** A proactive system that monitors route health and can "quarantine" unstable neural paths.
+- **Identity Control:** Manage the verification of Recruiters and Organizations within the Society.
+- **Market Intel:** Real-time analytics on skill supply and demand clusters.
+
+---
 
 ## 🛠️ Tech Stack
-- **AI Engine:** Google Gemini 2.5 Flash-Lite (Context-Aware)
-- **Backend:** Flask, SQLAlchemy, Flask-SocketIO (Real-time)
-- **Database:** SQLite / MySQL + **ChromaDB (Vector Search)**
-- **Frontend:** Bootstrap 5, Glassmorphism CSS, Three.js (Visuals), Vanilla Tilt
-- **Audio:** Web Speech API (Recognition & Synthesis)
+- **AI Engine:** Google Gemini 2.5 Flash-Lite
+- **Vector Engine:** ChromaDB (for semantic matching)
+- **Backend:** Flask, SQLAlchemy, Flask-SocketIO (Real-time duplex communication)
+- **Frontend:** HTML5/CSS3 (Glassmorphism), Three.js (3D visuals), Feather Icons
+- **Database:** SQLite (Dev) / MySQL (Prod)
+- **Audio:** Web Speech API
 
-## 📦 Quick Start
+---
 
-### 1. Clone & Setup
+## 📦 Project Setup
+
+### 1. Prerequisites
+- Python 3.10+
+- A Google Gemini API Key (obtain from [Google AI Studio](https://aistudio.google.com/))
+
+### 2. Installation
 ```bash
+# Clone the repository
 git clone <repo_url>
 cd TalentLink
+
+# Create and activate virtual environment
 python -m venv venv
-# Activate venv (Windows: venv\Scripts\activate, Mac/Linux: source venv/bin/activate)
+venv\Scripts\activate  # Windows
+source venv/bin/activate  # Mac/Linux
+
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-### 2. Configuration
-Create a `.env` file with your keys:
+### 3. Environment Configuration
+Create a `.env` file in the root directory:
 ```env
-GEMINI_API_KEY=your_gemini_key_here
-SECRET_KEY=super_secret_key
+FLASK_APP=run.py
+FLASK_ENV=development
+SECRET_KEY=your_secret_key
+GEMINI_API_KEY=your_api_key_here
+
+# Admin Initial Credentials
+ADMIN_EMAIL=admin@talentlink.ai
+ADMIN_PASSWORD=your_password
 ```
 
-### 3. Launch
+### 4. Database Initialization
 ```bash
-# Initialize Database
+# Apply migrations and create tables
 flask db upgrade
 
-# Run System
+# Optional: Run the reset script if starting fresh
+python -c "from app import create_app; from app.extensions import db; app=create_app(); with app.app_context(): db.create_all()"
+```
+
+### 5. Launch the Neural Link
+```bash
 python run.py
 ```
-Access the neural link at `http://127.0.0.1:5000`.
+The system will be accessible at `http://127.0.0.1:5000`.
 
 ---
-*TalentLink © 2026. Empowering Human Potential.*
+
+## 📂 Project Structure
+```text
+TalentLink/
+├── app/
+│   ├── auth/           # Identity & Access Management
+│   ├── recruiter/      # Recruiter Dashboard & Job Management
+│   ├── admin/          # Command Center & System Oversight
+│   ├── user/           # Candidate Dashboard & Career Tools
+│   ├── services/       # Core Logic (AI, Interview, Gamification)
+│   ├── utils/          # AI Helpers, Vector DB, Homeostasis
+│   ├── models.py       # SQLAlchemy Ecosystem Models
+│   └── templates/      # Glassmorphic UI Components
+├── chroma_db/          # Vector Embeddings
+├── tests/              # Validation Protocols
+├── run.py              # System Entry Point (with Reloader)
+└── requirements.txt    # Neural Dependencies
+```
+
+---
+*TalentLink © 2026. Empowering Human Potential through Synthetic Intelligence.*
