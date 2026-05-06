@@ -1,0 +1,286 @@
+{% extends "user/user_base.html" %}
+
+{% block title %}Interview Report | TalentLink AI{% endblock %}
+
+{% block styles %}
+<style>
+    .report-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .score-gauge {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background: conic-gradient(var(--primary) {{ report.overall_score * 3.6 }}deg, rgba(255,255,255,0.05) 0deg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        position: relative;
+    }
+    .score-gauge::before {
+        content: '';
+        position: absolute;
+        width: 170px;
+        height: 170px;
+        background: var(--bg-surface);
+        border-radius: 50%;
+    }
+    .score-value {
+        position: relative;
+        font-size: 4rem;
+        font-weight: 800;
+        color: var(--primary);
+    }
+    
+    .radar-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+    
+    .accordion-button {
+        background: rgba(255,255,255,0.02);
+        color: #fff;
+        border: 1px solid var(--glass-border);
+        border-radius: 12px !important;
+        margin-bottom: 0.5rem;
+    }
+    .accordion-button:not(.collapsed) {
+        background: rgba(var(--primary-rgb), 0.1);
+        color: var(--primary);
+        box-shadow: none;
+    }
+    .accordion-body {
+        background: rgba(0,0,0,0.2);
+        border: 1px solid var(--glass-border);
+        border-top: none;
+        border-radius: 0 0 12px 12px;
+        margin-top: -10px;
+        margin-bottom: 1rem;
+        color: #ccd6f6;
+    }
+    
+    .feedback-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 99px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    .feedback-pill.strength { background: rgba(72,187,120,0.2); color: #48bb78; }
+    .feedback-pill.weakness { background: rgba(245,101,101,0.2); color: #f56565; }
+</style>
+{% endblock %}
+
+{% block user_content %}
+<div class="row mb-4">
+    <div class="col-12 text-center">
+        <span class="badge bg-primary px-3 py-2 rounded-pill mb-3">Session Complete</span>
+        <h1 class="display-5 fw-bold text-white mb-2">Performance Report</h1>
+        <p class="text-muted">{{ interview.started_at.strftime('%B %d, %Y') }} &bull; {{ interview.interview_type|capitalize }} Interview &bull; {{ interview.difficulty|capitalize }}</p>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Overall Score -->
+    <div class="col-md-4">
+        <div class="report-card text-center">
+            <h6 class="text-muted text-uppercase fw-bold mb-4">Overall Competency</h6>
+            <div class="score-gauge">
+                <div class="score-value">{{ report.overall_score }}</div>
+            </div>
+            <p class="mt-4 text-muted small">Your overall performance index based on technical accuracy, communication, and problem-solving.</p>
+        </div>
+    </div>
+    
+    <!-- Radar Chart -->
+    <div class="col-md-8">
+        <div class="report-card">
+            <h6 class="text-muted text-uppercase fw-bold mb-4">Skill Breakdown</h6>
+            <div class="radar-container">
+                <canvas id="radarChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sentiment & Analysis -->
+    <div class="col-12">
+        <div class="report-card">
+            <div class="row align-items-center">
+                <div class="col-md-5">
+                    <h6 class="text-muted text-uppercase fw-bold mb-3">AI Interviewer Notes</h6>
+                    <p class="lead text-white" style="font-size: 1.1rem; line-height: 1.6;">"{{ report.sentiment_analysis }}"</p>
+                    <p class="text-muted small mt-3"><i class="fas fa-tags text-primary me-2"></i><strong>Keywords Used:</strong> {{ report.keyword_usage }}</p>
+                </div>
+                <div class="col-md-7 border-start border-glass ps-md-5 mt-4 mt-md-0">
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-success mb-3"><i class="fas fa-arrow-trend-up me-2"></i>Key Strengths</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for s in report.strengths %}
+                            <span class="feedback-pill strength"><i class="fas fa-check"></i> {{ s }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold text-danger mb-3"><i class="fas fa-arrow-trend-down me-2"></i>Areas for Growth</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for w in report.weaknesses %}
+                            <span class="feedback-pill weakness"><i class="fas fa-xmark"></i> {{ w }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actionable Coaching -->
+    <div class="col-md-6">
+        <div class="report-card">
+            <h6 class="text-muted text-uppercase fw-bold mb-4">Actionable Next Steps</h6>
+            <ul class="list-unstyled mb-0">
+                {% for tip in report.improvement_tips %}
+                <li class="d-flex align-items-start mb-3 pb-3 border-bottom border-glass last-border-0">
+                    <div class="bg-primary bg-opacity-25 text-primary rounded-circle p-2 me-3 mt-1">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <div class="text-light">{{ tip }}</div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Confidence Trend -->
+    <div class="col-md-6">
+        <div class="report-card">
+            <h6 class="text-muted text-uppercase fw-bold mb-4">Confidence Trend</h6>
+            <div style="height: 250px;">
+                <canvas id="confidenceChart"></canvas>
+            </div>
+            <p class="text-muted small text-center mt-3">Estimated confidence drops/spikes during the conversation.</p>
+        </div>
+    </div>
+
+    <!-- Question Breakdown -->
+    <div class="col-12">
+        <div class="report-card">
+            <h6 class="text-muted text-uppercase fw-bold mb-4">Question-by-Question Analysis</h6>
+            
+            <div class="accordion" id="qnaAccordion">
+                {% for qa in report.question_breakdown %}
+                <div class="accordion-item bg-transparent border-0">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}">
+                            <div class="d-flex justify-content-between align-items-center w-100 pe-3">
+                                <span><strong class="me-2 text-muted">Q{{ loop.index }}:</strong> {{ qa.question | truncate(80) }}</span>
+                                <span class="badge {% if qa.answer_score >= 80 %}bg-success{% elif qa.answer_score >= 60 %}bg-warning{% else %}bg-danger{% endif %} rounded-pill">Score: {{ qa.answer_score }}</span>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="collapse{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#qnaAccordion">
+                        <div class="accordion-body">
+                            <p class="mb-3"><strong>Question:</strong> {{ qa.question }}</p>
+                            <div class="p-3 bg-dark rounded mb-3 border border-secondary" style="font-style: italic;">
+                                "{{ qa.answer | default('Answer text not recorded separately in legacy transcript format.') }}"
+                            </div>
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-comment-dots text-primary mt-1 me-2"></i>
+                                <span><strong>Feedback:</strong> {{ qa.feedback }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if not report.question_breakdown %}
+            <div class="text-center text-muted p-4">
+                <i class="fas fa-info-circle mb-2 fs-4"></i><br>
+                Detailed question breakdown is not available for this session.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Radar Chart (Category Breakdown)
+    const categoryData = {
+        labels: ['Communication', 'Technical', 'Behavioral', 'Problem Solving', 'STAR Method'],
+        datasets: [{
+            label: 'Score',
+            data: [
+                {{ report.communication_score }},
+                {{ report.technical_score }},
+                {{ report.behavioral_score }},
+                {{ report.problem_solving_score }},
+                {{ report.star_method_adherence }}
+            ],
+            backgroundColor: 'rgba(66, 153, 225, 0.2)',
+            borderColor: 'rgba(66, 153, 225, 1)',
+            pointBackgroundColor: 'rgba(66, 153, 225, 1)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgba(66, 153, 225, 1)'
+        }]
+    };
+
+    new Chart(document.getElementById('radarChart'), {
+        type: 'radar',
+        data: categoryData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    pointLabels: { color: '#a0aec0', font: { size: 12 } },
+                    ticks: { display: false, min: 0, max: 100 }
+                }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    // Confidence Trend Line Chart
+    new Chart(document.getElementById('confidenceChart'), {
+        type: 'line',
+        data: {
+            labels: ['Start', 'Quarter', 'Mid', 'Three-Quarter', 'End'],
+            datasets: [{
+                label: 'Confidence Level',
+                data: {{ report.confidence_trend | tojson | default('[50,50,50,50,50]', true) }},
+                borderColor: '#48bb78',
+                backgroundColor: 'rgba(72, 187, 120, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#718096' } },
+                x: { grid: { display: false }, ticks: { color: '#718096' } }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+</script>
+{% endblock %}

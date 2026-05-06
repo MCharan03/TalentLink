@@ -1,0 +1,176 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Workforce Fitment Dashboard{% endblock %}
+
+{% block admin_content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-white fw-bold">Workforce Fitment Intelligence</h1>
+            <p class="text-muted mb-0">AI-driven candidate categorization for EDCS Karnataka</p>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-outline-primary border-glass text-main">
+                <i class="fas fa-download me-2"></i> Export CSV
+            </button>
+            <button class="btn btn-primary ms-2">
+                <i class="fas fa-sync me-2"></i> Refresh Feed
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-dark border-glass text-white">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase small fw-bold">Total Assessments</h6>
+                    <h2 class="mb-0 fw-black">{{ stats.total }}</h2>
+                    <div class="mt-2 small text-success">
+                        <i class="fas fa-arrow-up me-1"></i> 12% from last week
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-dark border-glass text-white">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase small fw-bold">Job-Ready</h6>
+                    <h2 class="mb-0 fw-black text-success">{{ stats.job_ready }}</h2>
+                    <div class="progress mt-2" style="height: 4px; background: rgba(255,255,255,0.05);">
+                        <div class="progress-bar bg-success" style="width: {{ (stats.job_ready / stats.total * 100) if stats.total > 0 else 0 }}%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-dark border-glass text-white">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase small fw-bold">Needs Upskilling</h6>
+                    <h2 class="mb-0 fw-black text-warning">{{ stats.requires_training }}</h2>
+                    <div class="progress mt-2" style="height: 4px; background: rgba(255,255,255,0.05);">
+                        <div class="progress-bar bg-warning" style="width: {{ (stats.requires_training / stats.total * 100) if stats.total > 0 else 0 }}%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-dark border-glass text-white">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase small fw-bold">Fraud/Flagged</h6>
+                    <h2 class="mb-0 fw-black text-danger">{{ stats.flagged }}</h2>
+                    <div class="mt-2 small text-danger">
+                        <i class="fas fa-shield-virus me-1"></i> Requires Manual Audit
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Table -->
+    <div class="card bg-dark border-glass">
+        <div class="card-header border-glass-bottom bg-transparent py-3">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h5 class="mb-0 text-white fw-bold">Live Assessment Feed</h5>
+                </div>
+                <div class="col-auto">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-transparent border-glass text-muted"><i class="fas fa-filter"></i></span>
+                        <select class="form-select bg-transparent border-glass text-muted">
+                            <option>All Districts</option>
+                            <option>Bangalore Urban</option>
+                            <option>Mysore</option>
+                            <option>Dharwad</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0 align-middle">
+                <thead class="bg-glass-dim">
+                    <tr>
+                        <th class="ps-4">Candidate</th>
+                        <th>Language / Dialect</th>
+                        <th>AI Scores</th>
+                        <th>Fitment Category</th>
+                        <th>Integrity</th>
+                        <th class="text-end pe-4">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for assessment in assessments %}
+                    <tr>
+                        <td class="ps-4">
+                            {% if assessment.user %}
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm me-3 bg-primary rounded-circle d-flex align-items-center justify-content-center fw-bold">
+                                    {{ assessment.user.username[0] | upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-white">{{ assessment.user.username }}</div>
+                                    <div class="small text-muted">UID: {{ assessment.user.id }}</div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="text-muted small">User Not Found</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="text-white">{{ assessment.language }}</div>
+                            <div class="small text-muted">{{ assessment.dialect }}</div>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <span class="badge bg-soft-primary" title="Relevance">R: {{ ((assessment.relevance_score or 0) * 10) | int }}</span>
+                                <span class="badge bg-soft-info" title="Clarity">C: {{ ((assessment.clarity_score or 0) * 10) | int }}</span>
+                                <span class="badge bg-soft-success" title="Confidence">O: {{ ((assessment.overall_score or 0) * 10) | int }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            {% set badge_class = 'bg-success' if assessment.fitment_category == 'Job-ready' 
+                                else 'bg-warning' if assessment.fitment_category == 'Requires Training'
+                                else 'bg-info' if assessment.fitment_category == 'Requires Manual Verification'
+                                else 'bg-danger' %}
+                            <span class="badge {{ badge_class }}">{{ assessment.fitment_category }}</span>
+                        </td>
+                        <td>
+                            {% if assessment.fraud_flags %}
+                            <span class="text-danger" title="{{ assessment.fraud_flags | join(', ') }}">
+                                <i class="fas fa-exclamation-triangle"></i> Flagged ({{ assessment.fraud_flags | length }})
+                            </span>
+                            {% else %}
+                            <span class="text-success"><i class="fas fa-check-circle"></i> Clean</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-4">
+                            <a href="{{ url_for('user.assessment_report', assessment_id=assessment.id) }}" class="btn btn-sm btn-outline-light border-glass">
+                                View Full
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if not assessments %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            No assessments found. Assessments will appear here in real-time.
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar-sm { width: 36px; height: 36px; }
+    .bg-glass-dim { background: rgba(255,255,255,0.02); }
+    .bg-soft-primary { background: rgba(99, 102, 241, 0.1); color: var(--neural-blue); }
+    .bg-soft-info { background: rgba(6, 182, 212, 0.1); color: #06b6d4; }
+    .bg-soft-success { background: rgba(16, 185, 129, 0.1); color: var(--neural-green); }
+    .border-glass-bottom { border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .fw-black { font-weight: 900; }
+</style>
+{% endblock %}

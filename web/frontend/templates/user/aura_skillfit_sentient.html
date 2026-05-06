@@ -1,0 +1,296 @@
+{% extends "user/user_base.html" %}
+
+{% block title %}Aura SkillFit - Sentient Interview Stage{% endblock %}
+
+{% block main_container_class %}container-fluid p-0{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    :root {
+        --bg-deep: #020408;
+        --panel-glass: rgba(13, 17, 23, 0.8);
+        --neural-blue: #6366f1;
+        --neural-purple: #a855f7;
+        --neural-cyan: #06b6d4;
+        --neural-green: #10b981;
+        --neural-red: #f43f5e;
+        --text-neural: #cbd5e1;
+        --text-dim: #64748b;
+        --glass-border: rgba(255, 255, 255, 0.05);
+        --aura-shadow: 0 0 30px rgba(99, 102, 241, 0.2);
+    }
+
+    body { 
+        background: radial-gradient(circle at center, #0a0c14 0%, #020408 100%) !important;
+        color: #f8fafc;
+        font-family: 'Inter', system-ui, sans-serif;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+
+    main { padding-top: 0 !important; }
+
+    /* Layout Orchestration */
+    .dashboard-wrapper {
+        display: grid;
+        grid-template-areas: 
+            "stage sidebar";
+        grid-template-columns: 1fr 420px;
+        grid-template-rows: 1fr;
+        height: 100vh;
+        width: 100%;
+        gap: 20px;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    /* Sentient Header */
+    .ds-header {
+        display: none !important;
+    }
+
+    .brand-cluster { display: flex; align-items: center; gap: 15px; }
+    .neural-logo { 
+        width: 40px; height: 40px; 
+        background: linear-gradient(135deg, var(--neural-blue), var(--neural-purple)); 
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 0 20px var(--neural-blue);
+        position: relative;
+    }
+    .brand-meta h1 { font-size: 1.25rem; font-weight: 800; margin: 0; letter-spacing: -0.5px; color: #fff; }
+    .brand-meta p { font-size: 0.75rem; color: var(--text-dim); margin: 0; font-weight: 500; }
+
+    .header-ctrls { display: flex; align-items: center; gap: 15px; }
+    .ctrl-icon-btn { 
+        background: rgba(255,255,255,0.05); 
+        border: 1px solid var(--glass-border);
+        color: #94a3b8; width: 40px; height: 40px; border-radius: 12px; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .btn-terminate { 
+        background: linear-gradient(135deg, #f43f5e, #991b1b) !important; 
+        color: white !important;
+        padding: 0 25px !important; width: auto !important; border-radius: 14px !important;
+        font-weight: 700; font-size: 0.9rem; gap: 10px;
+    }
+
+    /* Neural Stage */
+    .ds-stage {
+        grid-area: stage;
+        position: relative;
+        background: rgba(13, 17, 23, 0.4);
+        border-radius: 24px;
+        border: 1px solid var(--glass-border);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        box-shadow: inset 0 0 100px rgba(0,0,0,0.5);
+    }
+
+    .neural-stage-core {
+        position: relative;
+        display: flex; flex-direction: column; align-items: center;
+    }
+
+    .avatar-nexus {
+        position: relative;
+        width: 300px; height: 300px;
+        display: flex; align-items: center; justify-content: center;
+    }
+
+    .pulse-ring {
+        position: absolute;
+        width: 220px; height: 220px;
+        border-radius: 50%;
+        border: 1px solid var(--neural-blue);
+        opacity: 0.5;
+        animation: pulse-out 3s linear infinite;
+    }
+    @keyframes pulse-out { 0% { transform: scale(0.8); opacity: 0.8; } 100% { transform: scale(1.6); opacity: 0; } }
+
+    .ai-avatar-wrap {
+        position: relative;
+        width: 180px; height: 180px;
+        border-radius: 50%;
+        padding: 4px;
+        background: linear-gradient(135deg, var(--neural-blue), var(--neural-purple));
+        box-shadow: 0 0 50px rgba(99, 102, 241, 0.4);
+        z-index: 5;
+    }
+    .ai-avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--bg-deep); }
+
+    .listening-status {
+        margin-top: 50px;
+        background: rgba(255,255,255,0.03);
+        padding: 12px 35px;
+        border-radius: 40px;
+        border: 1px solid var(--glass-border);
+        display: flex; align-items: center; gap: 15px;
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: #e2e8f0;
+    }
+
+    .candidate-pip {
+        position: absolute;
+        top: 30px; left: 30px;
+        width: 200px; height: 150px;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 2px solid var(--neural-blue);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        background: #000;
+        z-index: 10;
+    }
+    #webcam-stream { width: 100%; height: 100%; object-fit: cover; }
+
+    /* Sentient Sidebar */
+    .ds-sidebar {
+        grid-area: sidebar;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        overflow-y: auto;
+    }
+    .neural-card {
+        background: var(--panel-glass);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 22px;
+        padding: 22px;
+    }
+
+    .metric-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+    .metric-info { font-size: 0.85rem; font-weight: 500; color: var(--text-neural); }
+    .metric-val { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; font-weight: 700; }
+
+    /* Controls Overlay */
+    .floating-dock {
+        position: absolute;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--panel-glass);
+        backdrop-filter: blur(30px);
+        padding: 10px 30px;
+        border-radius: 100px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        z-index: 20;
+    }
+    .dock-btn {
+        width: 45px; height: 45px;
+        border-radius: 50%;
+        border: 1px solid var(--glass-border);
+        background: rgba(255,255,255,0.03);
+        color: #94a3b8;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+    .dock-btn.active { background: var(--neural-blue); color: white; border: none; }
+    .dock-btn.danger { background: var(--neural-red); color: white; border: none; }
+
+</style>
+{% endblock %}
+
+{% block user_content %}
+<div class="dashboard-wrapper">
+    <header class="ds-header">
+        <div class="brand-cluster">
+            <div class="neural-logo"><i class="fas fa-brain text-white"></i></div>
+            <div class="brand-meta">
+                <h1>Aura SkillFit</h1>
+                <p>SENTIENT RECRUITMENT ENGINE</p>
+            </div>
+        </div>
+        <div class="header-ctrls">
+            <button class="ctrl-icon-btn btn-terminate" onclick="endSession()">
+                <i class="fas fa-power-off"></i> END SESSION
+            </button>
+        </div>
+    </header>
+
+    <main class="ds-stage">
+        <div class="neural-stage-core">
+            <div class="avatar-nexus">
+                <div class="pulse-ring"></div>
+                <div class="ai-avatar-wrap">
+                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1976&auto=format&fit=crop" class="ai-avatar-img" alt="Janani AI">
+                </div>
+            </div>
+            <div class="listening-status">
+                <i class="fas fa-microphone"></i>
+                <span id="ai-neural-status">Janani AI is listening...</span>
+            </div>
+        </div>
+
+        <div class="candidate-pip">
+            <video id="webcam-stream" autoplay playsinline muted></video>
+        </div>
+
+        <div class="floating-dock">
+            <button class="dock-btn active"><i class="fas fa-microphone"></i></button>
+            <button class="dock-btn"><i class="fas fa-video"></i></button>
+            <button class="dock-btn danger" onclick="endSession()"><i class="fas fa-phone-slash"></i></button>
+        </div>
+    </main>
+
+    <aside class="ds-sidebar">
+        <div class="neural-card">
+            <h5 class="mb-4">Neural Telemetry</h5>
+            <div class="metric-row">
+                <div class="metric-info">Sentiment</div>
+                <div class="metric-val text-success">78%</div>
+            </div>
+            <div class="metric-row">
+                <div class="metric-info">Stress</div>
+                <div class="metric-val text-warning">LOW</div>
+            </div>
+            <div class="metric-row">
+                <div class="metric-info">Clarity</div>
+                <div class="metric-val text-primary">HIGH</div>
+            </div>
+        </div>
+
+        <div class="neural-card" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));">
+            <h5 class="mb-3">Current Question</h5>
+            <p class="lead fw-bold text-white">ದಯವಿಟ್ಟು ನಿಮ್ಮ ವೃತ್ತಿಪರ ಅನುಭವದ ಬಗ್ಗೆ ತಿಳಿಸಿ.</p>
+            <p class="small text-muted">(Please tell us about your professional experience.)</p>
+        </div>
+    </aside>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<script>
+    const socket = io();
+    const videoElement = document.getElementById('webcam-stream');
+    
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(stream => {
+        videoElement.srcObject = stream;
+        socket.emit('skillfit_start', { language: 'Kannada' });
+    }).catch(err => {
+        alert("Camera and Microphone access is required.");
+    });
+
+    function endSession() {
+        if(confirm("End this session?")) {
+            socket.emit('skillfit_end');
+        }
+    }
+
+    socket.on('skillfit_complete', (data) => {
+        window.location.href = `/user/assessment_report/${data.assessment_id}`;
+    });
+</script>
+{% endblock %}

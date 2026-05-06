@@ -1,0 +1,180 @@
+{% extends "user/user_base.html" %}
+
+{% block title %}SkillFit Assessment Report{% endblock %}
+
+{% block styles %}
+<style>
+    :root {
+        --bg-deep: #020408;
+        --panel-glass: rgba(13, 17, 23, 0.6);
+        --neural-blue: #6366f1;
+        --neural-purple: #a855f7;
+        --neural-green: #10b981;
+        --neural-red: #f43f5e;
+        --glass-border: rgba(255, 255, 255, 0.05);
+    }
+
+    .report-card {
+        background: var(--panel-glass);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        padding: 40px;
+        margin-top: 30px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+
+    .score-circle {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        border: 8px solid var(--neural-blue);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: white;
+        text-shadow: 0 0 10px var(--neural-blue);
+        margin: 0 auto 20px;
+    }
+
+    .category-badge {
+        font-size: 1.2rem;
+        font-weight: 700;
+        padding: 10px 30px;
+        border-radius: 50px;
+        display: inline-block;
+        margin-bottom: 30px;
+    }
+
+    .job-ready { background: rgba(16, 185, 129, 0.2); color: var(--neural-green); border: 1px solid var(--neural-green); }
+    .upskill { background: rgba(168, 85, 247, 0.2); color: var(--neural-purple); border: 1px solid var(--neural-purple); }
+    .manual { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid #f59e0b; }
+    .low-conf { background: rgba(244, 63, 94, 0.2); color: var(--neural-red); border: 1px solid var(--neural-red); }
+
+    .metric-bar-wrap { margin-bottom: 25px; }
+    .metric-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 600; color: #94a3b8; }
+    .metric-track { height: 10px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; }
+    .metric-fill { height: 100%; border-radius: 10px; transition: width 1.5s ease-out; }
+
+    .fraud-flag {
+        background: rgba(244, 63, 94, 0.1);
+        border: 1px solid rgba(244, 63, 94, 0.3);
+        color: var(--neural-red);
+        padding: 12px 20px;
+        border-radius: 12px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block user_content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="fw-bold mb-1">Assessment Report</h1>
+            <p class="text-muted">ID: #{{ assessment.id }} | {{ assessment.created_at.strftime('%B %d, %Y') }}</p>
+        </div>
+        <a href="{{ url_for('user.dashboard') }}" class="btn btn-outline-light rounded-pill px-4">
+            <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <div class="row">
+        <!-- Main Stats -->
+        <div class="col-lg-4">
+            <div class="report-card text-center">
+                <div class="score-circle">
+                    {{ (assessment.overall_score * 10) | int }}%
+                </div>
+                <h4 class="text-muted mb-4">Overall Fitment Score</h4>
+                
+                {% set cat_class = 'job-ready' if assessment.fitment_category == 'Job-ready' 
+                    else 'upskill' if assessment.fitment_category == 'Requires Training'
+                    else 'manual' if assessment.fitment_category == 'Requires Manual Verification'
+                    else 'low-conf' %}
+                
+                <div class="category-badge {{ cat_class }}">
+                    {{ assessment.fitment_category }}
+                </div>
+
+                <div class="text-start mt-4">
+                    <p class="small text-muted text-uppercase fw-bold mb-2">Metadata</p>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Language</span>
+                        <span class="text-white">{{ assessment.language }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Dialect</span>
+                        <span class="text-white">{{ assessment.dialect }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Session Link</span>
+                        <span class="text-success"><i class="fas fa-link me-1"></i> Verified</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Details -->
+        <div class="col-lg-8">
+            <div class="report-card">
+                <h3 class="fw-bold mb-4">Skill Performance</h3>
+                
+                <div class="metric-bar-wrap">
+                    <div class="metric-label">
+                        <span>Answer Relevance</span>
+                        <span>{{ (assessment.relevance_score * 10) | int }}%</span>
+                    </div>
+                    <div class="metric-track">
+                        <div class="metric-fill" style="width: {{ assessment.relevance_score * 10 }}%; background: var(--neural-blue);"></div>
+                    </div>
+                </div>
+
+                <div class="metric-bar-wrap">
+                    <div class="metric-label">
+                        <span>Communication Clarity</span>
+                        <span>{{ (assessment.clarity_score * 10) | int }}%</span>
+                    </div>
+                    <div class="metric-track">
+                        <div class="metric-fill" style="width: {{ assessment.clarity_score * 10 }}%; background: var(--neural-purple);"></div>
+                    </div>
+                </div>
+
+                <div class="metric-bar-wrap">
+                    <div class="metric-label">
+                        <span>Candidate Confidence</span>
+                        <span>{{ (assessment.confidence_score * 10) | int }}%</span>
+                    </div>
+                    <div class="metric-track">
+                        <div class="metric-fill" style="width: {{ assessment.confidence_score * 10 }}%; background: var(--neural-cyan);"></div>
+                    </div>
+                </div>
+
+                <hr class="my-5 opacity-10">
+
+                <h3 class="fw-bold mb-4">AI Analysis Summary</h3>
+                <p class="lead" style="color: #cbd5e1; line-height: 1.6;">
+                    {{ assessment.transcript_summary }}
+                </p>
+
+                {% if assessment.fraud_flags %}
+                <hr class="my-5 opacity-10">
+                <h3 class="fw-bold mb-4 text-danger"><i class="fas fa-exclamation-triangle me-2"></i> Integrity Warnings</h3>
+                {% for flag in assessment.fraud_flags %}
+                <div class="fraud-flag">
+                    <i class="fas fa-shield-virus"></i>
+                    {{ flag }}
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

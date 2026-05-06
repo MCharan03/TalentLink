@@ -1,0 +1,857 @@
+{% extends "user/user_base.html" %}
+
+{% block title %}Aura SkillFit Dashboard | TalentLink{% endblock %}
+
+{% block main_container_class %}p-0 m-0 w-100 max-vw-100{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    :root {
+        --bg-main: #020408;
+        --bg-card: rgba(13, 17, 23, 0.7);
+        --accent-primary: #6366f1;
+        --accent-purple: #9333ea;
+        --accent-cyan: #06b6d4;
+        --accent-green: #10b981;
+        --accent-red: #ef4444;
+        --accent-amber: #f59e0b;
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --aura-glow: 0 0 30px rgba(99, 102, 241, 0.3);
+    }
+
+    body {
+        margin: 0;
+        background: var(--bg-main) !important;
+        color: var(--text-primary);
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        overflow: hidden;
+        -webkit-font-smoothing: antialiased;
+        height: 100vh;
+        width: 100vw;
+    }
+
+    /* Override base.html main container constraints */
+    main { 
+        padding-top: 0 !important; 
+        margin: 0 !important; 
+        max-width: 100% !important; 
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    .navbar { display: none !important; }
+
+    /* Layout */
+    .dashboard-wrap {
+        height: 100vh;
+        width: 100vw;
+        display: grid;
+        grid-template-areas: 
+            "header header"
+            "stage sidebar"
+            "footer footer";
+        grid-template-columns: 1fr 400px;
+        grid-template-rows: 70px 1fr 100px;
+        background: radial-gradient(circle at center, #0a0c14 0%, #020408 100%);
+        padding: 12px;
+        gap: 12px;
+        box-sizing: border-box;
+    }
+
+    /* Glassmorphism Panel */
+    .panel {
+        background: var(--bg-card);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        overflow: hidden;
+    }
+
+    /* Top Bar */
+    .ds-header {
+        grid-area: header;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 24px;
+    }
+
+    .brand-group { display: flex; align-items: center; gap: 12px; }
+    .brand-logo { 
+        width: 32px; height: 32px; 
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-purple));
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+    }
+    .brand-text h2 { font-size: 1.1rem; font-weight: 700; margin: 0; line-height: 1; }
+    .brand-text span { font-size: 0.75rem; color: var(--text-secondary); font-weight: 500; }
+    .active-agent { margin-left: 20px; font-weight: 600; color: #a78bfa; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+
+    .session-status { 
+        display: flex; align-items: center; gap: 12px; 
+        font-size: 0.9rem; font-weight: 500; 
+        background: rgba(255,255,255,0.03); 
+        padding: 6px 16px; border-radius: 100px;
+        border: 1px solid var(--glass-border);
+    }
+    .status-dot { width: 8px; height: 8px; background: var(--accent-green); border-radius: 50%; box-shadow: 0 0 10px var(--accent-green); }
+
+    .header-actions { display: flex; align-items: center; gap: 12px; }
+    .dialect-badge {
+        background: rgba(99, 102, 241, 0.1);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        color: #93c5fd;
+        padding: 6px 14px;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .icon-btn {
+        width: 38px; height: 38px;
+        border-radius: 10px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid var(--glass-border);
+        color: var(--text-secondary);
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: all 0.2s;
+    }
+    .icon-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .btn-end {
+        background: linear-gradient(135deg, #ef4444, #991b1b) !important;
+        color: #fff !important;
+        border: none !important;
+        padding: 0 20px !important;
+        height: 38px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        border-radius: 12px !important;
+        display: flex; align-items: center; gap: 10px;
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+    }
+
+    /* Main Stage */
+    .ds-stage {
+        grid-area: stage;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        min-height: 0; /* Important for grid layout */
+    }
+
+    .session-tag {
+        position: absolute; top: 20px; right: 20px;
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        color: #6ee7b7;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: flex; align-items: center; gap: 6px;
+    }
+
+    .avatar-center {
+        position: relative;
+        width: 200px; height: 200px;
+        display: flex; align-items: center; justify-content: center;
+        margin-bottom: 20px;
+    }
+    .avatar-glow {
+        position: absolute;
+        width: 100%; height: 100%;
+        border-radius: 50%;
+        border: 4px solid var(--accent-primary);
+        box-shadow: var(--aura-glow), inset 0 0 20px var(--accent-primary);
+        z-index: 2;
+    }
+    .avatar-img-wrap {
+        width: 170px; height: 170px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 2px solid var(--bg-main);
+        z-index: 3;
+    }
+    .avatar-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+
+    .sentient-waves {
+        position: absolute;
+        width: 500px;
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        opacity: 0.4;
+        z-index: 1;
+    }
+    .wave-bar {
+        width: 3px; height: 10px;
+        background: var(--accent-primary);
+        border-radius: 3px;
+        transition: height 0.1s ease, opacity 0.1s ease;
+    }
+
+    .stage-meta { text-align: center; z-index: 5; }
+    .agent-title { font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: 8px; }
+    .listening-pill {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid var(--glass-border);
+        padding: 6px 20px;
+        border-radius: 100px;
+        display: inline-flex;
+        align-items: center; gap: 10px;
+        font-size: 0.9rem; color: #e2e8f0;
+    }
+    .pulse-dot { width: 8px; height: 8px; background: var(--accent-primary); border-radius: 50%; animation: dot-pulse 2s infinite; }
+
+    .candidate-corner { position: absolute; bottom: 20px; left: 24px; text-align: left; }
+    .candidate-corner h4 { font-size: 1rem; font-weight: 700; margin: 0; }
+    .candidate-corner span { font-size: 0.75rem; color: var(--accent-primary); font-weight: 600; text-transform: uppercase; }
+
+    .connection-corner { position: absolute; bottom: 20px; right: 24px; display: flex; align-items: center; gap: 12px; }
+    .conn-bars { display: flex; align-items: flex-end; gap: 3px; }
+    .c-bar { width: 3px; border-radius: 2px; background: var(--accent-green); }
+    .conn-text { font-size: 0.8rem; font-weight: 600; color: var(--accent-green); }
+
+    /* Sidebar */
+    .ds-sidebar {
+        grid-area: sidebar;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        overflow-y: auto;
+        min-height: 0;
+    }
+
+    .widget-card { padding: 16px; flex-shrink: 0; }
+    .widget-title { 
+        display: flex; align-items: center; justify-content: space-between; 
+        margin-bottom: 12px; font-size: 0.75rem; font-weight: 700; 
+        text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary);
+    }
+    .live-tag { background: rgba(16, 185, 129, 0.1); color: var(--accent-green); padding: 2px 6px; border-radius: 4px; font-size: 0.6rem; }
+
+    .telemetry-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .tel-label { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 500; }
+    .tel-icon { font-size: 0.9rem; width: 18px; }
+    .tel-graph { flex: 1; margin: 0 12px; height: 16px; }
+    .tel-val { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: 700; min-width: 40px; text-align: right; }
+
+    .haptic-grid { display: flex; gap: 15px; }
+    .haptic-checks { flex: 1; }
+    .h-check { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; font-size: 0.75rem; font-weight: 500; opacity: 0.5; transition: opacity 0.3s; }
+    .h-check i { color: var(--accent-green); margin-right: 6px; }
+    .h-check .ok { color: var(--accent-green); font-weight: 700; }
+    .haptic-visual { width: 80px; height: 100px; display: flex; align-items: center; justify-content: center; }
+
+    .dialect-body { display: flex; gap: 15px; align-items: center; }
+    .karnataka-map { width: 80px; height: 100px; }
+    .dialect-info { flex: 1; }
+    .d-stat { margin-bottom: 8px; }
+    .d-label { font-size: 0.65rem; color: var(--text-secondary); margin-bottom: 1px; }
+    .d-val { font-size: 0.85rem; font-weight: 700; color: #fff; }
+    .conf-circle { width: 45px; height: 45px; position: relative; }
+
+    .question-card { background: rgba(99, 102, 241, 0.08) !important; border: 1px solid rgba(99, 102, 241, 0.2) !important; }
+    .q-badge { background: rgba(139, 92, 246, 0.15); color: #c4b5fd; padding: 3px 8px; border-radius: 6px; font-size: 0.65rem; font-weight: 700; }
+    .q-text { font-size: 1rem; font-weight: 700; line-height: 1.4; margin: 12px 0; color: #fff; }
+    .q-meta { font-size: 0.7rem; color: #818cf8; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+    .q-actions { display: flex; gap: 8px; margin-top: 15px; }
+    .btn-ghost { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #fff; border-radius: 8px; padding: 8px; flex: 1; font-weight: 600; font-size: 0.8rem; cursor: pointer; }
+    .btn-solid { background: var(--accent-primary); border: none; color: #fff; border-radius: 8px; padding: 8px; flex: 2; font-weight: 700; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+
+    /* Footer */
+    .ds-footer {
+        grid-area: footer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 24px;
+    }
+
+    .footer-meta { display: flex; gap: 24px; }
+    .meta-item { display: flex; align-items: center; gap: 10px; }
+    .meta-icon { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 0.85rem; }
+    .meta-data { display: flex; flex-direction: column; }
+    .meta-label { font-size: 0.6rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; }
+    .meta-val { font-size: 0.8rem; font-weight: 700; color: #fff; }
+
+    .control-dock {
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(30px);
+        padding: 8px 24px;
+        border-radius: 100px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+    }
+    .dock-btn {
+        width: 46px; height: 46px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--glass-border);
+        color: #f8fafc;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; font-size: 1rem; transition: all 0.2s;
+        position: relative;
+    }
+    .dock-btn:hover { background: rgba(255,255,255,0.08); transform: translateY(-3px); }
+    .dock-btn.active { background: var(--accent-primary); border-color: transparent; }
+    .dock-btn.end { background: var(--accent-red); border-color: transparent; box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
+    .dock-btn span { position: absolute; bottom: -18px; font-size: 0.55rem; font-weight: 600; color: var(--text-secondary); white-space: nowrap; }
+
+    .progress-group { display: flex; flex-direction: column; align-items: flex-end; width: 150px; }
+    .prog-label { font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; }
+    .prog-track { width: 100%; height: 5px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; }
+    .prog-fill { height: 100%; background: linear-gradient(to right, var(--accent-primary), var(--accent-purple)); border-radius: 10px; transition: width 0.5s ease; }
+
+    /* Hide scrollbar for sidebar but allow scrolling */
+    .ds-sidebar::-webkit-scrollbar { width: 0; background: transparent; }
+</style>
+{% endblock %}
+
+{% block user_content %}
+<div class="dashboard-wrap" id="interview-root">
+    
+    <!-- Top Bar -->
+    <header class="panel ds-header">
+        <div class="brand-group">
+            <div class="brand-logo"><i class="fas fa-brain text-white"></i></div>
+            <div class="brand-text">
+                <h2>Aura SkillFit</h2>
+                <span>by TalentLink</span>
+            </div>
+            <div class="active-agent">
+                <i class="fas fa-waveform"></i>
+                <span id="agent-display-name">Janani AI</span>
+            </div>
+        </div>
+
+        <div class="session-status">
+            <div class="status-dot"></div>
+            <span>Interview In Progress</span>
+            <span style="opacity: 0.3;">|</span>
+            <i class="far fa-clock"></i>
+            <span id="timer">12:45</span>
+        </div>
+
+        <div class="header-actions">
+            <div class="dialect-badge">
+                <i class="fas fa-globe-asia"></i>
+                <span>Dialect: North Karnataka</span>
+                <i class="fas fa-chevron-down ms-1" style="font-size: 0.7rem; opacity: 0.5;"></i>
+            </div>
+            <div class="icon-btn"><i class="fas fa-cog"></i></div>
+            <div class="icon-btn" id="btn-fullscreen"><i class="fas fa-expand"></i></div>
+            <button class="btn-end" id="btn-finish-top">
+                <i class="fas fa-phone-slash"></i>
+                End Interview
+            </button>
+        </div>
+    </header>
+
+    <!-- Stage Area -->
+    <main class="ds-stage">
+        <div class="session-tag">
+            <i class="fas fa-shield-alt"></i>
+            <span>Session ID: TLK-45231</span>
+        </div>
+
+        <div class="sentient-waves">
+            {% for i in range(40) %}
+                <div class="wave-bar" style="animation-delay: {{ i * 0.05 }}s;"></div>
+            {% endfor %}
+        </div>
+
+        <div class="avatar-center">
+            <div class="avatar-glow" id="avatar-ring"></div>
+            <div class="avatar-img-wrap">
+                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800&auto=format&fit=crop" alt="AI Agent" id="agent-avatar-img">
+            </div>
+        </div>
+
+        <div class="stage-meta">
+            <h1 class="agent-title" id="agent-name">Janani AI</h1>
+            <div class="listening-pill">
+                <div class="pulse-dot"></div>
+                <span id="ai-status">Listening... Speak naturally</span>
+            </div>
+            <div class="subtitles mt-3 text-center px-5" id="live-subtitle" style="font-size: 1.1rem; color: #94a3b8; max-width: 600px; min-height: 1.5rem;"></div>
+        </div>
+
+        <div class="candidate-corner">
+            <h4>{{ current_user.username }}</h4>
+            <span>Candidate</span>
+        </div>
+
+        <div class="connection-corner">
+            <div class="conn-bars">
+                <div class="c-bar" style="height: 6px;"></div>
+                <div class="c-bar" style="height: 10px;"></div>
+                <div class="c-bar" style="height: 15px;"></div>
+                <div class="c-bar" style="height: 12px;"></div>
+            </div>
+            <div class="conn-text">Good Connection</div>
+        </div>
+    </main>
+
+    <!-- Sidebar -->
+    <aside class="ds-sidebar">
+        
+        <!-- Telemetry Card -->
+        <div class="panel widget-card">
+            <div class="widget-title">
+                <span>Live Telemetry</span>
+                <span class="live-tag">LIVE</span>
+            </div>
+            <div class="telemetry-item">
+                <div class="tel-label"><i class="far fa-smile tel-icon text-warning"></i> Sentiment Score</div>
+                <div class="tel-graph">
+                    <svg width="100%" height="20" viewBox="0 0 100 20" preserveAspectRatio="none">
+                        <path d="M0,10 Q10,5 20,12 T40,8 T60,15 T80,5 T100,10" fill="none" stroke="#10b981" stroke-width="2" />
+                    </svg>
+                </div>
+                <div class="tel-val" id="sentiment-pct">78%</div>
+            </div>
+            <div class="telemetry-item">
+                <div class="tel-label"><i class="fas fa-wave-square tel-icon text-danger"></i> Stress Indicator</div>
+                <div class="tel-graph">
+                    <svg width="100%" height="20" viewBox="0 0 100 20" preserveAspectRatio="none">
+                        <path d="M0,15 L10,5 L20,18 L30,10 L40,15 L50,5 L60,18 L70,10 L80,15 L90,5 L100,18" fill="none" stroke="#f59e0b" stroke-width="1.5" />
+                    </svg>
+                </div>
+                <div class="tel-val">Low (24%)</div>
+            </div>
+            <div class="telemetry-item">
+                <div class="tel-label"><i class="fas fa-microphone-alt tel-icon text-primary"></i> Voice Clarity</div>
+                <div class="tel-graph">
+                    <svg width="100%" height="20" viewBox="0 0 100 20" preserveAspectRatio="none">
+                        <path d="M0,10 C20,10 20,2 40,2 C60,2 60,18 80,18 C100,18 100,10 120,10" fill="none" stroke="#6366f1" stroke-width="2" />
+                    </svg>
+                </div>
+                <div class="tel-val">Good (82%)</div>
+            </div>
+            <div class="telemetry-item">
+                <div class="tel-label"><i class="far fa-circle tel-icon text-purple"></i> Engagement</div>
+                <div class="tel-graph">
+                    <div class="bar mt-0" style="height: 4px; background: rgba(255,255,255,0.05);"><span style="width: 85%; background: #9333ea;"></span></div>
+                </div>
+                <div class="tel-val">High</div>
+            </div>
+        </div>
+
+        <!-- Integrity Shield -->
+        <div class="panel widget-card">
+            <div class="widget-title">
+                <span>Haptic Integrity Shield</span>
+            </div>
+            <div class="haptic-grid">
+                <div class="haptic-checks">
+                    <div class="h-check" style="color: #10b981;"><i class="fas fa-shield-check"></i> LIVELINESS: OK</div>
+                    <div class="h-check"><span><i class="fas fa-check"></i> Face Authenticity</span> <span class="ok">OK</span></div>
+                    <div class="h-check"><span><i class="fas fa-check"></i> Movement Natural</span> <span class="ok">OK</span></div>
+                    <div class="h-check"><span><i class="fas fa-check"></i> No External Nudges</span> <span class="ok">OK</span></div>
+                    <div class="h-check"><span><i class="fas fa-check"></i> Device Stability</span> <span class="ok">OK</span></div>
+                </div>
+                <div class="haptic-visual">
+                    <svg viewBox="0 0 100 120" width="100" height="120">
+                        <path d="M50,10 C55,10 60,15 60,20 C60,25 55,30 50,30 C45,30 40,25 40,20 C40,15 45,10 50,10 Z M50,32 L50,70 M50,35 L30,55 M50,35 L70,55 M50,70 L35,100 M50,70 L65,100" fill="none" stroke="#10b981" stroke-width="2" opacity="0.6" />
+                        <ellipse cx="50" cy="110" rx="30" ry="5" fill="none" stroke="#10b981" stroke-width="1" opacity="0.3" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dialect Detection -->
+        <div class="panel widget-card">
+            <div class="widget-title">
+                <span>Dialect Detection</span>
+            </div>
+            <div class="dialect-body">
+                <div class="karnataka-map">
+                    <svg viewBox="0 0 100 140" width="100%" height="100%">
+                        <path d="M40,10 L60,15 L80,40 L85,70 L70,110 L50,130 L20,115 L10,80 L25,40 Z" fill="rgba(99, 102, 241, 0.1)" stroke="var(--accent-primary)" stroke-width="1.5" />
+                        <circle cx="55" cy="70" r="4" fill="#fff">
+                            <animate attributeName="r" values="3;6;3" dur="2s" repeatCount="indefinite" />
+                            <animate attributeName="opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite" />
+                        </circle>
+                    </svg>
+                </div>
+                <div class="dialect-info">
+                    <div class="d-stat">
+                        <div class="d-label">Detected Dialect</div>
+                        <div class="d-val" style="color: #60a5fa;">North Karnataka</div>
+                    </div>
+                    <div class="d-stat">
+                        <div class="d-label">Confidence</div>
+                        <div class="d-val">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="conf-circle">
+                                    <svg viewBox="0 0 36 36" width="40" height="40">
+                                        <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(16, 185, 129, 0.2)" stroke-width="3" />
+                                        <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#10b981" stroke-width="3" stroke-dasharray="92, 100" />
+                                        <text x="18" y="20.35" font-size="8" text-anchor="middle" fill="#fff" font-weight="700">92%</text>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-stat">
+                        <div class="d-label">Region Match</div>
+                        <div class="d-val" style="color: #a78bfa; font-size: 0.8rem;">Belagavi Division</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Question Card -->
+        <div class="panel widget-card question-card">
+            <div class="widget-title">
+                <span>Current Question</span>
+                <span class="q-badge"><i class="fas fa-vial me-1"></i> Practical Test</span>
+            </div>
+            <div class="q-text" id="current-question">ದಯವಿಟ್ಟು ನಿಮ್ಮ ವೃತ್ತಿಪರ ಅನುಭವದ ಬಗ್ಗೆ ತಿಳಿಸಿ.<br><span class="text-secondary small fw-normal">(Please tell us about your professional experience.)</span></div>
+            <div class="q-meta">
+                <i class="fas fa-info-circle"></i>
+                Proof-of-Action: Tool Detection
+            </div>
+            <div class="q-actions">
+                <button class="btn-ghost" id="btn-skip">Skip</button>
+                <button class="btn-solid" id="btn-next">
+                    Next Question <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Footer Area -->
+    <footer class="ds-footer">
+        <div class="footer-meta">
+            <div class="meta-item">
+                <div class="meta-icon"><i class="far fa-clock"></i></div>
+                <div class="meta-data">
+                    <div class="meta-label">Interview Time</div>
+                    <div class="meta-val" id="elapsed">10:04 PM</div>
+                </div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-icon"><i class="fas fa-globe"></i></div>
+                <div class="meta-data">
+                    <div class="meta-label">Language</div>
+                    <div class="meta-val">Kannada</div>
+                </div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-icon"><i class="fas fa-waveform"></i></div>
+                <div class="meta-data">
+                    <div class="meta-label">Audio</div>
+                    <div class="meta-val" style="color: #10b981;">Good</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-dock">
+            <div class="dock-btn" title="More Options"><i class="fas fa-ellipsis-h"></i><span>More</span></div>
+            <div class="dock-btn active" id="btn-mic" title="Mute Microphone"><i class="fas fa-microphone" id="mic-icon"></i><span>Mute</span></div>
+            <div class="dock-btn" title="Toggle Camera"><i class="fas fa-video"></i><span>Camera</span></div>
+            <div class="dock-btn" title="Share Screen"><i class="fas fa-desktop"></i><span>Share</span></div>
+            <div class="dock-btn" title="Raise Hand"><i class="fas fa-hand-paper"></i><span>Raise Hand</span></div>
+            <div class="dock-btn" title="Open Chat"><i class="fas fa-comment-alt"></i><span>Chat</span></div>
+            <div class="dock-btn end" id="btn-finish" title="End Call"><i class="fas fa-phone-slash"></i><span>End Call</span></div>
+        </div>
+
+        <div class="progress-group">
+            <div class="prog-label">Interview Progress <span class="ms-2" id="progress-label" style="color: var(--accent-primary);">60%</span></div>
+            <div class="prog-track">
+                <div class="prog-fill" id="progress-fill" style="width: 60%;"></div>
+            </div>
+        </div>
+    </footer>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<script>
+    const socket = io();
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionConfig = {
+        type: urlParams.get('type') || 'mixed',
+        difficulty: urlParams.get('diff') || 'medium',
+        agent: urlParams.get('agent') || 'aura'
+    };
+
+    const btnMic = document.getElementById('btn-mic');
+    const micIcon = document.getElementById('mic-icon');
+    const btnFinish = document.getElementById('btn-finish');
+    const btnFinishTop = document.getElementById('btn-finish-top');
+    const btnFullscreen = document.getElementById('btn-fullscreen');
+    const btnSkip = document.getElementById('btn-skip');
+    const btnNext = document.getElementById('btn-next');
+
+    const agentNameEl = document.getElementById('agent-name');
+    const agentDisplayNameEl = document.getElementById('agent-display-name');
+    const aiStatus = document.getElementById('ai-status');
+    const subtitleEl = document.getElementById('live-subtitle');
+    const avatarRing = document.getElementById('avatar-ring');
+    const timerEl = document.getElementById('timer');
+    const elapsedEl = document.getElementById('elapsed');
+    const questionEl = document.getElementById('current-question');
+    const sentimentPct = document.getElementById('sentiment-pct');
+    const progressFill = document.getElementById('progress-fill');
+    const progressLabel = document.getElementById('progress-label');
+
+    let recognition;
+    let isListening = false;
+    let currentSpeechInput = "";
+    let secondsElapsed = 0;
+    let questionCount = 0;
+
+    const profiles = {
+        aura: "Janani AI",
+        neuro: "Neuro AI",
+        oracle: "Oracle AI"
+    };
+    const finalName = profiles[sessionConfig.agent] || "Janani AI";
+    agentNameEl.textContent = finalName;
+    agentDisplayNameEl.textContent = finalName;
+
+    function requestFullscreen() {
+        const root = document.getElementById('interview-root');
+        if (!document.fullscreenElement && root.requestFullscreen) {
+            root.requestFullscreen().catch(() => {});
+        }
+    }
+
+    function exitFullscreen() {
+        if (document.fullscreenElement && document.exitFullscreen) {
+            document.exitFullscreen().catch(() => {});
+        }
+    }
+
+    function startTimer() {
+        setInterval(() => {
+            secondsElapsed += 1;
+            const mm = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+            const ss = String(secondsElapsed % 60).padStart(2, '0');
+            timerEl.textContent = `${mm}:${ss}`;
+            // Also update the footer clock display as an mock "current time"
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            elapsedEl.textContent = timeStr;
+        }, 1000);
+    }
+
+    function updateProgress() {
+        const progress = Math.min(questionCount * 12, 100);
+        progressFill.style.width = `${progress}%`;
+        progressLabel.textContent = `${progress}%`;
+    }
+
+    function stopListening() {
+        if (recognition) {
+            try { recognition.stop(); } catch (e) {}
+        }
+        isListening = false;
+        btnMic.classList.remove('active');
+        aiStatus.textContent = "Listening paused";
+    }
+
+    function toggleMic() {
+        if (!recognition) return;
+        if (isListening) {
+            stopListening();
+            return;
+        }
+        try {
+            recognition.start();
+        } catch (e) {}
+    }
+
+    function sendAnswer(answer) {
+        if (!answer) return;
+        subtitleEl.textContent = "";
+        socket.emit('send_answer', { answer });
+        currentSpeechInput = "";
+        aiStatus.textContent = "Analyzing your response...";
+        stopListening();
+    }
+
+    function endInterview() {
+        if (!confirm("End interview and return to dashboard?")) return;
+        stopListening();
+        socket.emit('end_interview', {});
+        exitFullscreen();
+        setTimeout(() => {
+            window.location.href = "{{ url_for('user.dashboard') }}";
+        }, 250);
+    }
+
+    function setupSpeech() {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SR) {
+            aiStatus.textContent = "Speech recognition not supported";
+            return;
+        }
+        recognition = new SR();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = () => {
+            isListening = true;
+            btnMic.classList.add('active');
+            aiStatus.textContent = "Listening... Speak naturally";
+        };
+
+        recognition.onresult = (event) => {
+            let interim = "";
+            let finalText = "";
+            for (let i = event.resultIndex; i < event.results.length; i += 1) {
+                if (event.results[i].isFinal) finalText += event.results[i][0].transcript;
+                else interim += event.results[i][0].transcript;
+            }
+            if (finalText) currentSpeechInput += `${finalText} `;
+            const liveText = `${currentSpeechInput}${interim}`.trim();
+            subtitleEl.textContent = liveText;
+        };
+
+        recognition.onend = () => { isListening = false; btnMic.classList.remove('active'); };
+        recognition.onerror = () => { isListening = false; btnMic.classList.remove('active'); };
+    }
+
+    function animateWaves(isSpeaking) {
+        const bars = document.querySelectorAll('.wave-bar');
+        bars.forEach((bar, i) => {
+            const height = isSpeaking ? (20 + Math.random() * 60) : (5 + Math.random() * 10);
+            bar.style.height = `${height}px`;
+            bar.style.opacity = isSpeaking ? (0.4 + Math.random() * 0.6) : 0.2;
+        });
+    }
+
+    socket.on('interview_question', (data) => {
+        const q = (data && data.question) || "Please continue.";
+        questionEl.innerHTML = `${q}<br><span class="text-secondary small fw-normal">(Question updated from AI)</span>`;
+        subtitleEl.textContent = "";
+        aiStatus.textContent = "AI is asking a question";
+        avatarRing.classList.add('active');
+        
+        // Start speaking animation
+        let speakTimer = setInterval(() => animateWaves(true), 100);
+        
+        questionCount += 1;
+        updateProgress();
+        
+        setTimeout(() => {
+            clearInterval(speakTimer);
+            animateWaves(false); // Reset to idle
+            avatarRing.classList.remove('active');
+        }, 3000); // Simulate 3 seconds of speaking
+    });
+
+    socket.on('sentiment_feedback', (data) => {
+        const score = Number(data.score || 0);
+        sentimentPct.textContent = `${score * 10}%`;
+    });
+
+    socket.on('report_ready', (data) => {
+        exitFullscreen();
+        if (data && data.redirect_url) {
+            window.location.href = data.redirect_url;
+        } else {
+            window.location.href = "{{ url_for('user.dashboard') }}";
+        }
+    });
+
+    btnMic.addEventListener('click', toggleMic);
+    btnFinish.addEventListener('click', endInterview);
+    btnFinishTop.addEventListener('click', endInterview);
+    btnFullscreen.addEventListener('click', requestFullscreen);
+    btnSkip.addEventListener('click', () => sendAnswer("Skip this question."));
+    btnNext.addEventListener('click', () => {
+        if (subtitleEl.textContent) {
+            sendAnswer(subtitleEl.textContent);
+        } else {
+            socket.emit('send_answer', { answer: "Next question please." });
+        }
+    });
+
+    // --- Sentient Dashboard Logic ---
+
+    function animateTelemetry() {
+        setInterval(() => {
+            if (isListening) {
+                // Animate sparklines with random but smooth fluctuations
+                const paths = document.querySelectorAll('.tel-graph svg path');
+                paths.forEach(path => {
+                    const points = [];
+                    for (let i = 0; i <= 100; i += 20) {
+                        const y = 5 + Math.random() * 10;
+                        points.push(`${i},${y}`);
+                    }
+                    path.setAttribute('d', `M${points.join(' L')}`);
+                });
+
+                // Pulse the haptic hologram
+                const hologram = document.querySelector('.haptic-visual svg path');
+                if (hologram) {
+                    hologram.style.opacity = 0.4 + Math.random() * 0.4;
+                }
+            }
+        }, 150);
+    }
+
+    function simulateHapticChecks() {
+        const checks = document.querySelectorAll('.h-check');
+        let index = 0;
+        const interval = setInterval(() => {
+            if (index < checks.length) {
+                checks[index].style.opacity = '1';
+                checks[index].querySelector('i').className = 'fas fa-check-circle';
+                index++;
+            } else {
+                clearInterval(interval);
+            }
+        }, 1000);
+    }
+
+    function updateDialectConfidence(confidence) {
+        const text = document.querySelector('.conf-circle text');
+        const path = document.querySelector('.conf-circle path:last-child');
+        if (text && path) {
+            text.textContent = `${confidence}%`;
+            path.setAttribute('stroke-dasharray', `${confidence}, 100`);
+        }
+    }
+
+    // --- End Sentient Logic ---
+
+    window.addEventListener('load', () => {
+        setupSpeech();
+        startTimer();
+        requestFullscreen();
+        animateTelemetry();
+        simulateHapticChecks();
+        
+        setTimeout(() => {
+            socket.emit('start_interview', {
+                interview_type: sessionConfig.type,
+                difficulty: sessionConfig.difficulty,
+                agent: sessionConfig.agent
+            });
+        }, 700);
+    });
+</script>
+{% endblock %}

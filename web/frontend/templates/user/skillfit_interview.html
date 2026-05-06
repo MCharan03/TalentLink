@@ -1,0 +1,379 @@
+{% extends "user/user_base.html" %}
+
+{% block title %}Aura SkillFit - Janani AI Interview{% endblock %}
+
+{% block styles %}
+<style>
+    body { background-color: #0f172a !important; overflow: hidden; font-family: 'Inter', sans-serif; }
+    .navbar { display: none !important; }
+
+    /* Aura SkillFit Header */
+    .skillfit-header {
+        position: absolute;
+        top: 0; left: 0; width: 100%;
+        padding: 20px 30px;
+        background: linear-gradient(to bottom, rgba(15, 23, 42, 0.9), transparent);
+        z-index: 100;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .brand-logo { font-size: 1.5rem; font-weight: 800; color: #6366f1; letter-spacing: -1px; }
+    .dialect-badge {
+        background: rgba(99, 102, 241, 0.2);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        color: #818cf8;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    /* Janani Stage */
+    .janani-stage {
+        height: 100vh;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .janani-avatar {
+        width: 250px;
+        height: 250px;
+        position: relative;
+        z-index: 10;
+    }
+
+    /* Sentient Pulse for Janani */
+    .janani-pulse {
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: 300px; height: 300px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+        border-radius: 50%;
+        animation: janani-breathe 4s ease-in-out infinite;
+    }
+
+    @keyframes janani-breathe {
+        0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+        50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.6; }
+    }
+
+    .janani-core {
+        width: 100%; height: 100%;
+        background: #1e293b;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        overflow: hidden;
+    }
+
+    .janani-visualizer {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 40px;
+    }
+
+    .v-bar {
+        width: 4px;
+        height: 10px;
+        background: #6366f1;
+        border-radius: 2px;
+        transition: height 0.1s ease;
+    }
+
+    /* Candidate PIP */
+    .candidate-pip {
+        position: absolute;
+        bottom: 100px; right: 30px;
+        width: 320px; aspect-ratio: 16/9;
+        background: #000;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        z-index: 50;
+    }
+
+    #webcam-video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+
+    /* Subtitles (Kannada Optimized) */
+    .subtitles-container {
+        position: absolute;
+        bottom: 120px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80%;
+        text-align: center;
+        z-index: 100;
+    }
+
+    .subtitle-text {
+        background: rgba(15, 23, 42, 0.8);
+        backdrop-filter: blur(10px);
+        color: #f8fafc;
+        padding: 15px 30px;
+        border-radius: 12px;
+        font-size: 1.25rem;
+        font-weight: 500;
+        display: inline-block;
+        border: 1px solid rgba(255,255,255,0.1);
+        min-height: 60px;
+    }
+
+    /* Control Bar */
+    .sf-controls {
+        position: absolute;
+        bottom: 0; left: 0; width: 100%;
+        height: 80px;
+        background: rgba(15, 23, 42, 0.95);
+        border-top: 1px solid rgba(255,255,255,0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        z-index: 200;
+    }
+
+    .sf-btn {
+        width: 48px; height: 48px;
+        border-radius: 50%;
+        border: none;
+        background: #334155;
+        color: #f8fafc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .sf-btn:hover { background: #475569; transform: translateY(-2px); }
+    .sf-btn.active { background: #6366f1; color: white; box-shadow: 0 0 20px rgba(99, 102, 241, 0.4); }
+    .sf-btn.danger { background: #ef4444; color: white; }
+
+    /* Integrity Overlay */
+    .integrity-overlay {
+        position: absolute;
+        top: 20px; right: 20px;
+        background: rgba(0,0,0,0.6);
+        padding: 10px 20px;
+        border-radius: 10px;
+        color: #10b981;
+        font-family: monospace;
+        font-size: 0.75rem;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    /* Proof of Action Alert */
+    .action-alert {
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(99, 102, 241, 0.95);
+        color: white;
+        padding: 30px;
+        border-radius: 20px;
+        text-align: center;
+        z-index: 1000;
+        display: none;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        animation: pop-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes pop-in { from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+</style>
+{% endblock %}
+
+{% block user_content %}
+<div class="janani-stage">
+    <!-- Integrity Monitoring -->
+    <div class="integrity-overlay">
+        <div>LIVELINESS: OK</div>
+        <div>HAPTIC: STABLE</div>
+        <div>FRAUD_SHIELD: ACTIVE</div>
+        <div id="dialect-info" class="text-primary mt-2">DIALECT: DETECTING...</div>
+    </div>
+
+    <!-- Header -->
+    <div class="skillfit-header">
+        <div class="brand-logo">AURA SKILLFIT</div>
+        <div class="dialect-badge" id="dialect-badge">Persona: Janani (Nurturing)</div>
+        <div class="text-white small fw-bold" id="timer">00:00</div>
+    </div>
+
+    <!-- Janani AI Avatar -->
+    <div class="janani-pulse"></div>
+    <div class="janani-avatar">
+        <div class="janani-core">
+            <div class="janani-visualizer" id="visualizer">
+                <div class="v-bar"></div><div class="v-bar"></div><div class="v-bar"></div><div class="v-bar"></div><div class="v-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subtitles -->
+    <div class="subtitles-container">
+        <div class="subtitle-text" id="janani-subtitles">
+            Namaskara! Welcome to your Aura SkillFit assessment. I am Janani. Please make yourself comfortable.
+        </div>
+    </div>
+
+    <!-- Proof of Action Alert -->
+    <div class="action-alert" id="action-alert">
+        <h4 class="fw-bold mb-3">PROOF OF ACTION</h4>
+        <p id="action-instruction">Please hold your right hand up to the camera to verify your grip.</p>
+        <div class="spinner-border text-white mt-2" role="status"></div>
+    </div>
+
+    <!-- Candidate PIP -->
+    <div class="candidate-pip">
+        <video id="webcam-video" autoplay playsinline muted></video>
+    </div>
+</div>
+
+<!-- Controls -->
+<div class="sf-controls">
+    <button class="sf-btn" id="btn-mic" title="Mic Toggle">
+        <i class="fas fa-microphone-slash" id="mic-icon"></i>
+    </button>
+    <button class="sf-btn" id="btn-cam" title="Cam Toggle">
+        <i class="fas fa-video"></i>
+    </button>
+    <button class="sf-btn active" id="btn-next" title="Next Question">
+        <i class="fas fa-arrow-right"></i>
+    </button>
+    <div style="width: 50px;"></div>
+    <button class="sf-btn danger" id="btn-end" title="End Session">
+        <i class="fas fa-phone-slash"></i>
+    </button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<script>
+    const socket = io();
+    let isSpeaking = false;
+    let seconds = 0;
+    
+    // --- UI Controls ---
+    const btnMic = document.getElementById('btn-mic');
+    const micIcon = document.getElementById('mic-icon');
+    const jananiSubs = document.getElementById('janani-subtitles');
+    const visualizer = document.getElementById('visualizer');
+    const actionAlert = document.getElementById('action-alert');
+    const actionInstruction = document.getElementById('action-instruction');
+    const dialectBadge = document.getElementById('dialect-badge');
+    const dialectInfo = document.getElementById('dialect-info');
+
+    // Timer
+    setInterval(() => {
+        seconds++;
+        const m = Math.floor(seconds/60).toString().padStart(2, '0');
+        const s = (seconds%60).toString().padStart(2, '0');
+        document.getElementById('timer').innerText = `${m}:${s}`;
+    }, 1000);
+
+    // Audio Visualizer Simulation
+    function updateVisualizer(active) {
+        const bars = visualizer.children;
+        for(let bar of bars) {
+            bar.style.height = active ? `${Math.random() * 30 + 10}px` : '10px';
+        }
+    }
+    setInterval(() => updateVisualizer(isSpeaking), 100);
+
+    // --- Speech Recognition ---
+    let recognition;
+    if ('webkitSpeechRecognition' in window) {
+        recognition = new webkitSpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'kn-IN'; // Default to Kannada
+
+        recognition.onresult = (event) => {
+            let transcript = event.results[event.results.length - 1][0].transcript;
+            if (event.results[event.results.length - 1].isFinal) {
+                processDialect(transcript);
+            }
+        };
+    }
+
+    async function processDialect(text) {
+        const res = await fetch('/api/skillfit_dialect_detect', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ transcript: text })
+        });
+        const data = await res.json();
+        if (data.detected_district) {
+            dialectBadge.innerText = `Dialect: ${data.detected_district}`;
+            dialectInfo.innerText = `DIALECT: ${data.detected_district.toUpperCase()}`;
+            speakJanani(`${data.suggested_greeting}! You seem to be from ${data.detected_district}. Let's continue in your comfortable style.`);
+        }
+    }
+
+    // --- Sentient OS: Proof of Action (Simulated) ---
+    function triggerProofOfAction(instruction) {
+        actionInstruction.innerText = instruction;
+        actionAlert.style.display = 'block';
+        setTimeout(() => {
+            actionAlert.style.display = 'none';
+            speakJanani("Verification complete. Excellent confidence detected.");
+        }, 4000);
+    }
+
+    // --- Sentient OS: Haptic Integrity ---
+    if (window.DeviceMotionEvent) {
+        window.addEventListener('devicemotion', (e) => {
+            const acc = e.accelerationIncludingGravity;
+            if (acc.x > 15 || acc.y > 15) {
+                console.log("🍒 SkillFit: Erratic device movement detected.");
+            }
+        });
+    }
+
+    // --- AI Logic ---
+    function speakJanani(text) {
+        isSpeaking = true;
+        jananiSubs.innerText = text;
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.onend = () => { isSpeaking = false; };
+        window.speechSynthesis.speak(utterance);
+    }
+
+    btnMic.onclick = () => {
+        if (recognition) {
+            recognition.start();
+            btnMic.classList.add('active');
+            micIcon.classList.replace('fa-microphone-slash', 'fa-microphone');
+        }
+    };
+
+    document.getElementById('btn-next').onclick = () => {
+        triggerProofOfAction("Please hold your technical tool or your ID card up to the camera.");
+    };
+
+    // Camera Init
+    navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+        document.getElementById('webcam-video').srcObject = stream;
+    });
+
+    window.onload = () => {
+        setTimeout(() => {
+            speakJanani("Namaskara! Nan hesaru Janani. Nimmanna nodi thumba khushi aythu. Nimma bagge swalpa heltheera?");
+        }, 2000);
+    };
+</script>
+{% endblock %}
