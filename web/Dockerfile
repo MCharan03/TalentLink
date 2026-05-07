@@ -21,6 +21,7 @@ RUN apt-get update && apt-get install -y \
     libxext6 \
     libxrender-dev \
     libgl1-mesa-glx \
+    libglib2.0-0 \
     default-libmysqlclient-dev \
     poppler-utils \
     tesseract-ocr \
