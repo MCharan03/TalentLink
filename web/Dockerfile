@@ -1,22 +1,22 @@
 # Dockerfile for Smart Resume Analyzer
 
-# Use official Python runtime as a parent image
-FROM python:3.9-slim
+# Use a more modern Python runtime
+FROM python:3.11-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+ENV FLASK_APP=run.py
 
 # Set work directory
 WORKDIR /app
 
-# Install system dependencies (e.g., for PDF parsing, database drivers, and AI libraries)
+# Install system dependencies (Optimized for Flask + AI)
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
     pkg-config \
-    libopenblas-dev \
-    liblapack-dev \
+    libsqlite3-dev \
     libsm6 \
     libxext6 \
     libxrender-dev \
@@ -25,12 +25,16 @@ RUN apt-get update && apt-get install -y \
     default-libmysqlclient-dev \
     poppler-utils \
     tesseract-ocr \
+    curl \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Python build tools first
+RUN pip install --upgrade pip setuptools wheel
 
 # Install Python dependencies
 COPY requirements.txt /app/
-RUN pip install --upgrade pip && pip install -r requirements.txt
-RUN pip install gunicorn
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install gunicorn eventlet
 
 # Copy project
 COPY . /app/
