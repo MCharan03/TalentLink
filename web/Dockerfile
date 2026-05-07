@@ -32,12 +32,12 @@ RUN apt-get update && apt-get install -y \
 RUN pip install --upgrade pip setuptools wheel
 
 # Install Python dependencies
-COPY requirements.txt /app/
+COPY web/requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install gunicorn eventlet
 
 # Copy project
-COPY . /app/
+COPY web/ /app/
 
 # Expose port
 EXPOSE 5000
@@ -46,7 +46,7 @@ EXPOSE 5000
 RUN mkdir -p /app/backend/data
 
 # Copy entrypoint script
-COPY entrypoint.sh /app/entrypoint.sh
+COPY web/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
 # Run the entrypoint script
