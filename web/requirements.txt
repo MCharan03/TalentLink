@@ -93,5 +93,5 @@ wsproto==1.3.2
 WTForms==3.2.1
 pytubefix
 ollama
-opencv-python
-face-recognition
+opencv-python-headless
+# face-recognition (Commented out for Render Free Tier memory compatibility)
