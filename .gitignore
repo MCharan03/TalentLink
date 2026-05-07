@@ -93,3 +93,6 @@ flask.session.sql
 chroma_db/
 uploads/
 Screenshot*.png
+
+# Graphify cache
+graphify-out/cache/

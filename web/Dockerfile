@@ -29,5 +29,12 @@ COPY . /app/
 # Expose port
 EXPOSE 5000
 
-# Run with Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "run:app"]
+# Create directory for persistent SQLite database
+RUN mkdir -p /app/backend/data
+
+# Copy entrypoint script
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+# Run the entrypoint script
+ENTRYPOINT ["/app/entrypoint.sh"]
