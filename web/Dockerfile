@@ -10,12 +10,20 @@ ENV PYTHONUNBUFFERED 1
 # Set work directory
 WORKDIR /app
 
-# Install system dependencies (e.g., for PDF parsing, database drivers)
+# Install system dependencies (e.g., for PDF parsing, database drivers, and AI libraries)
 RUN apt-get update && apt-get install -y \
     build-essential \
-    default-libmysqlclient-dev \
+    cmake \
     pkg-config \
+    libopenblas-dev \
+    liblapack-dev \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgl1-mesa-glx \
+    default-libmysqlclient-dev \
     poppler-utils \
+    tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
